@@ -3,6 +3,8 @@ Imports System.Text.RegularExpressions
 Imports Microsoft.VisualBasic.CommandLine.Reflection
 Imports Microsoft.VisualBasic.DocumentFormat.Csv.Extensions
 Imports Microsoft.VisualBasic.Scripting.MetaData
+Imports LANS.SystemsBiology.Assembly.NCBI.GenBank.CsvExports
+Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.BBH
 
 Namespace NCBIBlastResult
 
@@ -21,34 +23,33 @@ Namespace NCBIBlastResult
         Public Function CreateFromBBHOrthologous(QueryID As String,
                                                  Source As String,
                                                  <Parameter("Query.Info")>
-                                                 queryInfo As Generic.IEnumerable(Of LANS.SystemsBiology.Assembly.NCBI.GenBank.CsvExports.GeneDumpInfo)) As NCBIBlastResult.AlignmentTable
+                                                 queryInfo As IEnumerable(Of GeneDumpInfo)) As NCBIBlastResult.AlignmentTable
             Dim Entries = (From path As KeyValuePair(Of String, String) In Source.LoadSourceEntryList({"*.csv"})
-                           Let Log = LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.BatchParallel.LogNameParser(path.Value)
+                           Let Log = LocalBLAST.Application.BatchParallel.LogNameParser(path.Value)
                            Select ID = path.Key,
                                LogEntry = Log,
-                               besthitData = path.Value.LoadCsv(Of LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.BBH.BestHit)(False).ToArray).ToArray
+                               besthitData = path.Value.LoadCsv(Of BestHit)(False).ToArray).ToArray
             Dim QuerySide = (From entry In Entries Where String.Equals(entry.LogEntry.QueryName, QueryID, StringComparison.OrdinalIgnoreCase) Select entry).ToArray '得到Query的比对方向的数据
             Dim SubjectSide = (From entry In Entries Where String.Equals(entry.LogEntry.HitName, QueryID, StringComparison.OrdinalIgnoreCase) Select entry).ToArray
             Dim BBH = (From query In QuerySide.AsParallel
                        Let subject = query.LogEntry.SelectEquals(SubjectSide, Function(Entry) Entry.LogEntry)
-                       Let bbhData = (From bbbbh As NCBI.Extensions.LocalBLAST.Application.BBH.BiDirectionalBesthit
-                                      In LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.BBH.BBHParser.BBHTop(QvS:=query.besthitData, SvQ:=subject.besthitData)
+                       Let bbhData = (From bbbbh As BiDirectionalBesthit
+                                      In BBHParser.BBHTop(QvS:=query.besthitData, SvQ:=subject.besthitData)
                                       Where bbbbh.Matched
                                       Select bbbbh).ToArray
                        Select query.ID,
                            query.LogEntry,
                            bbhData).ToArray
-            Dim queryDict As Dictionary(Of String, LANS.SystemsBiology.Assembly.NCBI.GenBank.CsvExports.GeneDumpInfo) =
-                queryInfo.ToDictionary(Function(item) item.LocusID)
+            Dim queryDict As Dictionary(Of String, GeneDumpInfo) = queryInfo.ToDictionary(Function(item) item.LocusID)
             Dim Hits = (From Genome In BBH Select (From Gene In Genome.bbhData Let QueryGene = queryDict(Gene.QueryName)
-                                                   Let row = New NCBIBlastResult.HitRecord With {
+                                                   Let row = New HitRecord With {
                                                        .Identity = Gene.Identities,
                                                        .QueryStart = QueryGene.Left,
                                                        .QueryEnd = QueryGene.Right,
                                                        .SubjectIDs = Genome.LogEntry.HitName
                                                    }
-                                                   Select row).ToArray).ToArray.MatrixToList
-            Dim Table As New NCBIBlastResult.AlignmentTable With {
+                                                   Select row)).MatrixToVector
+            Dim Table As New AlignmentTable With {
                 .Database = Source,
                 .Hits = Hits.ToArray,
                 .Program = "BBH",

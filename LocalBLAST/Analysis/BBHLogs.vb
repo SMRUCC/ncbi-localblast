@@ -147,12 +147,12 @@ Namespace Analysis
             If FileIO.FileSystem.FileExists(FilePath) AndAlso FileIO.FileSystem.GetFileInfo(FilePath).Length > 0 Then
                 GoTo RETURN_VALUE
             End If
-            Dim OutputLog = LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus.Parser.TryParse(Path.FilePath)
+            Dim OutputLog As BlastPlus.v228 = BlastPlus.Parser.TryParse(Path.FilePath)
             If OutputLog Is Nothing Then
                 Return Nothing
             End If
             Call OutputLog.Grep(Query:=QueryGrep.Method, Hits:=SubjectGrep.Method)
-            Dim besthitsData As LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.BBH.BestHit() = OutputLog.ExportBestHit
+            Dim besthitsData As BBH.BestHit() = OutputLog.ExportBestHit
             Call besthitsData.SaveTo(FilePath, False, System.Text.Encoding.ASCII)
 
 RETURN_VALUE:

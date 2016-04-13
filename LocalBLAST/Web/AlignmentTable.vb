@@ -2,8 +2,10 @@
 Imports System.Xml.Serialization
 Imports Microsoft.VisualBasic.ComponentModel
 Imports Microsoft.VisualBasic.DocumentFormat.Csv.StorageProvider.Reflection
+Imports Microsoft.VisualBasic.Linq
 Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus
 Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus.BlastX
+Imports LANS.SystemsBiology.Assembly.NCBI.GenBank.CsvExports
 
 Namespace NCBIBlastResult
 
@@ -37,14 +39,14 @@ Namespace NCBIBlastResult
         ''' <param name="Info"></param>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        Public Function DescriptionSubstituted(Info As LANS.SystemsBiology.Assembly.NCBI.GenBank.CsvExports.gbEntryBrief()) As Integer
+        Public Function DescriptionSubstituted(Info As gbEntryBrief()) As Integer
             Dim GiDict = Info.ToDictionary(Function(item) item.GI)
             Dim LQuery = (From hitEntry As HitRecord In Hits Select __substituted(hitEntry, GiDict)).ToArray
             Hits = LQuery
             Return Hits.Length
         End Function
 
-        Private Shared Function __substituted(hitEntry As HitRecord, dictGI As Dictionary(Of String, Assembly.NCBI.GenBank.CsvExports.gbEntryBrief)) As HitRecord
+        Private Shared Function __substituted(hitEntry As HitRecord, dictGI As Dictionary(Of String, gbEntryBrief)) As HitRecord
             Dim GetEntry = (From id As String In hitEntry.GI Where dictGI.ContainsKey(id) Select dictGI(id)).ToArray
             If Not GetEntry.IsNullOrEmpty Then
                 hitEntry.SubjectIDs = String.Format("gi|{0}|{1}", GetEntry.First.GI, GetEntry.First.Definition)
@@ -72,15 +74,14 @@ Namespace NCBIBlastResult
         ''' <param name="Info"></param>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        Public Function DescriptionSubstituted2(Info As LANS.SystemsBiology.Assembly.NCBI.GenBank.CsvExports.gbEntryBrief()) As Integer
-            Dim GiDict As Dictionary(Of String, Assembly.NCBI.GenBank.CsvExports.gbEntryBrief) =
-                Info.ToDictionary(Function(item) item.Locus)
+        Public Function DescriptionSubstituted2(Info As gbEntryBrief()) As Integer
+            Dim GiDict As Dictionary(Of String, gbEntryBrief) = Info.ToDictionary(Function(item) item.Locus)
             Dim LQuery = (From hitEntry As HitRecord In Hits Select __substituted2(hitEntry, GiDict)).ToArray
             Hits = LQuery
             Return Hits.Length
         End Function
 
-        Private Shared Function __substituted2(hitEntry As HitRecord, GiDict As Dictionary(Of String, Assembly.NCBI.GenBank.CsvExports.gbEntryBrief)) As HitRecord
+        Private Shared Function __substituted2(hitEntry As HitRecord, GiDict As Dictionary(Of String, gbEntryBrief)) As HitRecord
             If GiDict.ContainsKey(hitEntry.SubjectIDs) Then
                 Dim GetEntry = GiDict(hitEntry.SubjectIDs)
                 hitEntry.SubjectIDs = String.Format("gi|{0}|{1}", GetEntry.GI, GetEntry.Definition)
@@ -88,7 +89,7 @@ Namespace NCBIBlastResult
             Return hitEntry
         End Function
 
-        Public Shared Function LoadDocument(path As String) As NCBIBlastResult.AlignmentTable
+        Public Shared Function LoadDocument(path As String) As AlignmentTable
             Dim docBuffer As String() = (From s As String In System.IO.File.ReadAllLines(path)
                                          Where Not String.IsNullOrEmpty(s)
                                          Select s).ToArray
@@ -150,12 +151,12 @@ Namespace NCBIBlastResult
         Public Shared Function CreateFromBlastn(sourceDIR As String) As AlignmentTable
             Dim Files = (From path As String
                          In FileIO.FileSystem.GetFiles(sourceDIR, FileIO.SearchOption.SearchAllSubDirectories, "*.txt")
-                         Let XOutput = LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus.Parser.LoadBlastOutput(path)
+                         Let XOutput = Parser.LoadBlastOutput(path)
                          Where Not XOutput Is Nothing AndAlso
                              Not XOutput.Queries.IsNullOrEmpty
-                         Select ID = System.IO.Path.GetFileNameWithoutExtension(path),
+                         Select ID = path.BaseName,
                              XOutput).ToArray
-            Dim LQuery = (From file In Files Select __createFromBlastn(file.ID, file.XOutput)).ToArray.MatrixToList.ToArray
+            Dim LQuery As HitRecord() = (From file In Files Select __createFromBlastn(file.ID, file.XOutput)).MatrixToVector
             Dim Tab As AlignmentTable = New AlignmentTable With {
                 .Hits = LQuery,
                 .Query = (From file In Files
@@ -188,8 +189,8 @@ Namespace NCBIBlastResult
                                                                  .QueryEnd = hsp.Hsp.Last.Query.Right
                                                              }
                                                              Select row).ToArray
-                                                         ).ToArray
-                                                 ).ToArray.MatrixToList.MatrixToList.ToArray
+                                                         )
+                                                 ).MatrixAsIterator.MatrixToVector
             Dim Tab = New AlignmentTable With {
                 .Hits = LQuery,
                 .Query = Files.First.XOutput.Queries.First.QueryName,
