@@ -24,14 +24,14 @@ Namespace LocalBLAST.Application.BatchParallel
         ''' <param name="Query"></param>
         ''' <param name="Subject"></param>
         ''' <param name="Evalue"></param>
-        ''' <param name="ExportDir"></param>
+        ''' <param name="Export"></param>
         ''' <returns>返回blast的日志文件名</returns>
         ''' <remarks></remarks>
         Public Delegate Function INVOKE_BLAST_HANDLE(Query As String,
                                                      Subject As String,
                                                      num_threads As Integer,
                                                      Evalue As String,
-                                                     ExportDir As String,
+                                                     EXPORT As String,
                                                      [Overrides] As Boolean) As String
 
         ''' <summary>
@@ -53,20 +53,20 @@ Namespace LocalBLAST.Application.BatchParallel
         '''
         ''' </summary>
         ''' <param name="input">输入的文件夹，fasta序列的文件拓展名必须要为*.fasta或者*.fsa</param>
-        ''' <param name="export">结果导出的文件夹，导出blast日志文件</param>
+        ''' <param name="EXPORT">结果导出的文件夹，导出blast日志文件</param>
         ''' <param name="InvokedBLASTAction">所执行的blast命令，函数返回日志文件名</param>
         ''' <remarks></remarks>
         '''
         <ExportAPI("Task.Builder")>
         Public Function TaskBuilder(input As String,
-                                    export As String,
+                                    EXPORT As String,
                                     evalue As String,
                                     InvokedBLASTAction As INVOKE_BLAST_HANDLE,
                                     Optional [Overrides] As Boolean = False) As AlignEntry()
             Dim Files As String() = FileIO.FileSystem.GetFiles(input, FileIO.SearchOption.SearchAllSubDirectories, "*.fasta", "*.fsa").ToArray
             Dim ComboList = Microsoft.VisualBasic.ComponentModel.Comb(Of String).CreateCompleteObjectPairs(Files)
 
-            Call FileIO.FileSystem.CreateDirectory(export)
+            Call FileIO.FileSystem.CreateDirectory(EXPORT)
 
             Dim FileList As List(Of String) = New List(Of String)
 
@@ -75,7 +75,7 @@ Namespace LocalBLAST.Application.BatchParallel
                     Call FileList.Add(InvokedBLASTAction(Query:=paired.Key,
                                                          Subject:=paired.Value,
                                                          Evalue:=evalue,
-                                                         ExportDir:=export,
+                                                         EXPORT:=EXPORT,
                                                          num_threads:=RecommendedThreads,
                                                          [Overrides]:=[Overrides]))
                 Next
@@ -117,7 +117,7 @@ Namespace LocalBLAST.Application.BatchParallel
                                               Query:=paired.Key,
                                               Subject:=paired.Value,
                                               Evalue:=Evalue,
-                                              ExportDir:=Export,
+                                              EXPORT:=Export,
                                               num_threads:=RecommendedThreads,
                                               [Overrides]:=[Overrides])).ToArray
                 Call FileList.AddRange(LQuery)
@@ -157,7 +157,7 @@ Namespace LocalBLAST.Application.BatchParallel
                                                      Function() blastTask(Query:=task.Key,
                                                                           Subject:=task.Value,
                                                                           Evalue:=evalue,
-                                                                          ExportDir:=outDIR,
+                                                                          EXPORT:=outDIR,
                                                                           num_threads:=RecommendedThreads,
                                                                           [Overrides]:=[overrides])
                                                  Select taskHandle).ToArray

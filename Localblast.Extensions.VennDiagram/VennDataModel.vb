@@ -1,5 +1,6 @@
 ﻿Imports System.Runtime.CompilerServices
 
+Imports Microsoft.VisualBasic.Language.UnixBash
 Imports Microsoft.VisualBasic.CommandLine.Reflection
 Imports Microsoft.VisualBasic.DocumentFormat.Csv.Extensions
 Imports PathEntry = System.Collections.Generic.KeyValuePair(Of String, String)
@@ -197,7 +198,7 @@ Namespace BlastAPI
 
             Dim LQuery = (From Path As PathEntry
                       In Subjects.AsParallel
-                          Select Handle(Query, Subject:=Path.Value, Evalue:=Evalue, ExportDir:=EXPORT, num_threads:=Environment.ProcessorCount / 2, [Overrides]:=[Overrides])).ToArray
+                          Select Handle(Query, Subject:=Path.Value, Evalue:=Evalue, EXPORT:=EXPORT, num_threads:=Environment.ProcessorCount / 2, [Overrides]:=[Overrides])).ToArray
             Return LQuery
         End Function
 
@@ -218,17 +219,32 @@ Namespace BlastAPI
 
             Call FileIO.FileSystem.CreateDirectory(EXPORT)
 
-            Dim LQuery = (From Path As PathEntry
-                      In Subjects.AsParallel
-                          Select __bbh(Path, Query, Evalue, EXPORT, Handle, [Overrides])).ToArray.MatrixToList
+            Dim LQuery As IEnumerable(Of String) = (From Path As PathEntry
+                                                    In Subjects.AsParallel
+                                                    Select __bbh(Path, Query, Evalue, EXPORT, Handle, [Overrides])).MatrixAsIterator
             Return (From Path As String In LQuery.AsParallel
                     Select LogNameParser(Path)).ToArray
         End Function
 
-        Private Function __bbh(Path As PathEntry, Query As String, Evalue As String, EXPORT As String, Handle As INVOKE_BLAST_HANDLE, [Overrides] As Boolean) As String()
-            Dim Files As List(Of String) = New List(Of String)
-            Call Files.Add(Handle(Query, Path.Value, 1, Evalue, EXPORT, [Overrides]))
-            Call Files.Add(Handle(Path.Value, Query, 1, Evalue, EXPORT, [Overrides]))
+        ''' <summary>
+        ''' query -> hits;   hits -> query
+        ''' </summary>
+        ''' <param name="Path"></param>
+        ''' <param name="Query"></param>
+        ''' <param name="Evalue"></param>
+        ''' <param name="EXPORT"></param>
+        ''' <param name="Handle"></param>
+        ''' <param name="[Overrides]"></param>
+        ''' <returns></returns>
+        Private Function __bbh(Path As PathEntry,
+                               Query As String,
+                               Evalue As String,
+                               EXPORT As String,
+                               Handle As INVOKE_BLAST_HANDLE,
+                               [Overrides] As Boolean) As String()
+            Dim Files As List(Of String) = New List(Of String) +
+                Handle(Query, Path.Value, 1, Evalue, EXPORT, [Overrides]) +
+                Handle(Path.Value, Query, 1, Evalue, EXPORT, [Overrides])
             Return Files.ToArray
         End Function
 
@@ -239,7 +255,7 @@ Namespace BlastAPI
                                        <Parameter("E-value")> Optional Evalue As String = "1e-3") _
                                     As <FunctionReturns("The file log path which is not integrity.")> String()
 
-            Dim Files As String() = FileIO.FileSystem.GetFiles(Input, FileIO.SearchOption.SearchAllSubDirectories, "*.fasta", "*.fsa", "*.fa").ToArray
+            Dim Files As IEnumerable(Of String) = ls - l - r - ext("*.fasta", "*.fsa", "*.fa") <= Input
             Dim ComboList = Comb(Of String).CreateCompleteObjectPairs(Files).MatrixAsIterator
 
             Call FileIO.FileSystem.CreateDirectory(EXPORT)
@@ -263,8 +279,8 @@ Namespace BlastAPI
                 Call Console.Write(".")
                 Return ""
             Else
-                Call Console.WriteLine("File ""{0}"" is incorrect!", PathLog.ToFileURL)
-                Return Handle(Query:=paired.Key, Subject:=paired.Value, Evalue:=Evalue, ExportDir:=EXPORT, num_threads:=Environment.ProcessorCount / 2, [Overrides]:=True)
+                Call VBDebugger.Warning($"File ""{PathLog.ToFileURL}"" is incorrect!")
+                Return Handle(Query:=paired.Key, Subject:=paired.Value, Evalue:=Evalue, EXPORT:=EXPORT, num_threads:=Environment.ProcessorCount / 2, [Overrides]:=True)
             End If
         End Function
 
@@ -315,11 +331,14 @@ Namespace BlastAPI
 
         <ExportAPI("Orf.Dump.Load.As.Hash")>
         Public Function LoadCdsDumpInfo(Path As String) As Dictionary(Of String, GeneDumpInfo)
-            Dim CsvData = Path.LoadCsv(Of GeneDumpInfo)(False)
-            Dim GroupData = (From Orf In CsvData.AsParallel Select Orf Group By Orf.LocusID Into Group)
-            Dim DictHash = GroupData.ToDictionary(Function(obj) obj.LocusID,
-                                              Function(obj) obj.Group.First)
-            Return DictHash
+            Dim dumpInfo As IEnumerable(Of GeneDumpInfo) = Path.LoadCsv(Of GeneDumpInfo)(False)
+            Dim GroupData = (From ORF As GeneDumpInfo
+                             In dumpInfo.AsParallel
+                             Select ORF
+                             Group By ORF.LocusID Into Group)
+            Dim hash = GroupData.ToDictionary(Function(x) x.LocusID,
+                                              Function(x) x.Group.First)
+            Return hash
         End Function
 
         <ExportAPI("Orf.Dump.Begin.Load.As.Hash")>
@@ -340,7 +359,7 @@ Namespace BlastAPI
         '''
         ''' </summary>
         ''' <param name="data"></param>
-        ''' <param name="MainIndex">
+        ''' <param name="mainIndex">
         ''' 进化比较的标尺
         ''' 假若为空字符串或者数字0以及first，都表示使用集合之中的第一个元素对象作为标尺
         ''' 假若参数值为某一个菌株的名称<see cref="BestHit.QuerySpeciesName"></see>，则会以该菌株的数据作为比对数据
@@ -352,59 +371,68 @@ Namespace BlastAPI
         ''' </param>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <ExportAPI("Generate.Venn.LDM", Info:="The trim_null parameter is TRUE, and the function will filtering all of the data which have more than one hits.")>
+        <ExportAPI("Generate.Venn.LDM",
+                   Info:="The trim_null parameter is TRUE, and the function will filtering all of the data which have more than one hits.")>
         Public Function DeltaMove(data As IEnumerable(Of BestHit),
-                                  <Parameter("Index.Main", "The file name without the extension name of the target query fasta data.")>
-                                  Optional MainIndex As String = "",
-                                  <Parameter("Null.Trim")>
-                                  Optional TrimNull As Boolean = False) As DocumentStream.File
-            Dim DataDict = data.ToDictionary(Function(item) item.QuerySpeciesName)
-            Dim IndexKey = DataDict.Keys(__parserIndex(DataDict, MainIndex))
-            Dim MainData = DataDict(IndexKey)
-            Call DataDict.Remove(IndexKey)
+                                  <Parameter("Index.Main",
+                                             "The file name without the extension name of the target query fasta data.")> Optional mainIndex As String = "",
+                                  <Parameter("Null.Trim")> Optional TrimNull As Boolean = False) As DocumentStream.File
+
+            Dim dataHash As Dictionary(Of String, BestHit) = data.ToDictionary(Function(item) item.QuerySpeciesName)
+            Dim IndexKey = dataHash.Keys(__parserIndex(dataHash, mainIndex))
+            Dim MainData As BestHit = dataHash(IndexKey)
+
+            Call dataHash.Remove(IndexKey)
 
             If MainData.Hits.IsNullOrEmpty Then
-                Call $"The profile data of your key ""{MainIndex}"" ---> ""{MainData.QuerySpeciesName}"" is null!".__DEBUG_ECHO
+                Call $"The profile data of your key ""{mainIndex}"" ---> ""{MainData.QuerySpeciesName}"" is null!".__DEBUG_ECHO
                 Call "Thread exists...".__DEBUG_ECHO
                 Return New DocumentStream.File
             End If
 
-            Dim CSV = MainData.ExportCsv(TrimNull)
-            Dim Species As String() = (From item In MainData.Hits.First.Hits Select item.Tag).ToArray
+            Dim MAT As DocumentStream.File = MainData.ExportCsv(TrimNull)
+            Dim Species As String() = (From hit As Hit In MainData.Hits.First.Hits Select hit.Tag).ToArray
 
-            For DeltaIndex As Integer = 0 To DataDict.Count - 1
-                Dim SubMain = DataDict.Values(DeltaIndex)
+            For deltaIndex As Integer = 0 To dataHash.Count - 1
+                Dim subMain As BestHit = dataHash.Values(deltaIndex)
 
-                If SubMain.Hits.IsNullOrEmpty Then
-                    Call $"Profile data {SubMain.QuerySpeciesName} is null!".__DEBUG_ECHO
+                If subMain.Hits.IsNullOrEmpty Then
+                    Call $"Profile data {subMain.QuerySpeciesName} is null!".__DEBUG_ECHO
                     Continue For
                 End If
 
-                Dim di As Integer = DeltaIndex
-                Dim SubMainMatched = (From row In CSV Let d = 2 + 4 * di + 1 Let id As String = row(d) Where Not String.IsNullOrEmpty(id) Select id).ToArray
-                Dim Notmatched = (From item As HitCollection In SubMain.Hits
-                                  Where Array.IndexOf(SubMainMatched, item.QueryName) = -1
-                                  Select item.QueryName,
-                                  item.Description,
-                                  speciesProfile = item.Hits.ToDictionary(Function(ff) ff.Tag)).ToArray
+                Dim di As Integer = deltaIndex
+                Dim SubMainMatched As String() = (From row As DocumentStream.RowObject
+                                                  In MAT
+                                                  Let d As Integer = 2 + 4 * di + 1
+                                                  Let id As String = row(d)
+                                                  Where Not String.IsNullOrEmpty(id)
+                                                  Select id).ToArray
+                Dim Notmatched = (From hits As HitCollection
+                                  In subMain.Hits
+                                  Where Array.IndexOf(SubMainMatched, hits.QueryName) = -1
+                                  Select hits.QueryName,
+                                      hits.Description,
+                                      speciesProfile = hits.Hits.ToDictionary(Function(hit) hit.Tag))
 
                 For Each SubMainNotHitGene In Notmatched  '竖直方向遍历第n列的基因号
                     Dim row As New DocumentStream.RowObject From {SubMainNotHitGene.Description, SubMainNotHitGene.QueryName}
 
-                    Call row.AddRange((From nnn In (4 * DeltaIndex).Sequence Select "").ToArray)
+                    Call row.AddRange((From nnn In (4 * deltaIndex).Sequence Select "").ToArray)
 
-                    For Each sid As String In Species.Skip(DeltaIndex)
-                        Dim matched = SubMainNotHitGene.speciesProfile(sid)
+                    For Each sid As String In Species.Skip(deltaIndex)
+                        Dim matched As Hit = SubMainNotHitGene.speciesProfile(sid)
                         Call row.Add("")
                         Call row.Add(matched.HitName)
                         Call row.Add(matched.Identities)
                         Call row.Add(matched.Positive)
                     Next
-                    Call CSV.Add(row)
+
+                    MAT += row
                 Next
             Next
 
-            Return CSV
+            Return MAT
         End Function
 
         <ExportAPI("Venn.Source.Copy")>
@@ -418,9 +446,9 @@ Namespace BlastAPI
         End Function
 
         <ExportAPI("Load.Xmls.Besthit")>
-        Public Function ReadBesthitXML(dir As String) As BestHit()
+        Public Function ReadBesthitXML(DIR As String) As BestHit()
             Dim files = (From path As String
-                     In FileIO.FileSystem.GetFiles(dir, FileIO.SearchOption.SearchTopLevelOnly, "*.xml").AsParallel
+                         In FileIO.FileSystem.GetFiles(DIR, FileIO.SearchOption.SearchTopLevelOnly, "*.xml").AsParallel
                          Select path.LoadXml(Of BestHit)()).ToArray
             Return files
         End Function
@@ -433,20 +461,19 @@ Namespace BlastAPI
         ''' <remarks></remarks>
         <ExportAPI("Export.Conserved.GenomeRegion", Info:="Calculate of the conserved genome region based on the multiple genome bbh comparison result.")>
         Public Function OutputConservedCluster(bh As BestHit) As String()()
-            Dim ChunkBuffer = bh.GetConservedRegions
-            Dim LQuery = (From item In ChunkBuffer Select item.ToArray).ToArray
+            Dim regions As IReadOnlyCollection(Of String()) = bh.GetConservedRegions
             Dim i As Integer = 1
 
             Call Console.WriteLine(New String("=", 200))
             Call Console.WriteLine("Conserved region on ""{0}"":", bh.QuerySpeciesName)
             Call Console.WriteLine()
 
-            For Each Line In LQuery
-                Call Console.WriteLine(i & "   ----> " & String.Join(", ", Line))
+            For Each line As String() In regions
+                Call Console.WriteLine(i & "   ----> " & String.Join(", ", line))
                 i += 1
             Next
 
-            Return LQuery
+            Return regions.ToArray
         End Function
 
         ''' <summary>
@@ -478,6 +505,7 @@ Namespace BlastAPI
                 Dim sid As String = (From item In data Select item Order By Len(item.Key) Ascending).First.Key
                 Return Array.IndexOf(data.Keys.ToArray, sid)
             End If
+
             Return 0
         End Function
     End Module

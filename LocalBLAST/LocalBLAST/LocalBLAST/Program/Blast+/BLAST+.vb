@@ -15,7 +15,7 @@ Namespace LocalBLAST.Programs
         ''' <returns></returns>
         ''' <remarks></remarks>
         Public Function GetHelp() As String
-
+            Throw New NotImplementedException
         End Function
 
         ''' <summary>
@@ -24,7 +24,7 @@ Namespace LocalBLAST.Programs
         ''' <returns></returns>
         ''' <remarks></remarks>
         Public Function GetManual() As String
-
+            Throw New NotImplementedException
         End Function
 
         Public Property BlastpOptionalArguments As CLIArgumentsBuilder.BlastpOptionalArguments

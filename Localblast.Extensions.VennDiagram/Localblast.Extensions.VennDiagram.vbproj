@@ -87,8 +87,8 @@
     <Import Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BlastAPI\LogAnalysis.vb" />
-    <Compile Include="BlastAPI\VennDataModel.vb" />
+    <Compile Include="LogAnalysis.vb" />
+    <Compile Include="VennDataModel.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">
       <AutoGen>True</AutoGen>

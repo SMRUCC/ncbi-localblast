@@ -12,11 +12,8 @@ Partial Module CLI
         Dim out As String = args.GetValue("/out", inFile.TrimFileExt & ".Csv")
 
         Using IO As New __writeIO(out)  ' 打开文件流句柄
-
-            Dim IOHandle As Action(Of NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus.Query()) = AddressOf IO.InvokeWrite  ' 获取写文件的IO句柄函数指针
-            Call NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus.Transform(
-                inFile, CHUNK_SIZE:=1024 * 1024 * 64, transform:=IOHandle)  ' 执行blast输出大文件分析的并行化查询，内存映射的缓冲块大小为 128GB 的高位内存
-
+            Dim IOHandle As Action(Of BlastPlus.Query()) = AddressOf IO.InvokeWrite  ' 获取写文件的IO句柄函数指针
+            Call BlastPlus.Transform(inFile, CHUNK_SIZE:=1024 * 1024 * 64, transform:=IOHandle)  ' 执行blast输出大文件分析的并行化查询，内存映射的缓冲块大小为 128GB 的高位内存
         End Using
 
         Return 0
@@ -27,7 +24,7 @@ Partial Module CLI
         ''' <summary>
         ''' 对象序列化串流句柄
         ''' </summary>
-        ReadOnly IO As WriteStream(Of NCBI.Extensions.LocalBLAST.Application.BBH.BestHit)
+        ReadOnly IO As WriteStream(Of BBH.BestHit)
 
         ''' <summary>
         ''' 打开文件串流句柄

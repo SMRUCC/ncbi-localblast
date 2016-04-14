@@ -7,7 +7,7 @@ Namespace BlastAPI
     ''' <summary>
     ''' BLAST日志分析模块
     ''' </summary>
-    ''' <remarks></remarks>
+    ''' <remarks>This module its code is too old, obsolete!</remarks>
     Public Module LogAnalysis
 
         ''' <summary>
