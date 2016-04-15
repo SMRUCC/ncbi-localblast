@@ -32,8 +32,8 @@ Namespace LocalBLAST.BLASTOutput.BlastPlus
 
             Dim LQuery = (From hit As SubjectHit
                           In SubjectHits
-                          Where hit.LengthQuery / QueryLength > coverage AndAlso
-                                  hit.Score.Identities.Value > identities
+                          Where hit.LengthQuery / QueryLength >= coverage AndAlso
+                                  hit.Score.Identities.Value >= identities
                           Select hit
                           Order By hit.Score.RawScore Descending).FirstOrDefault
             Return LQuery
@@ -48,8 +48,8 @@ Namespace LocalBLAST.BLASTOutput.BlastPlus
             If SubjectHits.IsNullOrEmpty Then Return Nothing
             Dim LQuery = (From hit As SubjectHit
                           In SubjectHits
-                          Where hit.LengthQuery / QueryLength > coverage AndAlso
-                              hit.Score.Identities.Value > identities
+                          Where hit.LengthQuery / QueryLength >= coverage AndAlso
+                              hit.Score.Identities.Value >= identities
                           Select hit
                           Order By hit.Score.RawScore Descending).ToArray
             Return LQuery
