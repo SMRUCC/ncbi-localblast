@@ -1,12 +1,16 @@
-﻿Imports Microsoft.VisualBasic.CommandLine.Reflection
+﻿Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.BBH
+Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput
+Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus
+Imports Microsoft.VisualBasic.CommandLine.Reflection
 Imports Microsoft.VisualBasic.DocumentFormat.Csv
 Imports Microsoft.VisualBasic.DocumentFormat.Csv.DocumentStream
 Imports Microsoft.VisualBasic.DocumentFormat.Csv.Extensions
 Imports Microsoft.VisualBasic.Linq.Extensions
+Imports Microsoft.VisualBasic
 
 Partial Module CLI
 
-    Private Function __evalueRow(hitsTags As String(), queryName As String, hashHits As Dictionary(Of String, LocalBLAST.Application.BBH.BestHit()), flip As Boolean) As RowObject
+    Private Function __evalueRow(hitsTags As String(), queryName As String, hashHits As Dictionary(Of String, BestHit()), flip As Boolean) As RowObject
         Dim row As New DocumentStream.RowObject From {queryName}
 
         For Each hit As String In hitsTags
@@ -56,12 +60,20 @@ Partial Module CLI
 
     <ExportAPI("/MAT.evalue", Usage:="/MAT.evalue /in <sbh.csv> [/out <mat.csv> /flip]")>
     Public Function EvalueMatrix(args As CommandLine.CommandLine) As Integer
-        Dim sbh = args("/in").LoadCsv(Of NCBI.Extensions.LocalBLAST.Application.BBH.BestHit)
+        Dim sbh As List(Of BestHit) = args("/in").LoadCsv(Of BestHit)
         Dim out As String = args.GetValue("/out", args("/in").TrimFileExt & ".Evalue.Csv")
-        Dim contigs = (From x As LocalBLAST.Application.BBH.BestHit In sbh
+        Dim contigs = (From x As BestHit
+                       In sbh
                        Select x
-                       Group x By x.QueryName Into Group).ToDictionary(Function(x) x.QueryName, Function(x) (From y In x.Group Select y Group y By y.HitName Into Group).ToDictionary(Function(xx) xx.HitName, elementSelector:=Function(xx) xx.Group.ToArray))
-        Dim hitsTags = (From x In sbh Select x.HitName Distinct).ToArray
+                       Group x By x.QueryName Into Group) _
+                            .ToDictionary(Function(x) x.QueryName,
+                                          Function(x) (From y As BestHit
+                                                       In x.Group
+                                                       Select y
+                                                       Group y By y.HitName Into Group) _
+                                                            .ToDictionary(Function(xx) xx.HitName,
+                                                                          Function(xx) xx.Group.ToArray))
+        Dim hitsTags As String() = (From x As BestHit In sbh Select x.HitName Distinct).ToArray
         Dim flip As Boolean = args.GetBoolean("/flip")
         Dim LQuery = (From contig In contigs.AsParallel Select __evalueRow(hitsTags, contig.Key, contig.Value, flip)).ToArray
         Dim hits = (From contig In contigs.AsParallel Select __HitsRow(hitsTags, contig.Key, contig.Value)).ToArray
@@ -83,14 +95,13 @@ Partial Module CLI
         Dim idetities As Double = args.GetValue("/identities", 0.15)
         Dim coverage As Double = args.GetValue("/coverage", 0.5)
 
-        Using IO As New DocumentStream.Linq.WriteStream(Of NCBI.Extensions.LocalBLAST.Application.BBH.BestHit)(out)
-            Dim handle = IO.ToArray(Of NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus.Query)(
-                Function(query As LocalBLAST.BLASTOutput.BlastPlus.Query) _
-                    LocalBLAST.BLASTOutput.BlastPlus.v228.SBHLines(query, coverage:=coverage, identities:=idetities))
-            Call LocalBLAST.BLASTOutput.BlastPlus.Transform(inFile, 1024 * 1024 * 128, handle)
-
-            Return 0
+        Using IO As New DocumentStream.Linq.WriteStream(Of BestHit)(out)
+            Dim handle As Action(Of Query) = IO.ToArray(Of BlastPlus.Query)(
+                Function(query) v228.SBHLines(query, coverage:=coverage, identities:=idetities))
+            Call BlastPlus.Transform(inFile, 1024 * 1024 * 128, handle)
         End Using
+
+        Return 0
     End Function
 
     <ExportAPI("--Export.SBH", Usage:="--Export.SBH /in <in.DIR> /prefix <queryName> /out <out.csv> [/txt]")>
@@ -100,15 +111,17 @@ Partial Module CLI
         Dim isTxtLog As Boolean = args.GetBoolean("/txt")
         Dim out As String = args("/out")
         Dim lst As String() = LANS.SystemsBiology.NCBI.Extensions.Analysis.BBHLogs.LoadSBHEntry(inDIR, query)
-        Dim blastp As LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.BBH.BestHit()()
+        Dim blastp As BestHit()()
 
         If isTxtLog Then
-            blastp = lst.ToArray(Function(x) LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus.Parser.TryParse(x).ExportAllBestHist)
+            blastp = lst.ToArray(Function(x) Parser.TryParse(x).ExportAllBestHist)
         Else
-            blastp = lst.ToArray(Function(x) x.LoadCsv(Of LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.BBH.BestHit).ToArray)
+            blastp = lst.ToArray(Function(x) x.LoadCsv(Of BestHit).ToArray)
         End If
 
-        Dim LQuery = (From x In blastp Select x.ToArray(Function(xx) xx, where:=Function(xx) xx.Matched)).ToArray.MatrixToList
+        Dim LQuery As IEnumerable(Of BestHit) = (From x As BestHit()
+                                                 In blastp
+                                                 Select x.ToArray(Function(xx) xx, where:=Function(xx) xx.Matched)).MatrixToList
         Return LQuery.SaveTo(out).CLICode
     End Function
 
@@ -116,16 +129,15 @@ Partial Module CLI
     Public Function ExportOverviews(args As CommandLine.CommandLine) As Integer
         Dim inFile As String = args("/blast")
         Dim fileInfo = FileIO.FileSystem.GetFileInfo(inFile)
-        Dim blastOut As LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus.v228
+        Dim blastOut As v228
 
         If fileInfo.Length >= 768 * 1024 * 1024 Then
-            blastOut = LocalBLAST.BLASTOutput.BlastPlus.Parser.TryParseUltraLarge(inFile)
+            blastOut = Parser.TryParseUltraLarge(inFile)
         Else
-            blastOut = LocalBLAST.BLASTOutput.BlastPlus.Parser.TryParse(inFile)
+            blastOut = Parser.TryParse(inFile)
         End If
 
-        Dim overviews As LocalBLAST.Application.BBH.BestHit() =
-            blastOut.ExportOverview.GetExcelData
+        Dim overviews As BestHit() = blastOut.ExportOverview.GetExcelData
         Dim out As String = args.GetValue("/out", inFile.TrimFileExt & "Overviews.csv")
 
         Return overviews.SaveTo(out).CLICode

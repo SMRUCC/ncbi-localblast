@@ -159,7 +159,7 @@ Namespace LocalBLAST.Application.BBH
 
         Public ReadOnly Property coverage As Double
             Get
-                Return Me.query_length / Me.length_query
+                Return Me.length_query / Me.query_length
             End Get
         End Property
 
