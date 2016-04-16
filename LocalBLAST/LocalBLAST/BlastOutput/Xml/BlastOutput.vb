@@ -90,7 +90,7 @@ Namespace LocalBLAST.BLASTOutput.XmlFile
         Private Shared Function __toQuery(query As Iteration) As Views.Query
             Dim queryName As String = query.QueryId
             Dim hits = query.Hits.ToArray(Function(x) __toHit(x, query))
-            Return New Views.Query With {.UniqueId = queryName, .Hits = hits.MatrixToVector}
+            Return New Views.Query With {.Id = queryName, .Hits = hits.MatrixToVector}
         End Function
 
         Private Shared Function __toHit(hit As XmlFile.Hits.Hit, query As Iteration) As LocalBLAST.Application.BBH.BestHit()

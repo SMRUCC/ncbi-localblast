@@ -133,7 +133,7 @@ Namespace LocalBLAST.BLASTOutput.BlastPlus
                                         .query_length = Query.QueryLength,
                                         .Score = hit.Score.Score}).ToArray
                 Select New Views.Query With {
-                    .UniqueId = Query.QueryName,
+                    .Id = Query.QueryName,
                     .Hits = If(HitsOverview.IsNullOrEmpty, New BestHit() {
                         New BestHit With {
                             .QueryName = Query.QueryName,
