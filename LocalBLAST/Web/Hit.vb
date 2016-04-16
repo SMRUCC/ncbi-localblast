@@ -12,6 +12,7 @@ Namespace NCBIBlastResult
     ''' </remarks>
     <XmlType("hit", [Namespace]:="http://gcmodeller.org/visual/circos/blast_hit")>
     Public Class HitRecord
+
         <XmlAttribute("query_name")> <Column("query id")>
         Public Property QueryID As String
         ''' <summary>
