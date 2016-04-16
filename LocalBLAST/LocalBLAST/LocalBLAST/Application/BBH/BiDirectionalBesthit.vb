@@ -1,4 +1,5 @@
-﻿Imports Microsoft.VisualBasic.ComponentModel.Collection.Generic
+﻿Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput
+Imports Microsoft.VisualBasic.ComponentModel.Collection.Generic
 Imports Microsoft.VisualBasic.ComponentModel.KeyValuePair
 Imports Microsoft.VisualBasic.DocumentFormat.Csv.StorageProvider.Reflection
 
@@ -111,8 +112,12 @@ Namespace LocalBLAST.Application.BBH
         ''' <remarks></remarks>
         <Ignored> Public ReadOnly Property Matched As Boolean
             Get
+                If String.IsNullOrEmpty(QueryName) OrElse
+                    String.Equals(QueryName, IBlastOutput.HITS_NOT_FOUND) Then
+                    Return False
+                End If
                 Return Not String.IsNullOrEmpty(HitName) AndAlso
-                    Not String.Equals(HitName, NCBI.Extensions.LocalBLAST.BLASTOutput.IBlastOutput.HITS_NOT_FOUND)
+                    Not String.Equals(HitName, IBlastOutput.HITS_NOT_FOUND)
             End Get
         End Property
 
