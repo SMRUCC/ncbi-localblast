@@ -7,6 +7,11 @@ Imports Microsoft.VisualBasic.Text.Similarity
 Imports Microsoft.VisualBasic.Parallel
 Imports LANS.SystemsBiology.SequenceModel
 Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput
+Imports Microsoft.VisualBasic.DocumentFormat.Csv
+Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.BBH
+Imports LANS.SystemsBiology.Assembly.Expasy.Database
+Imports LANS.SystemsBiology.Assembly.Expasy.AnnotationsTool
+Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.RpsBLAST
 
 ''' <summary>
 ''' ShoalShell API interface for ncbi localblast operations.
@@ -239,7 +244,7 @@ Public Module NCBILocalBlast
             Return NCBI.Extensions.LocalBLAST.InteropService.CreateInstance(blastbin, LocalBLAST.InteropService.Program.BlastPlus)
         End If
 
-        Dim Directories = Microsoft.VisualBasic.ProgramPathSearchTool.SearchDirectory("blast*", "")
+        Dim Directories As String() = ProgramPathSearchTool.SearchDirectory("blast*", "")
         If Directories.IsNullOrEmpty Then
             Return Nothing
         End If
@@ -250,10 +255,10 @@ Public Module NCBILocalBlast
             Return NCBI.Extensions.LocalBLAST.InteropService.CreateInstance(BLAST, LocalBLAST.InteropService.Program.BlastPlus)
         End If
 
-        Dim EXEList = Microsoft.VisualBasic.ProgramPathSearchTool.SearchProgram(BLAST, "blast")
+        Dim EXEList As String() = ProgramPathSearchTool.SearchProgram(BLAST, "blast")
 
-        If EXEList.Count > 1 Then
-            BLAST = Microsoft.VisualBasic.ProgramPathSearchTool.GetMostAppreancePath(EXEList)
+        If EXEList.Length > 1 Then
+            BLAST = ProgramPathSearchTool.GetMostAppreancePath(EXEList)
             Return NCBI.Extensions.LocalBLAST.InteropService.CreateInstance(BLAST, LocalBLAST.InteropService.Program.BlastPlus)
         Else
             Return Nothing
@@ -274,12 +279,12 @@ Public Module NCBILocalBlast
     End Function
 
     <ExportAPI("Read.BlastX.Output")>
-    Public Function LoadBlastXOutput(Path As String) As LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus.BlastX.v228_BlastX
-        Return LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus.BlastX.OutputReader.TryParseOutput(Path)
+    Public Function LoadBlastXOutput(Path As String) As BlastPlus.BlastX.v228_BlastX
+        Return BlastPlus.BlastX.OutputReader.TryParseOutput(Path)
     End Function
 
     <ExportAPI("Read.Blast.Output")>
-    Public Function LoadBlastOutput(path As String) As LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus.v228
+    Public Function LoadBlastOutput(path As String) As BlastPlus.v228
         Return NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus.Parser.TryParse(path)
     End Function
 
@@ -290,116 +295,100 @@ Public Module NCBILocalBlast
     ''' <param name="chunk_size">是以1024*1024为基础的，本参数的值应该小于768，最大不应该超过800，否则程序会崩溃.对于1GB以内的日志文件，可以考虑100</param>
     ''' <returns></returns>
     ''' <remarks></remarks>
-    <ExportAPI("Read.Ultra_large_blast_output", Info:="chunk_size parameter is recommended using 100 when the file size is below 2GB and using 768 when the file size is large than 20GB")>
-    Public Function LoadUltraLargeSizeBlastOutput(path As String, Optional chunk_size As Integer = 768) As LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus.v228
+    <ExportAPI("Read.Ultra_large_blast_output",
+               Info:="chunk_size parameter is recommended using 100 when the file size is below 2GB and using 768 when the file size is large than 20GB")>
+    Public Function LoadUltraLargeSizeBlastOutput(path As String, Optional chunk_size As Integer = 768) As BlastPlus.v228
         Return NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus.Parser.TryParseUltraLarge(path, CHUNK_SIZE:=chunk_size * 1024 * 1024)
     End Function
 
     <ExportAPI("Script.Compile",
                Info:="The script line should be this format:  script_tokens1;script_tokens2;....  if there is any space in the script line, then the space should wrapped by the ' character.")>
-    Public Function CreateGrepScript(script As String) As Microsoft.VisualBasic.Text.TextGrepScriptEngine
-        Return Microsoft.VisualBasic.Text.TextGrepScriptEngine.Compile(script)
+    Public Function CreateGrepScript(script As String) As TextGrepScriptEngine
+        Return TextGrepScriptEngine.Compile(script)
     End Function
 
     <ExportAPI("Grep.Query")>
-    Public Function GrepQuery(blast_output As LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus.v228, script As Microsoft.VisualBasic.Text.TextGrepScriptEngine) _
-        As NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus.v228
-
+    Public Function GrepQuery(blast_output As BlastPlus.v228, script As TextGrepScriptEngine) As BlastPlus.v228
         Call blast_output.Grep(script.Method, Nothing)
         Return blast_output
     End Function
 
     <ExportAPI("Grep.Hits")>
-    Public Function Grephits(blast_output As LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus.v228, script As Microsoft.VisualBasic.Text.TextGrepScriptEngine) _
-        As NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus.v228
-
+    Public Function Grephits(blast_output As BlastPlus.v228, script As TextGrepScriptEngine) As BlastPlus.v228
         Call blast_output.Grep(Nothing, script.Method)
         Return blast_output
     End Function
 
     <ExportAPI("Export.Besthit", Info:="Exports all of the besthit from the blastp output")>
-    Public Function ExportBesthit(blast_output As LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus.v228,
-                                  Optional saveto As String = "", Optional identities As Double = 0.15) As Microsoft.VisualBasic.DocumentFormat.Csv.DocumentStream.File
-
-        Dim bh As Microsoft.VisualBasic.DocumentFormat.Csv.DocumentStream.File =
-            blast_output.ExportAllBestHist(identities).ToCsvDoc
+    Public Function ExportBesthit(blast_output As BlastPlus.v228, Optional saveto As String = "", Optional identities As Double = 0.15) As DocumentStream.File
+        Dim bh As DocumentStream.File = blast_output.ExportAllBestHist(identities).ToCsvDoc
         If Not String.IsNullOrEmpty(saveto) Then Call bh.Save(saveto, False)
         Return bh
     End Function
 
     <ExportAPI("Export.Overview.Csv")>
-    Public Function ExportOverviewCsv(blastOutput As LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.IBlastOutput, saveto As String) As Boolean
+    Public Function ExportOverviewCsv(blastOutput As IBlastOutput, saveto As String) As Boolean
         Dim Oview = blastOutput.ExportOverview
         Return Oview.GetExcelData.SaveTo(saveto, False)
     End Function
 
     <ExportAPI("Read.Csv.Blast.Overviews")>
-    Public Function LoadOverview(path As String) As NCBI.Extensions.LocalBLAST.BLASTOutput.Views.Overview
-        Return NCBI.Extensions.LocalBLAST.BLASTOutput.Views.Overview.LoadExcel(path)
+    Public Function LoadOverview(path As String) As Views.Overview
+        Return Views.Overview.LoadExcel(path)
     End Function
 
     <ExportAPI("Export.Besthit")>
-    Public Function ExportBesthits(data As NCBI.Extensions.LocalBLAST.BLASTOutput.Views.Overview, Optional identities As Double = 0.15) As NCBI.Extensions.LocalBLAST.Application.BBH.BestHit()
+    Public Function ExportBesthits(data As Views.Overview, Optional identities As Double = 0.15) As BestHit()
         Return data.ExportAllBestHist(identities)
     End Function
 
     <ExportAPI("Export.bbh")>
-    Public Function Export_BidirBesthit(Qvs As Generic.IEnumerable(Of NCBI.Extensions.LocalBLAST.Application.BBH.BestHit),
-                                        Svq As Generic.IEnumerable(Of NCBI.Extensions.LocalBLAST.Application.BBH.BestHit),
-                                        Optional saveCsv As String = "") As Microsoft.VisualBasic.DocumentFormat.Csv.DocumentStream.File
-
-        Dim bibh = LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.BBH.BBHParser.GetDirreBhAll2(Svq.ToArray, Qvs.ToArray)
+    Public Function Export_BidirBesthit(Qvs As IEnumerable(Of BestHit), Svq As IEnumerable(Of BestHit), Optional saveCsv As String = "") As DocumentStream.File
+        Dim bibh = BBHParser.GetDirreBhAll2(Svq.ToArray, Qvs.ToArray)
         If Not String.IsNullOrEmpty(saveCsv) Then Call bibh.SaveTo(saveCsv, False)
         Return bibh.ToCsvDoc(False)
     End Function
 
     <ExportAPI("Export.bbh.Csv")>
-    Public Function Export_BidirBesthit(qvs As Microsoft.VisualBasic.DocumentFormat.Csv.DocumentStream.File,
-                                        svq As Microsoft.VisualBasic.DocumentFormat.Csv.DocumentStream.File,
-                                        <Parameter("Save.Csv")> Optional saveCsv As String = "") _
-        As Microsoft.VisualBasic.DocumentFormat.Csv.DocumentStream.File
-
-        Dim bibh = LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.BBH.BBHParser.GetDirreBhAll(svq, qvs)
+    Public Function Export_BidirBesthit(qvs As DocumentStream.File, svq As DocumentStream.File, <Parameter("Save.Csv")> Optional saveCsv As String = "") As DocumentStream.File
+        Dim bibh = BBHParser.GetDirreBhAll(svq, qvs)
         If Not String.IsNullOrEmpty(saveCsv) Then Call bibh.Save(saveCsv, False)
         Return bibh
     End Function
 
     <ExportAPI("Write.Csv.Besthit")>
-    Public Function WriteBesthit(data As Generic.IEnumerable(Of NCBI.Extensions.LocalBLAST.Application.BBH.BestHit), saveto As String) As Boolean
+    Public Function WriteBesthit(data As IEnumerable(Of BestHit), saveto As String) As Boolean
         Return data.SaveTo(saveto, False)
     End Function
 
     <ExportAPI("Read.Csv.Besthits")>
-    Public Function LoadBesthitCsv(path As String) As LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.BBH.BestHit()
-        Return path.LoadCsv(Of LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.BBH.BestHit)(False).ToArray
+    Public Function LoadBesthitCsv(path As String) As BestHit()
+        Return path.LoadCsv(Of BestHit)(False).ToArray
     End Function
 
     <ExportAPI("Read.Csv.bbh")>
-    Public Function LoadBiDirBh(path As String) As LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.BBH.BiDirectionalBesthit()
-        Return path.LoadCsv(Of LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.BBH.BiDirectionalBesthit)(False).ToArray
+    Public Function LoadBiDirBh(path As String) As BiDirectionalBesthit()
+        Return path.LoadCsv(Of BiDirectionalBesthit)(False).ToArray
     End Function
 
     <ExportAPI("Write.Csv.bbh")>
-    Public Function SaveBBH(data As Generic.IEnumerable(Of NCBI.Extensions.LocalBLAST.Application.BBH.BiDirectionalBesthit), saveCsv As String) As Boolean
+    Public Function SaveBBH(data As IEnumerable(Of BiDirectionalBesthit), saveCsv As String) As Boolean
         Return data.SaveTo(saveCsv, False)
     End Function
 
     <ExportAPI("Enzyme.Classify")>
-    Public Function ClassifyEnzyme(Expasy As LANS.SystemsBiology.Assembly.Expasy.Database.NomenclatureDB,
-                                   bh As NCBI.Extensions.LocalBLAST.Application.BBH.BestHit()) _
-        As LANS.SystemsBiology.Assembly.Expasy.AnnotationsTool.T_EnzymeClass_BLAST_OUT()
-
-        Return LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.BBH.BBHParser.EnzymeClassification(Expasy, bh)
+    Public Function ClassifyEnzyme(Expasy As NomenclatureDB, bh As BestHit()) As T_EnzymeClass_BLAST_OUT()
+        Return BBHParser.EnzymeClassification(Expasy, bh)
     End Function
 
     <ExportAPI("Read.Csv.Myva")>
-    Public Function ReadMyvaCOG(path As String) As LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.RpsBLAST.MyvaCOG()
-        Return path.LoadCsv(Of LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.RpsBLAST.MyvaCOG)(False).ToArray
+    Public Function ReadMyvaCOG(path As String) As MyvaCOG()
+        Return path.LoadCsv(Of MyvaCOG)(False).ToArray
     End Function
 
     <ExportAPI("Create.Myva_COG", Info:="blast_output parameter is the original blast output file path.")>
-    Public Function MyvaCogClassify(blast_output As String, query_grep As String, Whog_Xml As String) As LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.RpsBLAST.MyvaCOG()
-        Dim textEngine = Microsoft.VisualBasic.Text.TextGrepScriptEngine.Compile(query_grep).Method
-        Return LocalBLAST.Application.RpsBLAST.ClassifyCOGs.Get_MyvaCOG_Classify(blast_output, textEngine, Whog_Xml)
+    Public Function MyvaCogClassify(blast_output As String, query_grep As String, Whog_Xml As String) As MyvaCOG()
+        Dim textEngine = TextGrepScriptEngine.Compile(query_grep).Method
+        Return ClassifyCOGs.Get_MyvaCOG_Classify(blast_output, textEngine, Whog_Xml)
     End Function
 End Module

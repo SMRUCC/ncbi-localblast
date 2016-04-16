@@ -8,9 +8,10 @@ Public Module Extensions
     ReadOnly __ends As String() = {"Matrix:", "Gap Penalties:", "Neighboring words threshold:", "Window for multiple hits:"}
 
     ''' <summary>
-    ''' 根据文件末尾的结束标示来判断这个blast操作是否是已经完成了的
+    ''' Determine that is this blast result file is completed and integrated based on the ends of the result text file.
+    ''' (根据文件末尾的结束标示来判断这个blast操作是否是已经完成了的)
     ''' </summary>
-    ''' <param name="path"></param>
+    ''' <param name="path">The file path of the blast output result text file.</param>
     ''' <returns></returns>
     Public Function IsAvailable(path As String) As Boolean
         If Not path.FileExists Then
@@ -32,13 +33,21 @@ Public Module Extensions
         Return i >= 2
     End Function
 
+    ''' <summary>
+    ''' Is this collection of the besthit data is empty or nothing?
+    ''' </summary>
+    ''' <param name="data"></param>
+    ''' <returns></returns>
     <Extension> Public Function IsNullOrEmpty(data As IEnumerable(Of BestHit)) As Boolean
         If data.IsNullOrEmpty Then
             Return True
         End If
 
-        Dim LQuery = (From bh In data.AsParallel Where bh.Matched Select bh).ToArray
-        Return LQuery.IsNullOrEmpty
+        Dim notNull As BestHit = (From bh As BestHit
+                                  In data.AsParallel
+                                  Where Not bh.Matched
+                                  Select bh).FirstOrDefault
+        Return notNull Is Nothing
     End Function
 
     ''' <summary>
@@ -55,17 +64,19 @@ Public Module Extensions
                                              Optional ByRef Blastbin As LocalBLAST.InteropService.InteropService = Nothing) As BlastPlus.v228
 
         If Not Query.IsProtSource Then
-            Call Console.WriteLine("Target fasta sequence file is not a protein sequence data file!")
+            Call VBDebugger.PrintException("Target fasta sequence file is not a protein sequence data file!")
             Return Nothing
         End If
 
-        Dim TempFile As String = My.Computer.FileSystem.SpecialDirectories.Temp & "/query.tmp"
+        Dim tmpQuery As String = App.GetAppSysTempFile
+        Dim tmpOut As String = App.GetAppSysTempFile
 
         If Blastbin Is Nothing Then Blastbin = NCBILocalBlast.CreateSession
 
+        Call Query.SaveTo(tmpQuery)
+
         Call Blastbin.FormatDb(Subject, Blastbin.MolTypeProtein).Start(True)
-        Call Query.SaveTo(TempFile)
-        Call Blastbin.Blastp(TempFile, Subject, My.Computer.FileSystem.SpecialDirectories.Temp & "/blastp.log", Evalue).Start(True)
+        Call Blastbin.Blastp(tmpQuery, Subject, tmpOut, Evalue).Start(True)
 
         Return Blastbin.GetLastLogFile
     End Function
@@ -74,13 +85,14 @@ Public Module Extensions
                                              Optional evalue As String = "1e-3",
                                              Optional ByRef Blastbin As LocalBLAST.InteropService.InteropService = Nothing) As BlastPlus.v228
 
-        Dim TempFile As String = App.AppSystemTemp & "/query.tmp"
+        Dim tmpQuery As String = App.AppSystemTemp & "/query.tmp"
 
         If Blastbin Is Nothing Then Blastbin = NCBILocalBlast.CreateSession
 
+        Call Query.Save(tmpQuery)
+
         Call Blastbin.FormatDb(Subject, Blastbin.MolTypeProtein).Start(True)
-        Call Query.Save(TempFile)
-        Call Blastbin.Blastp(TempFile, Subject, App.GetAppSysTempFile() & "/blastp.log", evalue).Start(True)
+        Call Blastbin.Blastp(tmpQuery, Subject, App.GetAppSysTempFile() & "/blastp.log", evalue).Start(True)
 
         Return Blastbin.GetLastLogFile
     End Function
