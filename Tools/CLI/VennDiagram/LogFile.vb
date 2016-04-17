@@ -36,7 +36,7 @@ Partial Module CLI
         Dim LastFile = NCBI.Extensions.LocalBLAST.BLASTOutput.Standard.BLASTOutput.Load(ListFile.Logs.Last.Last.File2)
         Call ListCsv.Add(New DocumentStream.File() {(From Query In LastFile.Queries.AsParallel Select Query.QueryName).ToArray})
 
-        Dim MergeResult = (From List In ListCsv Select LogAnalysis.Merge(CsvList:=List)).ToList
+        Dim MergeResult = (From List In ListCsv Select LogAnalysis.Merge(dataset:=List)).ToList
         Dim Csv = CLI.__mergeFile(MergeResult)  '合并文件，获取最终绘制文氏图所需要的数据文件
 
         Return Csv.Save(Path:=CsvFile).CLICode
