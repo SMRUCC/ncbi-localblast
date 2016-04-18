@@ -16,7 +16,7 @@ Partial Module CLI
         Dim out As String = args.GetValue("/out", inDIR & "/faa.fasta")
         Dim fasta As New FastaFile
 
-        For Each file As String In ls - l - r - ext("*.faa") << FileHandles.OpenHandle(inDIR)
+        For Each file As String In ls - l - r - wildcards("*.faa") << FileHandles.OpenHandle(inDIR)
             fasta.AddRange(FastaFile.Read(file))
         Next
 

@@ -255,7 +255,7 @@ Namespace BlastAPI
                                        <Parameter("E-value")> Optional Evalue As String = "1e-3") _
                                     As <FunctionReturns("The file log path which is not integrity.")> String()
 
-            Dim Files As IEnumerable(Of String) = ls - l - r - ext("*.fasta", "*.fsa", "*.fa") <= Input
+            Dim Files As IEnumerable(Of String) = ls - l - r - wildcards("*.fasta", "*.fsa", "*.fa") <= Input
             Dim ComboList = Comb(Of String).CreateCompleteObjectPairs(Files).MatrixAsIterator
 
             Call FileIO.FileSystem.CreateDirectory(EXPORT)
