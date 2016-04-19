@@ -1,6 +1,7 @@
 ﻿Imports Microsoft.VisualBasic.DocumentFormat.Csv.StorageProvider.Reflection
 Imports Microsoft.VisualBasic.ComponentModel.KeyValuePair
 Imports Microsoft.VisualBasic.Serialization
+Imports Microsoft.VisualBasic.Linq
 
 Namespace LocalBLAST.Application.BBH
 
@@ -63,6 +64,37 @@ Namespace LocalBLAST.Application.BBH
 
         Public Overrides Function ToString() As String
             Return Me.GetJson
+        End Function
+
+        Public Shared Function BuildHitsHash(source As IEnumerable(Of BBHIndex),
+                                             Optional hitsHash As Boolean = False,
+                                             Optional trim As Boolean = True) As Dictionary(Of String, String())
+            Dim LQuery As IEnumerable(Of KeyValuePair(Of String, String))
+
+            If trim Then
+                LQuery = (From x As BBHIndex
+                          In source
+                          Where x.Matched
+                          Select New KeyValuePair(Of String, String)(x.QueryName.Split(":"c).Last, x.HitName.Split(":"c).Last))
+            Else
+                LQuery = (From x As BBHIndex
+                          In source
+                          Select New KeyValuePair(Of String, String)(x.QueryName.Split(":"c).Last, x.HitName.Split(":"c).Last))
+            End If
+
+            If hitsHash Then
+                Return (From x In LQuery
+                        Select x
+                        Group x By x.Value Into Group) _
+                             .ToDictionary(Function(x) x.Value,
+                                           Function(x) x.Group.ToArray(Function(o) o.Key))
+            Else
+                Return (From x In LQuery
+                        Select x
+                        Group x By x.Key Into Group) _
+                             .ToDictionary(Function(x) x.Key,
+                                           Function(x) x.Group.ToArray(Function(o) o.Value))
+            End If
         End Function
     End Class
 End Namespace
