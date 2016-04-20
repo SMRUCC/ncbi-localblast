@@ -3,13 +3,14 @@ Imports Microsoft.VisualBasic.Scripting
 Imports LANS.SystemsBiology.ComponentModel.Loci
 Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus
 Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus.v228
+Imports LANS.SystemsBiology.SequenceModel.NucleotideModels
 
 Namespace LocalBLAST.Application
 
     ''' <summary>
     ''' Blastn Mapping for fastaq
     ''' </summary>
-    Public Class BlastnMapping : Inherits LANS.SystemsBiology.SequenceModel.NucleotideModels.Contig
+    Public Class BlastnMapping : Inherits Contig
 
         <Column("Reads.Query")> Public Property ReadQuery As String
         Public Property Reference As String
@@ -53,12 +54,12 @@ Namespace LocalBLAST.Application
 
 #Region "Public Property Strand As String"
 
-        <Ignored> Public ReadOnly Property QueryStrand As LANS.SystemsBiology.ComponentModel.Loci.Strands
+        <Ignored> Public ReadOnly Property QueryStrand As Strands
         ''' <summary>
         ''' 在进行装配的时候是以基因组上面的链方向以及位置为基准的
         ''' </summary>
         ''' <returns></returns>
-        <Ignored> Public ReadOnly Property ReferenceStrand As LANS.SystemsBiology.ComponentModel.Loci.Strands
+        <Ignored> Public ReadOnly Property ReferenceStrand As Strands
 
         Dim _strand As String
 
@@ -210,12 +211,12 @@ Namespace LocalBLAST.Application
         ''' </summary>
         ''' <param name="blastnMapping"></param>
         ''' <returns></returns>
-        Public Shared Function Export(blastnMapping As LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus.v228) As BlastnMapping()
+        Public Shared Function Export(blastnMapping As v228) As BlastnMapping()
             Return Export(blastnMapping.Queries)
         End Function
 
         Public Shared Function Export(lstQuery As Query()) As BlastnMapping()
-            Dim LQuery = (From query As LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus.Query
+            Dim LQuery = (From query As Query
                           In lstQuery.AsParallel
                           Select Application.BlastnMapping.CreateObject(query)).ToArray
             Dim ChunkBuffer As BlastnMapping() = LQuery.MatrixToVector
@@ -227,7 +228,7 @@ Namespace LocalBLAST.Application
         ''' 进行可用的alignment mapping结果的筛选
         ''' </summary>
         ''' <returns></returns>
-        Public Shared Function TrimAssembly(data As Generic.IEnumerable(Of BlastnMapping)) As BlastnMapping()
+        Public Shared Function TrimAssembly(data As IEnumerable(Of BlastnMapping)) As BlastnMapping()
             Dim sw = Stopwatch.StartNew
             Call $"Start of running {NameOf(TrimAssembly)} action...".__DEBUG_ECHO
             Dim LQuery = (From alignmentReads As BlastnMapping In data.AsParallel

@@ -143,7 +143,7 @@ Namespace LocalBLAST.BLASTOutput.BlastPlus
         End Function
 
         ''' <summary>
-        ''' 导出所有的单项最佳
+        ''' Exports all of the hits which it meet the condition of threshold.(导出所有的单项最佳)
         ''' </summary>
         ''' <returns></returns>
         ''' <remarks></remarks>

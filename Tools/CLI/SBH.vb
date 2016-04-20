@@ -7,8 +7,20 @@ Imports Microsoft.VisualBasic.DocumentFormat.Csv.DocumentStream
 Imports Microsoft.VisualBasic.DocumentFormat.Csv.Extensions
 Imports Microsoft.VisualBasic.Linq.Extensions
 Imports Microsoft.VisualBasic
+Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application
 
 Partial Module CLI
+
+    <ExportAPI("/Paralog", Usage:="/Paralog /blastp <blastp.txt> [/coverage 0.5 /identities 0.3 /out <out.csv>]")>
+    Public Function ExportParalog(args As CommandLine.CommandLine) As Integer
+        Dim [in] As String = args - "/blastp"
+        Dim blastp As v228 = Parser.ParsingSizeAuto([in])
+        Dim coverage As Double = args.GetValue("/coverage", 0.5)
+        Dim identities As Double = args.GetValue("/identities", 0.3)
+        Dim out As String = args.GetValue("/out", [in].TrimFileExt & ".paralogs.csv")
+        Dim paralogs As BestHit() = Paralog.ExportParalog(blastp, coverage, identities)
+        Return paralogs.SaveTo(out).CLICode
+    End Function
 
     Private Function __evalueRow(hitsTags As String(), queryName As String, hashHits As Dictionary(Of String, BestHit()), flip As Boolean) As RowObject
         Dim row As New DocumentStream.RowObject From {queryName}
