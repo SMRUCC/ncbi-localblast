@@ -171,4 +171,15 @@ Partial Module CLI
 
         Return App.SelfFolks(CLI, LQuerySchedule.Recommended_NUM_THREADS)
     End Function
+
+    <ExportAPI("/locus.Selects", Usage:="/locus.Selects /locus <locus.txt> /bh <bbhindex.csv> [/out <out.csv>]")>
+    Public Function LocusSelects(args As CommandLine.CommandLine) As Integer
+        Dim [in] As String = args("/locus")
+        Dim bh As String = args("/bh")
+        Dim out As String = args.GetValue("/out", [in].TrimFileExt & $"-{bh.BaseName}.selects.Csv")
+        Dim bbh As IEnumerable(Of BBHIndex) = bh.LoadCsv(Of BBHIndex)
+        Dim locus As List(Of String) = [in].ReadAllLines.ToList
+        Dim LQuery = (From x In bbh.AsParallel Where locus.IndexOf(x.QueryName) > -1 Select x).ToArray
+        Return LQuery.SaveTo(out).CLICode
+    End Function
 End Module
