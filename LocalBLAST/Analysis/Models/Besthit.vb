@@ -278,7 +278,7 @@ Namespace Analysis
             End If
 
             For Each Hit As HitCollection In Me.hits
-                Dim data = (From x In OrderByHits Select x.dict(Hit.QueryName)).ToArray
+                Dim data = (From x In OrderByHits Where x.dict.ContainsKey(Hit.QueryName) Select x.dict(Hit.QueryName)).ToArray
                 Hit.Hits = data
                 Call Ls.Add(Hit)
             Next

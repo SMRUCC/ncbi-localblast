@@ -1,4 +1,5 @@
 ﻿Imports LANS.SystemsBiology.Assembly.KEGG.DBGET.bGetObject
+Imports LANS.SystemsBiology.Localblast.Extensions.VennDiagram.BlastAPI
 Imports LANS.SystemsBiology.NCBI.Extensions.Analysis
 Imports Microsoft.VisualBasic.CommandLine
 Imports Microsoft.VisualBasic.CommandLine.Reflection
@@ -53,5 +54,14 @@ Partial Module CLI
             x.Hits = (From hit As Hit In x.Hits.AsParallel Where Array.IndexOf(lstSP, hit.tag) > -1 Select hit).ToArray
         Next
         Return bbh.SaveAsXml(out).CLICode
+    End Function
+
+    <ExportAPI("/Venn.Single", Usage:="/Venn.Single /in <besthits.Xml> [/out <out.csv>]")>
+    Public Function VennSingle(args As CommandLine) As Integer
+        Dim [in] As String = args - "/in"
+        Dim out As String = args.GetValue("/out", [in].TrimFileExt & ".venn.Csv")
+        Dim besthit As BestHit = [in].LoadXml(Of BestHit)
+        Dim df As DocumentStream.File = VennDataModel.DeltaMove({besthit})
+        Return df.Save(out, Encodings.ASCII).CLICode
     End Function
 End Module

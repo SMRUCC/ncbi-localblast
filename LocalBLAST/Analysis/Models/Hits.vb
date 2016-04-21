@@ -48,6 +48,7 @@ Namespace Analysis
                 __hits = value
                 If __hits.IsNullOrEmpty Then
                     __hitsHash = New Dictionary(Of Hit)
+                    __hits = New Hit() {}
                 Else
                     __hitsHash = New Dictionary(Of Hit)(
                         (From x As Hit
