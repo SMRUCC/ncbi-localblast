@@ -1,4 +1,5 @@
 ﻿Imports LANS.SystemsBiology.Assembly.KEGG.DBGET.bGetObject
+Imports LANS.SystemsBiology.NCBI.Extensions.Analysis
 Imports Microsoft.VisualBasic.CommandLine
 Imports Microsoft.VisualBasic.CommandLine.Reflection
 Imports Microsoft.VisualBasic.DocumentFormat.Csv
@@ -11,5 +12,7 @@ Partial Module CLI
         Dim [in] As String = args("/in")
         Dim out As String = args.GetValue("/out", [in].TrimFileExt & ".BestHit.Xml")
         Dim ssbh As IEnumerable(Of SSDB.Ortholog) = [in].LoadCsv(Of SSDB.Ortholog)
+        Dim Xml As HitCollection = KEGG_API.Export(ssbh, [in].BaseName)
+        Return Xml.SaveAsXml(out).CLICode
     End Function
 End Module

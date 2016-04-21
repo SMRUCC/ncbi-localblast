@@ -7,6 +7,9 @@ Namespace Analysis
     ''' <summary>
     ''' A collection of hits for the target query protein.
     ''' </summary>
+    ''' <remarks>
+    ''' 其实这个就是相当于一个KEGG里面的SSDB BBH结果文件
+    ''' </remarks>
     Public Class HitCollection : Implements sIdEnumerable
 
         Public Function Take(IDList As String()) As HitCollection

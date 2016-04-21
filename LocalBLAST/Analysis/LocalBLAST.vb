@@ -24,17 +24,17 @@ Namespace Analysis
         ''' <summary>
         '''
         ''' </summary>
-        ''' <param name="FileList"></param>
+        ''' <param name="lstFiles"></param>
         ''' <param name="LogDIR">默认为桌面</param>
         ''' <returns>日志文件列表</returns>
         ''' <remarks></remarks>
-        Public Function BLAST(FileList As String(), LogDIR As String, pBlast As InitializeParameter) As List(Of Pair())
-            Dim Files As Comb(Of String) = FileList
+        Public Function BLAST(lstFiles As String(), LogDIR As String, pBlast As InitializeParameter) As List(Of Pair())
+            Dim Files As Comb(Of String) = lstFiles
             Dim LocalBlast As InteropService = CreateInstance(pBlast)
             Dim DirIndex As Integer = 1
             Dim ReturnedList As List(Of Pair()) = New List(Of Pair())
 
-            For Each File As String In FileList  'formatdb
+            For Each File As String In lstFiles  'formatdb
                 Call LocalBlast.FormatDb(File, "").Start(WaitForExit:=True)
             Next
 
