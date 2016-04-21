@@ -47,6 +47,9 @@ Partial Module CLI
         Dim bbh As BestHit = [in].LoadXml(Of BestHit)
         Dim lstSP As String() = (From s As String In sp.ReadAllLines Select s.Split(CChar(vbTab)).First).ToArray
         For Each x In bbh.hits
+            If x.Hits.IsNullOrEmpty Then
+                Continue For
+            End If
             x.Hits = (From hit As Hit In x.Hits.AsParallel Where Array.IndexOf(lstSP, hit.tag) > -1 Select hit).ToArray
         Next
         Return bbh.SaveAsXml(out).CLICode
