@@ -9,7 +9,23 @@ Namespace Analysis
     ''' </summary>
     Public Module KEGG_API
 
+        Public Function EXPORT(source As IEnumerable(Of SSDB.OrthologREST)) As BestHit
+            Dim result As New BestHit With {
+                .sp = source.First.KEGG_ID.Split(":"c).First,
+                .hits = LinqAPI.Exec(Of HitCollection) <= From query As SSDB.OrthologREST
+                                                          In source
+                                                          Select KEGG_API.Export(query)
+            }
+            Return result
+        End Function
+
         <Extension> Public Function Export(source As SSDB.OrthologREST) As HitCollection
+            If source.Orthologs.IsNullOrEmpty Then
+                Return New HitCollection With {
+                    .Description = source.Definition,
+                    .QueryName = source.KEGG_ID.Split(":"c).Last
+                }
+            End If
             Dim hits As New HitCollection With {
                 .Description = source.Definition,
                 .QueryName = source.KEGG_ID.Split(":"c).Last,
@@ -42,8 +58,8 @@ Namespace Analysis
             Return New Hit With {
                 .HitName = kegg.Entry.LocusId,
                 .tag = kegg.Entry.SpeciesId,
-                .Identities = kegg.Identity,
-                .Positive = kegg.Identity
+                .Identities = Val(kegg.Identity),
+                .Positive = Val(kegg.Identity)
             }
         End Function
     End Module

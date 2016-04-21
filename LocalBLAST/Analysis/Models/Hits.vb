@@ -49,7 +49,13 @@ Namespace Analysis
                 If __hits.IsNullOrEmpty Then
                     __hitsHash = New Dictionary(Of Hit)
                 Else
-                    __hitsHash = value.ToDictionary
+                    __hitsHash = New Dictionary(Of Hit)(
+                        (From x As Hit
+                         In value
+                         Select x
+                         Group x By x.HitName Into Group) _
+                              .ToDictionary(Function(x) x.HitName,
+                                            Function(x) x.Group.First))
                 End If
             End Set
         End Property

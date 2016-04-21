@@ -3,6 +3,7 @@ Imports LANS.SystemsBiology.NCBI.Extensions.Analysis
 Imports Microsoft.VisualBasic.CommandLine
 Imports Microsoft.VisualBasic.CommandLine.Reflection
 Imports Microsoft.VisualBasic.DocumentFormat.Csv
+Imports Microsoft.VisualBasic.Language.UnixBash
 
 Partial Module CLI
 
@@ -23,5 +24,14 @@ Partial Module CLI
         End If
 
         Return Xml.SaveAsXml(out).CLICode
+    End Function
+
+    <ExportAPI("/SSDB.Export", Usage:="/SSDB.Export /in <inDIR> [/out <out.Xml>]")>
+    Public Function KEGGSSDBExport(args As CommandLine) As Integer
+        Dim [in] As String = args - "/in"
+        Dim out As String = args.GetValue("/out", [in].ParentPath & "/" & [in].BaseName & ".SSDB_BBH.Xml")
+        Dim Xmls As IEnumerable(Of String) = ls - l - r - wildcards("*.xml") <= [in]
+        Dim SSDB As BestHit = KEGG_API.EXPORT(Xmls.Select(AddressOf LoadXml(Of SSDB.OrthologREST)))
+        Return SSDB.SaveAsXml(out).CLICode
     End Function
 End Module
