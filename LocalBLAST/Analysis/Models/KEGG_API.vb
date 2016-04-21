@@ -1,4 +1,5 @@
-﻿Imports LANS.SystemsBiology.Assembly.KEGG.DBGET.bGetObject
+﻿Imports System.Runtime.CompilerServices
+Imports LANS.SystemsBiology.Assembly.KEGG.DBGET.bGetObject
 Imports Microsoft.VisualBasic.Language
 
 Namespace Analysis
@@ -7,6 +8,10 @@ Namespace Analysis
     ''' KEGG SSDB API
     ''' </summary>
     Public Module KEGG_API
+
+        <Extension> Public Function Export(source As SSDB.OrthologREST) As HitCollection
+
+        End Function
 
         Public Function Export(source As IEnumerable(Of SSDB.Ortholog), tag As String) As HitCollection
             Dim hits As New HitCollection With {
