@@ -38,4 +38,17 @@ Partial Module CLI
         Dim SSDB As BestHit = KEGG_API.EXPORT(Xmls.Select(AddressOf LoadXml(Of SSDB.OrthologREST)), coverage, identities)
         Return SSDB.SaveAsXml(out).CLICode
     End Function
+
+    <ExportAPI("/BestHits.Filtering", Usage:="/BestHits.Filtering /in <besthit.xml> /sp <table.txt> [/out <out.Xml>]")>
+    Public Function BestHitFiltering(args As CommandLine) As Integer
+        Dim [in] As String = args("/in")
+        Dim sp As String = args("/sp")
+        Dim out As String = args.GetValue("/out", [in].TrimFileExt & "." & sp.BaseName & ".Xml")
+        Dim bbh As BestHit = [in].LoadXml(Of BestHit)
+        Dim lstSP As String() = (From s As String In sp.ReadAllLines Select s.Split(CChar(vbTab)).First).ToArray
+        For Each x In bbh.hits
+            x.Hits = (From hit As Hit In x.Hits.AsParallel Where Array.IndexOf(lstSP, hit.tag) > -1 Select hit).ToArray
+        Next
+        Return bbh.SaveAsXml(out).CLICode
+    End Function
 End Module
