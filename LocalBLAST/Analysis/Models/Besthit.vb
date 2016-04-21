@@ -2,6 +2,7 @@
 Imports Microsoft.VisualBasic.DocumentFormat.Csv
 Imports Microsoft.VisualBasic
 Imports Microsoft.VisualBasic.Language
+Imports LANS.SystemsBiology.Assembly.NCBI.GenBank
 
 Namespace Analysis
 
@@ -35,14 +36,17 @@ Namespace Analysis
         Public Function Take(lstId As String()) As BestHit
             Return New BestHit With {
                 .sp = sp,
-                .hits = LinqAPI.Exec(Of HitCollection) <= From x As HitCollection In hits.AsParallel Select x.Take(lstId)
+                .hits = LinqAPI.Exec(Of HitCollection) <=
+                        From x As HitCollection
+                        In hits.AsParallel
+                        Select x.Take(lstId)
             }
         End Function
 
         Public Function GetTotalIdentities(sp As String) As Double
             Dim LQuery = (From hit As HitCollection
                           In hits
-                          Select (From sp_obj As Analysis.Hit
+                          Select (From sp_obj As Hit
                                   In hit.Hits
                                   Where String.Equals(sp, sp_obj.Tag, StringComparison.OrdinalIgnoreCase)
                                   Select sp_obj.Identities).ToArray).MatrixToList
@@ -60,8 +64,11 @@ Namespace Analysis
         ''' <returns></returns>
         ''' <remarks></remarks>
         Public Function GetUnConservedRegions(conserved As IReadOnlyList(Of String())) As String()
-            Dim Index = conserved.MatrixToList
-            Dim LQuery = (From item In Me.hits Where Index.IndexOf(item.QueryName) = -1 Select item.QueryName).ToArray
+            Dim index As List(Of String) = conserved.MatrixToList
+            Dim LQuery As String() = (From hit As HitCollection
+                                      In Me.hits
+                                      Where index.IndexOf(hit.QueryName) = -1
+                                      Select hit.QueryName).ToArray
             Return LQuery
         End Function
 
@@ -105,9 +112,9 @@ Namespace Analysis
         ''' <remarks></remarks>
         Public ReadOnly Property GetTopHits As String()
             Get
-                Dim LQuery = (From hitData As HitCollection In hits Select hitData.Hits).ToArray.MatrixToList
+                Dim LQuery = (From hitData As HitCollection In hits Select hitData.Hits).MatrixToList
                 Dim Groups = (From hitData As Hit
-                               In LQuery
+                              In LQuery
                               Where Not String.IsNullOrEmpty(hitData.HitName)
                               Select hitData
                               Group By hitData.Tag Into Group)
@@ -129,12 +136,22 @@ Namespace Analysis
         ''' <returns></returns>
         ''' <remarks></remarks>
         Public Function TrimEmpty(p As Double) As BestHit
-            Dim LQuery = (From item In hits Select item.Hits).ToArray.MatrixToList
-            Dim Grouped = (From item In LQuery Where Not String.IsNullOrEmpty(item.HitName) Select item Group By item.Tag Into Group).ToArray
-            Dim Id As String() = (From item In Grouped Where item.Group.Count >= p * (Grouped.Count - 1) Select item.Tag).ToArray
+            Dim LQuery = (From hit As HitCollection In hits Select hit.Hits).MatrixToList
+            Dim Grouped = (From hit As Hit
+                           In LQuery
+                           Where Not String.IsNullOrEmpty(hit.HitName)
+                           Select hit
+                           Group By hit.Tag Into Group).ToArray
+            Dim Id As String() = (From hit In Grouped
+                                  Where hit.Group.Count >= p * (Grouped.Count - 1)
+                                  Select hit.Tag).ToArray
             Dim ChunkBuffer = (From hit As HitCollection
                                In Me.hits
-                               Select hit.InvokeSet(NameOf(hit.Hits), (From nn In hit.Hits Where Array.IndexOf(Id, nn.Tag) > -1 Select nn).ToArray)).ToArray
+                               Let __hits As Hit() = (From nn As Hit
+                                                      In hit.Hits
+                                                      Where Array.IndexOf(Id, nn.Tag) > -1
+                                                      Select nn).ToArray
+                               Select hit.InvokeSet(NameOf(hit.Hits), __hits)).ToArray
             Me.hits = ChunkBuffer
 
             Return Me
@@ -150,48 +167,51 @@ Namespace Analysis
             Dim p_cut As Double = If(n <= 10, p_cutoff, p_cutoff / n)
             Dim LQuery = (From hit As HitCollection
                           In hits
-                          Let p = (From nn In hit.Hits Where Not String.IsNullOrEmpty(nn.HitName) Select 1).ToArray.Sum / hit.Hits.Length
+                          Let p = (From nn As Hit
+                                   In hit.Hits
+                                   Where Not String.IsNullOrEmpty(nn.HitName)
+                                   Select 1).Sum / hit.Hits.Length
                           Select hit.QueryName,
                               IsConserved = p >= p_cut,
                               p).ToArray
-            Dim ChunkBuffer As List(Of String()) = New List(Of String())
+            Dim buf As List(Of String()) = New List(Of String())
             Dim i As Integer = 0
-            Dim TempList As List(Of String) = New List(Of String)
+            Dim tmps As List(Of String) = New List(Of String)
 
             Dim __cut = Sub(QueryName As String)      '断裂了
-                            Call TempList.Add(QueryName)
-                            Call ChunkBuffer.Add(TempList.ToArray)
-                            Call TempList.Clear()
+                            Call tmps.Add(QueryName)
+                            Call buf.Add(tmps.ToArray)
+                            Call tmps.Clear()
 
                             i = 0
                         End Sub
 
-            For Each item In LQuery
+            For Each x In LQuery
 
-                If Not item.IsConserved Then
+                If Not x.IsConserved Then
 
                     If i = Spacer Then
-                        Call __cut(item.QueryName)
+                        Call __cut(x.QueryName)
                     ElseIf i = 0 Then '这里的情况是连续的空缺断裂
-                        Call __cut(item.QueryName)
+                        Call __cut(x.QueryName)
                     Else
-                        Call TempList.Add(item.QueryName)
+                        Call tmps.Add(x.QueryName)
                         i += 1
                     End If
                 Else
-                    Call TempList.Add(item.QueryName)
+                    Call tmps.Add(x.QueryName)
                     i = 0
                 End If
             Next
 
-            Dim DeleteUnConserveds = (From item In LQuery Where Not item.IsConserved Select item.QueryName).ToArray
-            ChunkBuffer = (From item As String()
-                           In ChunkBuffer
-                           Where item.Count > 1 OrElse
-                               (item.Count = 1 AndAlso Array.IndexOf(DeleteUnConserveds, item.First) = -1)
-                           Select item).ToList '删除不保守的位点
+            Dim DeleteUnConserveds = (From x In LQuery Where Not x.IsConserved Select x.QueryName).ToArray
+            buf = (From locus As String()
+                   In buf
+                   Where locus.Count > 1 OrElse
+                       (locus.Count = 1 AndAlso Array.IndexOf(DeleteUnConserveds, locus.First) = -1)
+                   Select locus).ToList '删除不保守的位点
 
-            Return ChunkBuffer
+            Return buf
         End Function
 
         ''' <summary>
@@ -202,13 +222,20 @@ Namespace Analysis
         ''' <returns></returns>
         ''' <remarks></remarks>
         Public Function SelectSourceFromHits(source As String, copyTo As String) As String()
-            Dim Entry = LANS.SystemsBiology.Assembly.NCBI.GenBank.gbExportService.LoadGbkSource(source)
-            Dim LQuery = (From item In hits Select item.Hits).ToArray.MatrixToList
-            Dim Grouped = (From item In LQuery Where Not String.IsNullOrEmpty(item.HitName) Select item Group By item.Tag Into Group).ToArray
-            Dim List = (From item In Grouped Where item.Group.Count > 0 Select item.Tag, item.Group.Count).ToArray
+            Dim Entry As Dictionary(Of String, String) = gbExportService.LoadGbkSource(source)
+            Dim LQuery = (From hit As HitCollection In hits Select hit.Hits).MatrixToList
+            Dim Grouped = (From hit As Hit
+                           In LQuery
+                           Where Not String.IsNullOrEmpty(hit.HitName)
+                           Select hit
+                           Group By hit.Tag Into Group).ToArray
+            Dim list = (From x In Grouped
+                        Where x.Group.Count > 0
+                        Select x.Tag,
+                            x.Group.Count).ToArray
 
-            For Each item In List
-                Dim ID As String = item.Tag
+            For Each x In list
+                Dim ID As String = x.Tag
 
                 If Entry.ContainsKey(ID) Then
                     Dim path As String = Entry(ID)
@@ -218,9 +245,9 @@ Namespace Analysis
                 End If
             Next
 
-            Call List.SaveTo(copyTo & "/Statistics.csv", False)
+            Call list.SaveTo(copyTo & "/Statistics.csv", False)
 
-            Return (From item In List Select item.Tag).ToArray
+            Return (From item In list Select item.Tag).ToArray
         End Function
 
         ''' <summary>
@@ -236,22 +263,22 @@ Namespace Analysis
                                                        Select QueryName = hit.QueryName,
                                                           Tag = subHit.Tag,
                                                           obj = subHit,
-                                                          IsHit = Not String.IsNullOrEmpty(subHit.HitName)).ToArray).ToArray.MatrixToList
+                                                          IsHit = Not String.IsNullOrEmpty(subHit.HitName))).MatrixToList
                                 Select query
                                 Group By query.Tag Into Group).ToArray
-            Dim OrderByHits = (From item In SourceLQuery
-                               Let order = (From nnn In item.Group.ToArray Where nnn.IsHit Select 1).ToArray.Count
-                               Select dict = item.Group.ToDictionary(keySelector:=Function(obj) obj.QueryName, elementSelector:=Function(obj) obj.obj),
-                               SpeciesID = item.Tag, order
+            Dim OrderByHits = (From x In SourceLQuery
+                               Let order = (From nnn In x.Group.ToArray Where nnn.IsHit Select 1).Count
+                               Select dict = x.Group.ToDictionary(Function(obj) obj.QueryName, Function(obj) obj.obj),
+                               SpeciesID = x.Tag, order
                                Order By order Descending).ToArray '已经按照比对上的数目排序了
             Dim Ls = New List(Of HitCollection)
 
             If TrimNull Then
-                OrderByHits = (From item In OrderByHits Where item.order > 0 Select item).ToArray
+                OrderByHits = (From x In OrderByHits Where x.order > 0 Select x).ToArray
             End If
 
             For Each Hit As HitCollection In Me.hits
-                Dim data = (From item In OrderByHits Select item.dict(Hit.QueryName)).ToArray
+                Dim data = (From x In OrderByHits Select x.dict(Hit.QueryName)).ToArray
                 Hit.Hits = data
                 Call Ls.Add(Hit)
             Next
