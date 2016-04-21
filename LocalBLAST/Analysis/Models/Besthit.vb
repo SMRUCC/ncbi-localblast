@@ -48,7 +48,7 @@ Namespace Analysis
                           In hits
                           Select (From sp_obj As Hit
                                   In hit.Hits
-                                  Where String.Equals(sp, sp_obj.Tag, StringComparison.OrdinalIgnoreCase)
+                                  Where String.Equals(sp, sp_obj.tag, StringComparison.OrdinalIgnoreCase)
                                   Select sp_obj.Identities).ToArray).MatrixToList
             If LQuery.IsNullOrEmpty Then
                 Return 0
@@ -83,7 +83,7 @@ Namespace Analysis
                 Else
                     Dim HitData As String = (From hitEntry As Hit
                                              In LQuery.Hits
-                                             Where String.Equals(hitEntry.Tag, HitSpecies)
+                                             Where String.Equals(hitEntry.tag, HitSpecies)
                                              Select hitEntry.HitName).FirstOrDefault
                     Return HitData
                 End If
@@ -117,7 +117,7 @@ Namespace Analysis
                               In LQuery
                               Where Not String.IsNullOrEmpty(hitData.HitName)
                               Select hitData
-                              Group By hitData.Tag Into Group)
+                              Group By hitData.tag Into Group)
                 Dim Id As String() = (From Tag In (From bacData
                                                    In Groups
                                                    Where bacData.Group.Count > 0
@@ -141,7 +141,7 @@ Namespace Analysis
                            In LQuery
                            Where Not String.IsNullOrEmpty(hit.HitName)
                            Select hit
-                           Group By hit.Tag Into Group).ToArray
+                           Group By hit.tag Into Group).ToArray
             Dim Id As String() = (From hit In Grouped
                                   Where hit.Group.Count >= p * (Grouped.Count - 1)
                                   Select hit.Tag).ToArray
@@ -149,7 +149,7 @@ Namespace Analysis
                                In Me.hits
                                Let __hits As Hit() = (From nn As Hit
                                                       In hit.Hits
-                                                      Where Array.IndexOf(Id, nn.Tag) > -1
+                                                      Where Array.IndexOf(Id, nn.tag) > -1
                                                       Select nn).ToArray
                                Select hit.InvokeSet(NameOf(hit.Hits), __hits)).ToArray
             Me.hits = ChunkBuffer
@@ -228,7 +228,7 @@ Namespace Analysis
                            In LQuery
                            Where Not String.IsNullOrEmpty(hit.HitName)
                            Select hit
-                           Group By hit.Tag Into Group).ToArray
+                           Group By hit.tag Into Group).ToArray
             Dim list = (From x In Grouped
                         Where x.Group.Count > 0
                         Select x.Tag,
@@ -261,7 +261,7 @@ Namespace Analysis
                                                Select (From subHit As Hit
                                                       In hit.Hits
                                                        Select QueryName = hit.QueryName,
-                                                          Tag = subHit.Tag,
+                                                          Tag = subHit.tag,
                                                           obj = subHit,
                                                           IsHit = Not String.IsNullOrEmpty(subHit.HitName))).MatrixToList
                                 Select query
@@ -307,7 +307,7 @@ Namespace Analysis
 
             For Each Hit As Hit In hits.First.Hits
                 Call Head.Add("")
-                Call Head.Add(Hit.Tag)
+                Call Head.Add(Hit.tag)
                 Call Head.Add("Identities")
                 Call Head.Add("Positive")
             Next

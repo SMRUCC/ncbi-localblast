@@ -1,14 +1,18 @@
 ﻿Imports System.Xml.Serialization
+Imports Microsoft.VisualBasic.ComponentModel.Collection.Generic
 Imports Microsoft.VisualBasic.DocumentFormat.Csv
 
 Namespace Analysis
 
-    Public Class HitCollection
+    ''' <summary>
+    ''' A collection of hits for the target query protein.
+    ''' </summary>
+    Public Class HitCollection : Implements sIdEnumerable
 
         Public Function Take(IDList As String()) As HitCollection
             Dim LQuery = (From hitData As Hit
                           In Hits
-                          Where Array.IndexOf(IDList, hitData.Tag) > -1
+                          Where Array.IndexOf(IDList, hitData.tag) > -1
                           Select hitData).ToArray
             Return New HitCollection With {
                 .Hits = LQuery,
@@ -18,33 +22,61 @@ Namespace Analysis
         End Function
 
         ''' <summary>
-        ''' 主键蛋白质名称
+        ''' The locus tag of the query protein.(主键蛋白质名称)
         ''' </summary>
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <XmlAttribute> Public Property QueryName As String
+        <XmlAttribute> Public Property QueryName As String Implements sIdEnumerable.Identifier
+        ''' <summary>
+        ''' Query protein functional annotation.
+        ''' </summary>
+        ''' <returns></returns>
         Public Property Description As String
+        ''' <summary>
+        ''' Query hits protein.
+        ''' </summary>
+        ''' <returns></returns>
         <XmlElement> Public Property Hits As Hit()
+            Get
+                Return __hits
+            End Get
+            Set(value As Hit())
+                __hits = value
+                If __hits.IsNullOrEmpty Then
+                    __hitsHash = New Dictionary(Of Hit)
+                Else
+                    __hitsHash = value.ToDictionary
+                End If
+            End Set
+        End Property
+
+        Dim __hits As Hit()
+        Dim __hitsHash As Dictionary(Of Hit)
 
         Public Overrides Function ToString() As String
             Return String.Format("{0}:   {1}", QueryName, Description)
         End Function
 
+        ''' <summary>
+        ''' Gets hits protein tag inform by hit protein locus_tag
+        ''' </summary>
+        ''' <param name="hitName"></param>
+        ''' <returns></returns>
         Default Public ReadOnly Property Hit(hitName As String) As Hit
             Get
-                Dim LQuery = From hitEntry As Hit
-                             In Hits
-                             Where String.Equals(hitEntry.HitName, hitName, StringComparison.OrdinalIgnoreCase)
-                             Select hitEntry
-                Return LQuery.FirstOrDefault
+                If __hitsHash.ContainsKey(hitName) Then
+                    Return __hitsHash(hitName)
+                Else
+                    Return Nothing
+                End If
             End Get
         End Property
 
-        Public Function GetHitByTagInfo(SpeciesTag As String) As Hit
+        Public Function GetHitByTagInfo(tag As String) As Hit
             Dim LQuery = From hit As Hit
                          In Hits
-                         Where String.Equals(hit.Tag, SpeciesTag, StringComparison.OrdinalIgnoreCase)
+                         Where String.Equals(hit.tag, tag, StringComparison.OrdinalIgnoreCase)
                          Select hit
             Return LQuery.FirstOrDefault
         End Function
@@ -54,35 +86,39 @@ Namespace Analysis
         ''' </summary>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        Friend Function Ordered() As HitCollection
+        Protected Friend Function __orderBySp() As HitCollection
             Me.Hits = (From hit As Hit
                        In Me.Hits
                        Select hit
-                       Order By hit.Tag Ascending).ToArray
+                       Order By hit.tag Ascending).ToArray
             Return Me
         End Function
     End Class
 
-    Public Class Hit
+    ''' <summary>
+    ''' 和Query的一个比对结果
+    ''' </summary>
+    Public Class Hit : Implements sIdEnumerable
+
         ''' <summary>
         ''' <see cref="HitName"></see>所在的物种
         ''' </summary>
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <XmlAttribute> Public Property Tag As String
+        <XmlAttribute> Public Property tag As String
         ''' <summary>
         ''' 和query蛋白质比对上的
         ''' </summary>
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <XmlAttribute> Public Property HitName As String
+        <XmlAttribute> Public Property HitName As String Implements sIdEnumerable.Identifier
         <XmlAttribute> Public Property Identities As Double
         <XmlAttribute> Public Property Positive As Double
 
         Public Overrides Function ToString() As String
-            Return $"[{Tag}] {HitName},    Identities:= {Identities};   Positive:= {Positive};"
+            Return $"[{tag}] {HitName},    Identities:= {Identities};   Positive:= {Positive};"
         End Function
     End Class
 End Namespace

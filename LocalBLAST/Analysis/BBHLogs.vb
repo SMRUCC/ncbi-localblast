@@ -329,7 +329,7 @@ RETURN_VALUE:
                           Let hitCollection = (From HitSpecies As KeyValuePair(Of String, Dictionary(Of String, BiDirectionalBesthit)) In data
                                                Let hitttt = __export(HitSpecies.Value, QueryProtein)
                                                Let hhh As Hit = New Hit With {
-                                                        .Tag = HitSpecies.Key,
+                                                        .tag = HitSpecies.Key,
                                                         .HitName = hitttt.HitName,
                                                         .Identities = hitttt.Identities,
                                                         .Positive = hitttt.Positive

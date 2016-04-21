@@ -391,7 +391,7 @@ Namespace BlastAPI
             End If
 
             Dim MAT As DocumentStream.File = MainData.ExportCsv(TrimNull)
-            Dim Species As String() = (From hit As Hit In MainData.hits.First.Hits Select hit.Tag).ToArray
+            Dim Species As String() = (From hit As Hit In MainData.hits.First.Hits Select hit.tag).ToArray
 
             For deltaIndex As Integer = 0 To dataHash.Count - 1
                 Dim subMain As BestHit = dataHash.Values(deltaIndex)
@@ -413,7 +413,7 @@ Namespace BlastAPI
                                   Where Array.IndexOf(SubMainMatched, hits.QueryName) = -1
                                   Select hits.QueryName,
                                       hits.Description,
-                                      speciesProfile = hits.Hits.ToDictionary(Function(hit) hit.Tag))
+                                      speciesProfile = hits.Hits.ToDictionary(Function(hit) hit.tag))
 
                 For Each SubMainNotHitGene In Notmatched  '竖直方向遍历第n列的基因号
                     Dim row As New DocumentStream.RowObject From {SubMainNotHitGene.Description, SubMainNotHitGene.QueryName}
