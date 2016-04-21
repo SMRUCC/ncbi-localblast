@@ -2,6 +2,7 @@
 Imports Microsoft.VisualBasic.ComponentModel.Collection.Generic
 Imports Microsoft.VisualBasic.ComponentModel.KeyValuePair
 Imports Microsoft.VisualBasic.DocumentFormat.Csv.StorageProvider.Reflection
+Imports Microsoft.VisualBasic.Serialization
 
 Namespace LocalBLAST.Application.BBH
 
@@ -74,7 +75,7 @@ Namespace LocalBLAST.Application.BBH
 
     Public Interface IBlastHit
         Property locusId As String
-        Property hitName As String
+        Property Address As String
     End Interface
 
     Public Interface IQueryHits : Inherits IBlastHit
@@ -102,7 +103,7 @@ Namespace LocalBLAST.Application.BBH
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <Column("hit_name")> Public Overridable Property HitName As String Implements IKeyValuePairObject(Of String, String).Value, IBlastHit.hitName
+        <Column("hit_name")> Public Overridable Property HitName As String Implements IKeyValuePairObject(Of String, String).Value, IBlastHit.Address
 
         ''' <summary>
         ''' 仅仅是依靠对HitName的判断来使用这个属性了解<see cref="QueryName"></see>是否已经和<see cref="HitName"></see>比对上了
@@ -142,6 +143,10 @@ Namespace LocalBLAST.Application.BBH
                 Return String.Join(BBH_ID_SEPERATOR, Order)
             End Get
         End Property
+
+        Public Overrides Function ToString() As String
+            Return MyClass.GetJson
+        End Function
     End Class
 
     ''' <summary>

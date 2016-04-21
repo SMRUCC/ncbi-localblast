@@ -52,14 +52,16 @@ Partial Module CLI
         Dim out As String = args.GetValue("/out", opr.TrimFileExt & ".COGs.csv")
         Dim DOOR As DOOR = DOOR_API.Load(opr)
 
-        Return (New ListClass(Of MyvaCOG)() <= From x As GeneBrief
-                                               In DOOR.Genes
-                                               Select New MyvaCOG With {
-                                                   .COG = x.COG_number,
-                                                   .MyvaCOG = x.COG_number,
-                                                   .QueryName = x.Synonym,
-                                                   .Description = x.Product,
-                                                   .Category = x.COG_number}) >> OpenHandle(out)
+        Return (LinqAPI.MakeList(Of MyvaCOG) _
+             <= From x As GeneBrief
+                In DOOR.Genes
+                Select New MyvaCOG With {
+                    .COG = x.COG_number,
+                    .MyvaCOG = x.COG_number,
+                    .QueryName = x.Synonym,
+                    .Description = x.Product,
+                    .Category = x.COG_number
+               }) >> OpenHandle(out)
     End Function
 
 End Module
