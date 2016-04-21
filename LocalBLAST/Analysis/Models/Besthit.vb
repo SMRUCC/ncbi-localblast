@@ -3,6 +3,7 @@ Imports Microsoft.VisualBasic.DocumentFormat.Csv
 Imports Microsoft.VisualBasic
 Imports Microsoft.VisualBasic.Language
 Imports LANS.SystemsBiology.Assembly.NCBI.GenBank
+Imports Microsoft.VisualBasic.Linq
 
 Namespace Analysis
 
@@ -121,10 +122,10 @@ Namespace Analysis
                 Dim Id As String() = (From Tag In (From bacData
                                                    In Groups
                                                    Where bacData.Group.Count > 0
-                                                   Select bacData.Tag,
+                                                   Select bacData.tag,
                                                        n = bacData.Group.Count
                                                    Order By n Descending).ToArray
-                                      Select Tag.Tag).ToArray
+                                      Select Tag.tag).ToArray
                 Return Id
             End Get
         End Property
@@ -144,7 +145,7 @@ Namespace Analysis
                            Group By hit.tag Into Group).ToArray
             Dim Id As String() = (From hit In Grouped
                                   Where hit.Group.Count >= p * (Grouped.Count - 1)
-                                  Select hit.Tag).ToArray
+                                  Select hit.tag).ToArray
             Dim ChunkBuffer = (From hit As HitCollection
                                In Me.hits
                                Let __hits As Hit() = (From nn As Hit
@@ -222,32 +223,32 @@ Namespace Analysis
         ''' <returns></returns>
         ''' <remarks></remarks>
         Public Function SelectSourceFromHits(source As String, copyTo As String) As String()
-            Dim Entry As Dictionary(Of String, String) = gbExportService.LoadGbkSource(source)
-            Dim LQuery = (From hit As HitCollection In hits Select hit.Hits).MatrixToList
+            Dim gbEntry As Dictionary(Of String, String) = gbExportService.LoadGbkSource(source)
+            Dim LQuery As IEnumerable(Of Hit) = (From hit As HitCollection In hits Select hit.Hits).MatrixAsIterator
             Dim Grouped = (From hit As Hit
                            In LQuery
                            Where Not String.IsNullOrEmpty(hit.HitName)
                            Select hit
                            Group By hit.tag Into Group).ToArray
-            Dim list = (From x In Grouped
-                        Where x.Group.Count > 0
-                        Select x.Tag,
-                            x.Group.Count).ToArray
+
+            Dim list = From x In Grouped
+                       Where x.Group.Count > 0
+                       Select x.tag, x.Group.Count
 
             For Each x In list
-                Dim ID As String = x.Tag
+                Dim tagId As String = x.tag
 
-                If Entry.ContainsKey(ID) Then
-                    Dim path As String = Entry(ID)
+                If gbEntry.ContainsKey(tagId) Then
+                    Dim path As String = gbEntry(tagId)
                     Dim ext As String = FileIO.FileSystem.GetFileInfo(path).Extension
-                    Dim cppath As String = copyTo & "/" & ID & ext
+                    Dim cppath As String = copyTo & "/" & tagId & ext
                     Call FileIO.FileSystem.CopyFile(path, cppath, showUI:=FileIO.UIOption.OnlyErrorDialogs, onUserCancel:=FileIO.UICancelOption.ThrowException)
                 End If
             Next
 
             Call list.SaveTo(copyTo & "/Statistics.csv", False)
 
-            Return (From item In list Select item.Tag).ToArray
+            Return (From item In list Select item.tag).ToArray
         End Function
 
         ''' <summary>
@@ -257,33 +258,34 @@ Namespace Analysis
         ''' <remarks></remarks>
         Public Function InternalSort(TrimNull As Boolean) As List(Of HitCollection)
             Dim SourceLQuery = (From query In (From hit As HitCollection
-                                              In Me.hits
+                                               In Me.hits
                                                Select (From subHit As Hit
-                                                      In hit.Hits
+                                                       In hit.Hits
                                                        Select QueryName = hit.QueryName,
-                                                          Tag = subHit.tag,
-                                                          obj = subHit,
-                                                          IsHit = Not String.IsNullOrEmpty(subHit.HitName))).MatrixToList
+                                                           Tag = subHit.tag,
+                                                           obj = subHit,
+                                                           IsHit = Not String.IsNullOrEmpty(subHit.HitName))).MatrixAsIterator
                                 Select query
                                 Group By query.Tag Into Group).ToArray
             Dim OrderByHits = (From x In SourceLQuery
                                Let order = (From nnn In x.Group.ToArray Where nnn.IsHit Select 1).Count
                                Select dict = x.Group.ToDictionary(Function(obj) obj.QueryName, Function(obj) obj.obj),
-                               SpeciesID = x.Tag, order
+                                   SpeciesID = x.Tag, order
                                Order By order Descending).ToArray '已经按照比对上的数目排序了
-            Dim Ls = New List(Of HitCollection)
 
             If TrimNull Then
                 OrderByHits = (From x In OrderByHits Where x.order > 0 Select x).ToArray
             End If
 
-            For Each Hit As HitCollection In Me.hits
-                Dim data = (From x In OrderByHits Where x.dict.ContainsKey(Hit.QueryName) Select x.dict(Hit.QueryName)).ToArray
-                Hit.Hits = data
-                Call Ls.Add(Hit)
+            Dim list As New List(Of HitCollection)
+
+            For Each hit As HitCollection In Me.hits
+                Dim data As Hit() = (From x In OrderByHits Where x.dict.ContainsKey(hit.QueryName) Select x.dict(hit.QueryName)).ToArray
+                hit.Hits = data
+                list += hit
             Next
 
-            Return Ls
+            Return list
         End Function
 
         ''' <summary>
@@ -295,10 +297,7 @@ Namespace Analysis
         ''' <returns></returns>
         ''' <remarks>请注意，为了保持数据之间的一一对应关系，这里不能够再使用并行化了</remarks>
         Public Function ExportCsv(TrimNull As Boolean) As DocumentStream.File
-            Dim File As DocumentStream.File = New DocumentStream.File
-
-            '生成表头
-            Dim Head As New DocumentStream.RowObject From {"Description", "QueryProtein"}
+            Dim Head As New DocumentStream.RowObject From {"Description", "QueryProtein"}  ' 生成表头
 
             hits = InternalSort(TrimNull).ToArray
             hits = (From item In hits Select nnn = item Order By nnn.QueryName Ascending).ToArray  '对Query的蛋白质编号进行排序
@@ -312,7 +311,7 @@ Namespace Analysis
                 Call Head.Add("Positive")
             Next
 
-            Call File.Add(Head)
+            Dim File As DocumentStream.File = New DocumentStream.File + Head
 
             For Each Hit As HitCollection In hits
                 Dim Row = New DocumentStream.RowObject From {Hit.Description, Hit.QueryName}

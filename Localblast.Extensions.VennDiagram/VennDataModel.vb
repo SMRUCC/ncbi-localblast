@@ -379,19 +379,19 @@ Namespace BlastAPI
                                   <Parameter("Null.Trim")> Optional TrimNull As Boolean = False) As DocumentStream.File
 
             Dim dataHash As Dictionary(Of String, BestHit) = data.ToDictionary(Function(item) item.sp)
-            Dim IndexKey = dataHash.Keys(__parserIndex(dataHash, mainIndex))
-            Dim MainData As BestHit = dataHash(IndexKey)
+            Dim IndexKey As String = dataHash.Keys(__parserIndex(dataHash, mainIndex))
+            Dim indexQuery As BestHit = dataHash(IndexKey)
 
             Call dataHash.Remove(IndexKey)
 
-            If MainData.hits.IsNullOrEmpty Then
-                Call $"The profile data of your key ""{mainIndex}"" ---> ""{MainData.sp}"" is null!".__DEBUG_ECHO
+            If indexQuery.hits.IsNullOrEmpty Then
+                Call $"The profile data of your key ""{mainIndex}"" ---> ""{indexQuery.sp}"" is null!".__DEBUG_ECHO
                 Call "Thread exists...".__DEBUG_ECHO
                 Return New DocumentStream.File
             End If
 
-            Dim MAT As DocumentStream.File = MainData.ExportCsv(TrimNull)
-            Dim Species As String() = (From hit As Hit In MainData.hits.First.Hits Select hit.tag).ToArray
+            Dim dataframe As DocumentStream.File = indexQuery.ExportCsv(TrimNull)
+            Dim sps As String() = (From hit As Hit In indexQuery.hits.First.Hits Select hit.tag).ToArray
 
             For deltaIndex As Integer = 0 To dataHash.Count - 1
                 Dim subMain As BestHit = dataHash.Values(deltaIndex)
@@ -402,37 +402,37 @@ Namespace BlastAPI
                 End If
 
                 Dim di As Integer = deltaIndex
-                Dim SubMainMatched As String() = (From row As DocumentStream.RowObject
-                                                  In MAT
-                                                  Let d As Integer = 2 + 4 * di + 1
-                                                  Let id As String = row(d)
-                                                  Where Not String.IsNullOrEmpty(id)
-                                                  Select id).ToArray
-                Dim Notmatched = (From hits As HitCollection
-                                  In subMain.hits
-                                  Where Array.IndexOf(SubMainMatched, hits.QueryName) = -1
-                                  Select hits.QueryName,
-                                      hits.Description,
-                                      speciesProfile = hits.Hits.ToDictionary(Function(hit) hit.tag))
+                Dim subHits As String() = (From row As DocumentStream.RowObject
+                                           In dataframe
+                                           Let d As Integer = 2 + 4 * di + 1
+                                           Let id As String = row(d)
+                                           Where Not String.IsNullOrEmpty(id)
+                                           Select id).ToArray
 
-                For Each SubMainNotHitGene In Notmatched  '竖直方向遍历第n列的基因号
-                    Dim row As New DocumentStream.RowObject From {SubMainNotHitGene.Description, SubMainNotHitGene.QueryName}
+                For Each subMainNotHit In From hits As HitCollection
+                                          In subMain.hits
+                                          Where Array.IndexOf(subHits, hits.QueryName) = -1
+                                          Select hits.QueryName,
+                                              hits.Description,
+                                              speciesProfile = hits.Hits.ToDictionary(Function(hit) hit.tag)  '竖直方向遍历第n列的基因号
 
-                    Call row.AddRange((From nnn In (4 * deltaIndex).Sequence Select "").ToArray)
+                    Dim row As DocumentStream.RowObject =
+                        New DocumentStream.RowObject From {subMainNotHit.Description, subMainNotHit.QueryName} +
+                            From nnn As Integer In (4 * deltaIndex).Sequence Select ""
 
-                    For Each sid As String In Species.Skip(deltaIndex)
-                        Dim matched As Hit = SubMainNotHitGene.speciesProfile(sid)
+                    For Each sid As String In sps.Skip(deltaIndex)
+                        Dim matched As Hit = subMainNotHit.speciesProfile(sid)
                         Call row.Add("")
                         Call row.Add(matched.HitName)
                         Call row.Add(matched.Identities)
                         Call row.Add(matched.Positive)
                     Next
 
-                    MAT += row
+                    dataframe += row
                 Next
             Next
 
-            Return MAT
+            Return dataframe
         End Function
 
         <ExportAPI("Venn.Source.Copy")>
