@@ -280,9 +280,9 @@ RETURN_VALUE:
 
             '保存临时数据
             For Each item In Exports
-                Dim path As String = EXPORT & "/CompiledBesthits/" & item.QuerySpeciesName & ".xml"
+                Dim path As String = EXPORT & "/CompiledBesthits/" & item.sp & ".xml"
                 Call item.GetXml.SaveTo(path)
-                path = EXPORT & "/CompiledCsvData/" & item.QuerySpeciesName & ".csv"
+                path = EXPORT & "/CompiledCsvData/" & item.sp & ".csv"
                 Call item.ExportCsv(TrimNull).Save(path, False)
             Next
 
@@ -321,7 +321,7 @@ RETURN_VALUE:
 
         Private Function __export(QuerySpeciesName As String, data As KeyValuePair(Of String, Dictionary(Of String, BiDirectionalBesthit))()) As BestHit
             Dim Result As BestHit = New BestHit With {
-                .QuerySpeciesName = QuerySpeciesName
+                .sp = QuerySpeciesName
             }
             Dim QueryProteins As String() = data.First.Value.Keys.ToArray   '作为主键的蛋白质编号
             Dim LQuery = (From QueryProtein As String
@@ -342,8 +342,8 @@ RETURN_VALUE:
                           }
                           Select hitCol).ToArray
             Return New BestHit With {
-                .QuerySpeciesName = QuerySpeciesName,
-                .Hits = LQuery
+                .sp = QuerySpeciesName,
+                .hits = LQuery
             }
         End Function
 

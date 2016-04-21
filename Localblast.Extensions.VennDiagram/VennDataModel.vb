@@ -362,7 +362,7 @@ Namespace BlastAPI
         ''' <param name="mainIndex">
         ''' 进化比较的标尺
         ''' 假若为空字符串或者数字0以及first，都表示使用集合之中的第一个元素对象作为标尺
-        ''' 假若参数值为某一个菌株的名称<see cref="BestHit.QuerySpeciesName"></see>，则会以该菌株的数据作为比对数据
+        ''' 假若参数值为某一个菌株的名称<see cref="BestHit.sp"></see>，则会以该菌株的数据作为比对数据
         ''' 假若为last，则使用集合之中的最后一个
         ''' 对于其他的处于0-集合元素上限的数字，可以认识使用该集合之中的第i-1个元素对象
         ''' 还可以选择longest或者shortest参数值来作为最长或者最短的元素作为主标尺
@@ -378,26 +378,26 @@ Namespace BlastAPI
                                              "The file name without the extension name of the target query fasta data.")> Optional mainIndex As String = "",
                                   <Parameter("Null.Trim")> Optional TrimNull As Boolean = False) As DocumentStream.File
 
-            Dim dataHash As Dictionary(Of String, BestHit) = data.ToDictionary(Function(item) item.QuerySpeciesName)
+            Dim dataHash As Dictionary(Of String, BestHit) = data.ToDictionary(Function(item) item.sp)
             Dim IndexKey = dataHash.Keys(__parserIndex(dataHash, mainIndex))
             Dim MainData As BestHit = dataHash(IndexKey)
 
             Call dataHash.Remove(IndexKey)
 
-            If MainData.Hits.IsNullOrEmpty Then
-                Call $"The profile data of your key ""{mainIndex}"" ---> ""{MainData.QuerySpeciesName}"" is null!".__DEBUG_ECHO
+            If MainData.hits.IsNullOrEmpty Then
+                Call $"The profile data of your key ""{mainIndex}"" ---> ""{MainData.sp}"" is null!".__DEBUG_ECHO
                 Call "Thread exists...".__DEBUG_ECHO
                 Return New DocumentStream.File
             End If
 
             Dim MAT As DocumentStream.File = MainData.ExportCsv(TrimNull)
-            Dim Species As String() = (From hit As Hit In MainData.Hits.First.Hits Select hit.Tag).ToArray
+            Dim Species As String() = (From hit As Hit In MainData.hits.First.Hits Select hit.Tag).ToArray
 
             For deltaIndex As Integer = 0 To dataHash.Count - 1
                 Dim subMain As BestHit = dataHash.Values(deltaIndex)
 
-                If subMain.Hits.IsNullOrEmpty Then
-                    Call $"Profile data {subMain.QuerySpeciesName} is null!".__DEBUG_ECHO
+                If subMain.hits.IsNullOrEmpty Then
+                    Call $"Profile data {subMain.sp} is null!".__DEBUG_ECHO
                     Continue For
                 End If
 
@@ -409,7 +409,7 @@ Namespace BlastAPI
                                                   Where Not String.IsNullOrEmpty(id)
                                                   Select id).ToArray
                 Dim Notmatched = (From hits As HitCollection
-                                  In subMain.Hits
+                                  In subMain.hits
                                   Where Array.IndexOf(SubMainMatched, hits.QueryName) = -1
                                   Select hits.QueryName,
                                       hits.Description,
@@ -465,7 +465,7 @@ Namespace BlastAPI
             Dim i As Integer = 1
 
             Call Console.WriteLine(New String("=", 200))
-            Call Console.WriteLine("Conserved region on ""{0}"":", bh.QuerySpeciesName)
+            Call Console.WriteLine("Conserved region on ""{0}"":", bh.sp)
             Call Console.WriteLine()
 
             For Each line As String() In regions
@@ -483,7 +483,7 @@ Namespace BlastAPI
         ''' <param name="index">
         ''' 进化比较的标尺
         ''' 假若为空字符串或者数字0以及first，都表示使用集合之中的第一个元素对象作为标尺
-        ''' 假若参数值为某一个菌株的名称<see cref="BestHit.QuerySpeciesName"></see>，则会以该菌株的数据作为比对数据
+        ''' 假若参数值为某一个菌株的名称<see cref="BestHit.sp"></see>，则会以该菌株的数据作为比对数据
         ''' 假若为last，则使用集合之中的最后一个
         ''' 对于其他的处于0-集合元素上限的数字，可以认识使用该集合之中的第i-1个元素对象
         ''' 还可以选择longest或者shortest参数值来作为最长或者最短的元素作为主标尺
