@@ -7,8 +7,25 @@ Imports Microsoft.VisualBasic.CommandLine.Reflection
 Imports Microsoft.VisualBasic.DocumentFormat.Csv
 Imports Microsoft.VisualBasic.Linq
 Imports Microsoft.VisualBasic.Language.UnixBash
+Imports System.Text.RegularExpressions
 
 Partial Module CLI
+
+    <ExportAPI("/Copy.PTT", Usage:="/Copy.PTT /in <inDIR> [/out <outDIR>]")>
+    Public Function CopyPTT(args As CommandLine.CommandLine) As Integer
+        Dim inDIR As String = args("/in")
+        Dim EXPORT As String = args.GetValue("/out", inDIR & "-Copy/")
+        Dim PTTs As IEnumerable(Of String) = ls - l - r - wildcards("*.ptt") <= inDIR
+
+        For Each file As String In PTTs
+            Dim title As String = file.ReadFirstLine
+            title = Regex.Replace(title, " [-] \d+\s\.\.\s\d+.+", "", RegexICSng)
+            Dim out As String = EXPORT & $"/{title.NormalizePathString(False)}.PTT"
+            file.ReadAllText.SaveTo(out, Encodings.ASCII.GetEncodings)
+        Next
+
+        Return 0
+    End Function
 
     <ExportAPI("/Merge.faa", Usage:="/Merge.faa /in <DIR> /out <out.fasta>")>
     Public Function MergeFaa(args As CommandLine.CommandLine) As Integer
