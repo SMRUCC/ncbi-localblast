@@ -14,7 +14,7 @@ Namespace LocalBLAST.Application.RpsBLAST
         Implements sIdEnumerable, I_COGEntry, IQueryHits
 
         <Column("#Query")> Public Property QueryName As String Implements IBlastHit.locusId, sIdEnumerable.Identifier
-        Public Property Hit As String Implements IBlastHit.Address, I_COGEntry.Address
+        Public Property Hit As String Implements IBlastHit.Address, I_COGEntry.COG
         <Column("E-value")> Public Property Evalue As Double
         Public Property Score As Double
         <Column("Query-start")> Public Property QueryStart As Integer
@@ -73,7 +73,7 @@ Namespace LocalBLAST.Application.RpsBLAST
         ''' <returns></returns>
         ''' <remarks></remarks>
         <Column("COG_category")> Public Property Category As String
-        <Column("COG")> Public Property COG As String Implements I_COGEntry.Address, IBlastHit.Address
+        <Column("COG")> Public Property COG As String Implements I_COGEntry.COG, IBlastHit.Address
         <Column("description")> Public Property Description As String Implements I_COGEntry.Product
 
         Public Property Evalue As Double
