@@ -19,7 +19,7 @@ Partial Module CLI
 
         For Each file As String In PTTs
             Dim title As String = file.ReadFirstLine
-            title = Regex.Replace(title, " [-] \d+\s\.\.\s\d+.+", "", RegexICSng)
+            title = Regex.Replace(title, " [-] \d+\s\.\.\s\d+", "", RegexICSng).Trim
             Dim out As String = EXPORT & $"/{title.NormalizePathString(False)}.PTT"
             file.ReadAllText.SaveTo(out, Encodings.ASCII.GetEncodings)
         Next
