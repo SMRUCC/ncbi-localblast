@@ -98,7 +98,7 @@ Namespace BlastAPI
                                    Optional TrimValue As Double = 0.6) As Boolean
 
             Dim LQuery = (From path As PathEntry In BlastoutputSource.LoadSourceEntryList({"*.txt"}).AsParallel
-                          Let Blastout = Parser.LoadBlastOutput(path.Value)
+                          Let Blastout = NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus.LoadBlastOutput(path.Value)
                           Where Not Blastout Is Nothing
                           Select ID = LogNameParser(path.Value).HitName,
                           Blastout,

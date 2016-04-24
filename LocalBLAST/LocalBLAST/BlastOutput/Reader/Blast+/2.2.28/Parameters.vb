@@ -2,7 +2,7 @@
 
 Namespace LocalBLAST.BLASTOutput.BlastPlus
 
-    Public Structure ParameterSummaryF
+    Public Structure ParameterSummary
         Dim Database, PostedDate As String
         ''' <summary>
         ''' Number of letters in database
@@ -24,18 +24,18 @@ Namespace LocalBLAST.BLASTOutput.BlastPlus
         ''' <remarks></remarks>
         Dim Window As Double
 
-        Public Shared Function TryParse(Text As String) As ParameterSummaryF
-            Dim Database As String = Mid(Text.Match("Database[:].+$", RegexOptions.Multiline), 11).Trim
-            Dim PostedDate As String = Mid(Text.Match("Posted date[:].+$", RegexOptions.Multiline), 15).Trim
-            Dim Charts As String = Mid(Text.Match("Number of letters in database[:].+$", RegexOptions.Multiline), 31).Trim
-            Dim SequenceCounts As String = Mid(Text.Match("Number of sequences in database[:].+$", RegexOptions.Multiline), 33).Trim
-            Dim Matrix As String = Mid(Text.Match("Matrix[:].+$", RegexOptions.Multiline), 9).Trim
-            Dim GapPenaltiesExistence As Double = Text.Match("Existence[:]\s*\d+[,]").ParseDouble
-            Dim GapPenaltiesExtension As Double = Text.Match(", Extension[:]\s*\d+").ParseDouble
-            Dim NWThreshold As Double = Text.Match("Neighboring words threshold[:]\s*\d+").ParseDouble
-            Dim Window As Double = Text.Match("Window for multiple hits[:]\s*\d+").ParseDouble
+        Public Shared Function TryParse(text As String) As ParameterSummary
+            Dim Database As String = Mid(text.Match("Database[:].+$", RegexOptions.Multiline), 11).Trim
+            Dim PostedDate As String = Mid(text.Match("Posted date[:].+$", RegexOptions.Multiline), 15).Trim
+            Dim Charts As String = Mid(text.Match("Number of letters in database[:].+$", RegexOptions.Multiline), 31).Trim
+            Dim SequenceCounts As String = Mid(text.Match("Number of sequences in database[:].+$", RegexOptions.Multiline), 33).Trim
+            Dim Matrix As String = Mid(text.Match("Matrix[:].+$", RegexOptions.Multiline), 9).Trim
+            Dim GapPenaltiesExistence As Double = text.Match("Existence[:]\s*\d+[,]").RegexParseDouble
+            Dim GapPenaltiesExtension As Double = text.Match(", Extension[:]\s*\d+").RegexParseDouble
+            Dim NWThreshold As Double = text.Match("Neighboring words threshold[:]\s*\d+").RegexParseDouble
+            Dim Window As Double = text.Match("Window for multiple hits[:]\s*\d+").RegexParseDouble
 
-            Return New ParameterSummaryF With {
+            Return New ParameterSummary With {
                 .Database = Database,
                 .Charts = Charts,
                 .GapPenaltiesExistence = GapPenaltiesExistence,

@@ -79,7 +79,7 @@ Namespace LocalBLAST.BLASTOutput.BlastPlus
 
         Public Shared Function TryParse(Text As String) As SubjectHit
             Dim name As String = Strings.Split(Text, "Length=").First.TrimA
-            Dim Length As Long = CLng(Text.Match("Length=\d+").ParseDouble)
+            Dim Length As Long = CLng(Text.Match("Length=\d+").RegexParseDouble)
             Dim strHsp As String() = (From Match As Match
                                       In Regex.Matches(Text, PAIRWISE, RegexOptions.Singleline + RegexOptions.IgnoreCase)
                                       Select Match.Value).ToArray

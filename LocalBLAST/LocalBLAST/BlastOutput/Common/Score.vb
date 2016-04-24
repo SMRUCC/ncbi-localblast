@@ -67,8 +67,8 @@ Namespace LocalBLAST.BLASTOutput.ComponentModel
             Dim Scores As String() = (From m As Match In Regex.Matches(text, _DOUBLE) Select m.Value).ToArray
 
             If Scores.Count >= 2 Then
-                score.Score = Scores(0).ParseDouble
-                score.RawScore = Scores(1).ParseDouble
+                score.Score = Scores(0).RegexParseDouble
+                score.RawScore = Scores(1).RegexParseDouble
                 score.Method = Mid(Regex.Match(text, "Method: .+?$", RegexOptions.Multiline).Value, 9)
                 If Not String.IsNullOrEmpty(score.Method) Then score.Method = Mid(score.Method, 1, Len(score.Method) - 2)
             Else

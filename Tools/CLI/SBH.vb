@@ -8,13 +8,14 @@ Imports Microsoft.VisualBasic.DocumentFormat.Csv.Extensions
 Imports Microsoft.VisualBasic.Linq.Extensions
 Imports Microsoft.VisualBasic
 Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application
+Imports LANS.SystemsBiology.NCBI.Extensions
 
 Partial Module CLI
 
     <ExportAPI("/Paralog", Usage:="/Paralog /blastp <blastp.txt> [/coverage 0.5 /identities 0.3 /out <out.csv>]")>
     Public Function ExportParalog(args As CommandLine.CommandLine) As Integer
         Dim [in] As String = args - "/blastp"
-        Dim blastp As v228 = Parser.ParsingSizeAuto([in])
+        Dim blastp As v228 = BlastPlus.ParsingSizeAuto([in])
         Dim coverage As Double = args.GetValue("/coverage", 0.5)
         Dim identities As Double = args.GetValue("/identities", 0.3)
         Dim out As String = args.GetValue("/out", [in].TrimFileExt & ".paralogs.csv")
@@ -126,7 +127,9 @@ Partial Module CLI
         Dim blastp As BestHit()()
 
         If isTxtLog Then
-            blastp = lst.ToArray(Function(x) Parser.TryParse(x).ExportAllBestHist)
+            blastp = (From x As String
+                      In lst
+                      Select BlastPlus.Parser.TryParse(x).ExportAllBestHist).ToArray
         Else
             blastp = lst.ToArray(Function(x) x.LoadCsv(Of BestHit).ToArray)
         End If
@@ -144,9 +147,9 @@ Partial Module CLI
         Dim blastOut As v228
 
         If fileInfo.Length >= 768 * 1024 * 1024 Then
-            blastOut = Parser.TryParseUltraLarge(inFile)
+            blastOut = BlastPlus.TryParseUltraLarge(inFile)
         Else
-            blastOut = Parser.TryParse(inFile)
+            blastOut = BlastPlus.TryParse(inFile)
         End If
 
         Dim overviews As BestHit() = blastOut.ExportOverview.GetExcelData

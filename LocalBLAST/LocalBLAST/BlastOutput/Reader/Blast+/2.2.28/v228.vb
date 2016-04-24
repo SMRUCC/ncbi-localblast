@@ -7,6 +7,9 @@ Imports Microsoft.VisualBasic.Text
 Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.Views
 Imports Microsoft.VisualBasic.Text.Similarity
 Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.BBH
+Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.ComponentModel
+Imports LANS.SystemsBiology.SequenceModel
+Imports Microsoft.VisualBasic.Language
 
 Namespace LocalBLAST.BLASTOutput.BlastPlus
 
@@ -19,7 +22,7 @@ Namespace LocalBLAST.BLASTOutput.BlastPlus
     Public Class v228 : Inherits LocalBLAST.BLASTOutput.IBlastOutput
 
         <XmlElement> Public Property Queries As Query()
-        <XmlElement> Public Property ParameterSummary As ParameterSummaryF
+        <XmlElement> Public Property ParameterSummary As ParameterSummary
 
         Public Overrides Function Save(Optional FilePath As String = "", Optional Encoding As Encoding = Nothing) As Boolean
             Return Me.GetXml.SaveTo(FilePath, Encoding)
@@ -64,23 +67,22 @@ Namespace LocalBLAST.BLASTOutput.BlastPlus
         ''' <summary>
         ''' 导出最佳的符合条件的
         ''' </summary>
-        ''' <param name="Query"></param>
+        ''' <param name="query"></param>
         ''' <param name="coverage"></param>
         ''' <param name="identities"></param>
         ''' <returns></returns>
-        Private Shared Function __generateLine(Query As Query, coverage As Double, identities As Double) As Application.BBH.BestHit
-            Dim BestHit As SubjectHit = Query.GetBestHit(coverage, identities)
-            Dim Row As LocalBLAST.Application.BBH.BestHit =
-                New Application.BBH.BestHit With {
-                    .QueryName = Query.QueryName
+        Private Shared Function __generateLine(query As Query, coverage As Double, identities As Double) As BestHit
+            Dim BestHit As SubjectHit = query.GetBestHit(coverage, identities)
+            Dim Row As BestHit = New BestHit With {
+                    .QueryName = query.QueryName
             }
 
             If BestHit Is Nothing Then
                 Row.HitName = HITS_NOT_FOUND
             Else
-                Dim Score As LocalBLAST.BLASTOutput.ComponentModel.Score = BestHit.Score
+                Dim Score As Score = BestHit.Score
                 Row.HitName = BestHit.Name.Trim
-                Row.query_length = Query.QueryLength
+                Row.query_length = query.QueryLength
                 Row.hit_length = BestHit.Length
                 Row.Score = Score.RawScore
                 Row.evalue = Score.Expect
@@ -105,7 +107,7 @@ Namespace LocalBLAST.BLASTOutput.BlastPlus
             Dim Besthits As SubjectHit() = Query.GetBesthits(coverage, identities)
 
             If Besthits.IsNullOrEmpty Then
-                Return New LocalBLAST.Application.BBH.BestHit() {EmptyHit(Query)}
+                Return New BestHit() {EmptyHit(Query)}
             Else
                 Return ExportBesthits(Query.QueryName, Query.QueryLength, Besthits)
             End If
@@ -117,29 +119,45 @@ Namespace LocalBLAST.BLASTOutput.BlastPlus
         ''' <returns></returns>
         ''' <remarks></remarks>
         Public Overrides Function ExportOverview() As Overview
-            Dim LQuery As Views.Query() = (
-                From Query As Query In Me.Queries.AsParallel
-                Let HitsOverview = (From hit As SubjectHit In Query.SubjectHits
-                                    Select New BestHit With {
-                                        .QueryName = Query.QueryName,
-                                        .HitName = hit.Name,
-                                        .evalue = hit.Score.Expect,
-                                        .hit_length = hit.Length,
-                                        .identities = hit.Score.Identities.Value,
-                                        .length_hit = hit.LengthHit,
-                                        .length_hsp = hit.LengthQuery,
-                                        .length_query = hit.LengthQuery,
-                                        .Positive = hit.Score.Positives.Value,
-                                        .query_length = Query.QueryLength,
-                                        .Score = hit.Score.Score}).ToArray
-                Select New Views.Query With {
-                    .Id = Query.QueryName,
-                    .Hits = If(HitsOverview.IsNullOrEmpty, New BestHit() {
-                        New BestHit With {
-                            .QueryName = Query.QueryName,
-                            .HitName = IBlastOutput.HITS_NOT_FOUND}}, HitsOverview)}).ToArray
-            Dim Overview As Overview = New Overview With {.Queries = LQuery}
+            Dim LQuery As Views.Query() =
+                LinqAPI.Exec(Of Views.Query) <= From query As Query
+                                                In Me.Queries.AsParallel
+                                                Let hitsOverview As BestHit() = __hitsOverview(query)
+                                                Let getHits As BestHit() =
+                                                    If(hitsOverview.IsNullOrEmpty,
+                                                       New BestHit() {
+                                                           New BestHit With {
+                                                                .QueryName = query.QueryName,
+                                                                .HitName = IBlastOutput.HITS_NOT_FOUND
+                                                           }
+                                                        }, hitsOverview)
+                                                Select New Views.Query With {
+                                                    .Id = query.QueryName,
+                                                    .Hits = getHits
+                                                }
+            Dim Overview As New Overview With {
+                .Queries = LQuery
+            }
             Return Overview
+        End Function
+
+        Private Shared Function __hitsOverview(query As Query) As BestHit()
+            Return LinqAPI.Exec(Of BestHit) <=
+                From hit As SubjectHit
+                In query.SubjectHits
+                Select New BestHit With {
+                    .QueryName = query.QueryName,
+                    .HitName = hit.Name,
+                    .evalue = hit.Score.Expect,
+                    .hit_length = hit.Length,
+                    .identities = hit.Score.Identities.Value,
+                    .length_hit = hit.LengthHit,
+                    .length_hsp = hit.LengthQuery,
+                    .length_query = hit.LengthQuery,
+                    .Positive = hit.Score.Positives.Value,
+                    .query_length = query.QueryLength,
+                    .Score = hit.Score.Score
+               }
         End Function
 
         ''' <summary>
@@ -156,9 +174,8 @@ Namespace LocalBLAST.BLASTOutput.BlastPlus
             Dim locusId As String = QueryName.Split.First
             Dim def As String = Mid(QueryName, Len(locusId) + 1).Trim
             Dim RowQuery = (From besthit In Besthits
-                            Let Score As LocalBLAST.BLASTOutput.ComponentModel.Score = besthit.Score
-                            Let Row As LocalBLAST.Application.BBH.BestHit =
-                                New Application.BBH.BestHit With {
+                            Let Score As Score = besthit.Score
+                            Let Row As BestHit = New BestHit With {
                                     .QueryName = locusId,
                                     .HitName = besthit.Name.Trim,
                                     .query_length = QueryLength,
@@ -197,8 +214,8 @@ Namespace LocalBLAST.BLASTOutput.BlastPlus
         ''' <param name="QuerySource">主要是使用到Query序列之中的Title属性</param>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        Public Overrides Function CheckIntegrity(QuerySource As SequenceModel.FASTA.FastaFile) As Boolean
-            Dim LQuery = (From Fasta As LANS.SystemsBiology.SequenceModel.FASTA.FastaToken
+        Public Overrides Function CheckIntegrity(QuerySource As FASTA.FastaFile) As Boolean
+            Dim LQuery = (From Fasta As FASTA.FastaToken
                           In QuerySource.AsParallel
                           Let GetQuery = __checkIntegrity(Fasta, Me.Queries)
                           Where GetQuery.IsNullOrEmpty
@@ -206,7 +223,7 @@ Namespace LocalBLAST.BLASTOutput.BlastPlus
             Return Not LQuery > 0 '大于零，说明有空的记录，即匹配不上的记录，则说明blast操作是被中断的，需要重新做
         End Function
 
-        Private Shared Function __checkIntegrity(Fasta As LANS.SystemsBiology.SequenceModel.FASTA.FastaToken, Queries As Query())
+        Private Shared Function __checkIntegrity(Fasta As FASTA.FastaToken, Queries As Query())
             Dim Title As String = Fasta.Title
             Dim GetLQuery = (From Query As Query
                              In Queries

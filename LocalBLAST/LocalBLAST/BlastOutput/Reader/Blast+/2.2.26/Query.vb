@@ -54,13 +54,13 @@ Namespace LocalBLAST.BLASTOutput.BlastPlus
                 Public Const HIT_METHOD As String = "Method: [^.]+"
 
                 Private Shared Function TryParse2(Text As String) As Segment
-                    Dim Segment As Segment = New Segment With {.Score = Val(Text), .Score2 = Text.Match(HIT_SCORE2).Match("\d+").ParseDouble}
+                    Dim Segment As Segment = New Segment With {.Score = Val(Text), .Score2 = Text.Match(HIT_SCORE2).Match("\d+").RegexParseDouble}
                     Dim Tokens = Strings.Split(Text, vbCrLf)
                     Segment.Expect = Tokens(0).Match(HIT_EXPECT).Split.Last
                     Segment.Method = Tokens(0).Match(HIT_METHOD).Split(CChar(":")).Last.Trim
-                    Segment.Identities = Tokens(1).Match(HIT_IDENTITIES).Match("\d+[%]").ParseDouble
-                    Segment.Positives = Tokens(1).Match(HIT_POSITIVES).Match("\d+[%]").ParseDouble
-                    Segment.Gaps = Tokens(1).Match(HIT_GAPS).Match("\d+[%]").ParseDouble
+                    Segment.Identities = Tokens(1).Match(HIT_IDENTITIES).Match("\d+[%]").RegexParseDouble
+                    Segment.Positives = Tokens(1).Match(HIT_POSITIVES).Match("\d+[%]").RegexParseDouble
+                    Segment.Gaps = Tokens(1).Match(HIT_GAPS).Match("\d+[%]").RegexParseDouble
 
                     Dim HitSeqes As List(Of LocalBLAST.BLASTOutput.ComponentModel.HitSegment) = New List(Of LocalBLAST.BLASTOutput.ComponentModel.HitSegment)
                     Tokens = Tokens.Skip(3).ToArray
@@ -129,7 +129,7 @@ Namespace LocalBLAST.BLASTOutput.BlastPlus
                 Dim Head As String = Regex.Match(Text, Regx, RegexOptions.Singleline).Value
                 Dim Tokens = Head.Split(Chr(10))
                 Dim NameBuilder As StringBuilder = New StringBuilder(128)
-                Dim Length As Long = Tokens.Last.Match("\d+").ParseDouble
+                Dim Length As Long = Tokens.Last.Match("\d+").RegexParseDouble
                 For i As Integer = 0 To Tokens.Count - 2
                     Call NameBuilder.Append(Tokens(i))
                 Next

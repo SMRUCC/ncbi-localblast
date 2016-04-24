@@ -58,8 +58,8 @@ Namespace LocalBLAST.BLASTOutput.ComponentModel
 
             Dim Matchs As String() = Regex.Matches(Text, "\d+").ToArray
             Return New Percentage With {
-                .Numerator = Matchs(0).ParseDouble,
-                .Denominator = Matchs(1).ParseDouble
+                .Numerator = Matchs(0).RegexParseDouble,
+                .Denominator = Matchs(1).RegexParseDouble
             }
         End Function
 

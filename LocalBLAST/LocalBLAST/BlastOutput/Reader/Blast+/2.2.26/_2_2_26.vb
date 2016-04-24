@@ -32,7 +32,7 @@ Namespace LocalBLAST.BLASTOutput.BlastPlus
             Dim Array As String() = System.Text.RegularExpressions.Regex.Split(FileIO.FileSystem.ReadAllText(LogFile), NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus._2_2_26.SECTION_SEPERATOR, Text.RegularExpressions.RegexOptions.Multiline)
             Dim Query = From Line As String In Array Where Not String.IsNullOrEmpty(Line) Let q = NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus._2_2_26.Query.TryParse(Line) Select q Order By q.Query.Name Ascending '
             Dim Blastlog As _2_2_26 = New _2_2_26 With {.FilePath = LogFile & ".xml", .Queries = Query.ToArray}
-            Dim ESS As Double() = (From Line As String In Array Where InStr(Line, "Effective search space used:") > 0 Select Line.Match("\d+").ParseDouble).ToArray
+            Dim ESS As Double() = (From Line As String In Array Where InStr(Line, "Effective search space used:") > 0 Select Line.Match("\d+").RegexParseDouble).ToArray
             Dim Queries = Blastlog.Queries
 
             For i As Integer = 0 To ESS.Count - 1

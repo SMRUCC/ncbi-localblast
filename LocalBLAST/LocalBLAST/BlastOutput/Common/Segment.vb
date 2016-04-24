@@ -77,11 +77,11 @@ Namespace LocalBLAST.BLASTOutput.ComponentModel
             Dim Numbers = Regex.Matches(Text, "\d+")
             Dim Tokens As String() = Text.Split
             Dim Segment As Segment = New Segment With {
-                .Left = Numbers(0).Value.ParseDouble,
-                .Right = Numbers(1).Value.ParseDouble}
+                .Left = Numbers(0).Value.RegexParseDouble,
+                .Right = Numbers(1).Value.RegexParseDouble}
 
             For i As Integer = Tokens.Count - 1 To 1 Step -1
-                If Not Tokens(i).IsNullOrEmpty AndAlso Tokens(i).ParseDouble = 0.0R Then
+                If Not Tokens(i).IsNullOrEmpty AndAlso Tokens(i).RegexParseDouble = 0.0R Then
                     Segment.SequenceData = Tokens(i)
                     Exit For
                 End If
