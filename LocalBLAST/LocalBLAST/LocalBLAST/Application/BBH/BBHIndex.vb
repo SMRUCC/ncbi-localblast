@@ -33,6 +33,11 @@ Namespace LocalBLAST.Application.BBH
 
         Dim _Properties As Dictionary(Of String, String)
 
+        ''' <summary>
+        ''' 请注意这个属性进行字典的读取的时候，假若不存在，则会返回空字符串，不会报错
+        ''' </summary>
+        ''' <param name="Name"></param>
+        ''' <returns></returns>
         Default Public Property [Property](Name As String) As String
             Get
                 If Properties.ContainsKey(Name) Then

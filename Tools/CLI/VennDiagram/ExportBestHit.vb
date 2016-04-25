@@ -42,7 +42,7 @@ Partial Module CLI
         For i As Integer = 0 To IdSequence.Length - 1
             Dim row As DocumentStream.RowObject = New String() {IdSequence(i)(Idx)}
             For Each CsvFile In FileList
-                Dim rowBesthit = CsvFile.Get_DataRow(line:=i)
+                Dim rowBesthit = CsvFile.GetByLine(line:=i)
                 row += New String() {" ", rowBesthit.Column(0), rowBesthit.Column(1)}
             Next
 
