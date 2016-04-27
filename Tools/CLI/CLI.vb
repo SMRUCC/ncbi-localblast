@@ -161,7 +161,7 @@ Module CLI
 
         Dim queryBesthits = query.ExportBestHit(coverage, identities)
         Dim subjectBesthits = subject.ExportBestHit(coverage, identities)
-        Dim allBBH = BBHParser.GetBiDirectBhTop(subjectBesthits, queryBesthits)
+        Dim allBBH = BBHParser.GetBBHTop(subjectBesthits, queryBesthits)
         Return allBBH
     End Function
 

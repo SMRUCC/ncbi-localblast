@@ -7,6 +7,7 @@ Imports LANS.SystemsBiology.Assembly.Expasy.Database
 Imports LANS.SystemsBiology.Assembly
 Imports Microsoft.VisualBasic.DocumentFormat.Csv
 Imports Microsoft.VisualBasic.Linq
+Imports LANS.SystemsBiology.Assembly.Expasy.AnnotationsTool
 Imports System.Runtime.CompilerServices
 
 Namespace LocalBLAST.Application.BBH
@@ -18,9 +19,13 @@ Namespace LocalBLAST.Application.BBH
     Public Module BBHParser
 
         <Extension>
-        Private Function __hash(source As IEnumerable(Of BestHit)) As Dictionary(Of String, Dictionary(Of String, BestHit))
+        Private Function __hash(source As IEnumerable(Of BestHit),
+                                identities As Double,
+                                coverage As Double) As Dictionary(Of String, Dictionary(Of String, BestHit))
+
             Dim hash = (From x As BestHit
                         In source
+                        Where x.IsMatchedBesthit(identities, coverage)
                         Select x
                         Group x By x.QueryName Into Group) _
                              .ToDictionary(Function(x) x.QueryName,
@@ -44,9 +49,13 @@ Namespace LocalBLAST.Application.BBH
         ''' </remarks>
         '''
         <ExportAPI("BBH.All")>
-        Public Function GetDirreBhAll2(bhSvQ As BestHit(), bhQvS As BestHit()) As BiDirectionalBesthit()
-            Dim sHash As Dictionary(Of String, Dictionary(Of String, BestHit)) = bhSvQ.__hash
-            Dim qHash As Dictionary(Of String, Dictionary(Of String, BestHit)) = bhQvS.__hash
+        Public Function GetDirreBhAll2(bhSvQ As BestHit(),
+                                       bhQvS As BestHit(),
+                                       Optional identities As Double = -1,
+                                       Optional coverage As Double = -1) As BiDirectionalBesthit()
+
+            Dim sHash As Dictionary(Of String, Dictionary(Of String, BestHit)) = bhSvQ.__hash(identities, coverage)
+            Dim qHash As Dictionary(Of String, Dictionary(Of String, BestHit)) = bhQvS.__hash(identities, coverage)
             Dim result As New List(Of BiDirectionalBesthit)
 
             VBDebugger.Mute = True
@@ -154,22 +163,8 @@ Namespace LocalBLAST.Application.BBH
         Public Function BBHTop(SvQ As DocumentStream.File, QvS As DocumentStream.File) As BBH.BiDirectionalBesthit()
             Dim bhSvQ As LocalBLAST.Application.BBH.BestHit() = SvQ.AsDataSource(Of LocalBLAST.Application.BBH.BestHit)(False).ToArray
             Dim bhQvS As LocalBLAST.Application.BBH.BestHit() = QvS.AsDataSource(Of LocalBLAST.Application.BBH.BestHit)(False).ToArray
-            Dim besthits = GetBiDirectBhTop(bhQvS, bhSvQ)
+            Dim besthits = GetBBHTop(bhQvS, bhSvQ)
 
-            Return besthits
-        End Function
-
-        ''' <summary>
-        ''' 获取双向的最佳匹配结果.(只取出第一个最好的结果)
-        ''' </summary>
-        ''' <param name="QvS"></param>
-        ''' <param name="SvQ"></param>
-        ''' <returns></returns>
-        ''' <remarks></remarks>
-        '''
-        <ExportAPI("BBH")>
-        Public Function BBHTop(QvS As BBH.BestHit(), SvQ As BBH.BestHit()) As BBH.BiDirectionalBesthit()
-            Dim besthits = GetBiDirectBhTop(QvS, SvQ)
             Return besthits
         End Function
 
@@ -234,19 +229,37 @@ Namespace LocalBLAST.Application.BBH
             Return BestHit
         End Function
 
+        <Extension>
+        Private Function __bhHash(source As IEnumerable(Of BestHit),
+                                  identities As Double,
+                                  coverage As Double) As Dictionary(Of String, BestHit)
+
+            Return (From x As BestHit
+                    In source
+                    Where x.IsMatchedBesthit(identities, coverage)
+                    Select x
+                    Group x By x.QueryName Into Group) _
+                         .ToDictionary(Function(x) x.QueryName,
+                                       Function(x) x.Group.TopHit)
+        End Function
+
         ''' <summary>
         ''' Only using the first besthit paired result for the orthology data, if the query have no matches then using an empty string for the hit name.
         ''' (只使用第一个做为最佳的双向结果，假若匹配不上，Hitname属性会为空字符串)
         ''' </summary>
-        ''' <param name="QueryVsSubject"></param>
-        ''' <param name="SubjectVsQuery"></param>
+        ''' <param name="qvs"></param>
+        ''' <param name="svq"></param>
         ''' <returns></returns>
         ''' <remarks></remarks>
         '''
         <ExportAPI("BBH")>
-        Public Function GetBiDirectBhTop(QueryVsSubject As BestHit(), SubjectVsQuery As BestHit()) As BiDirectionalBesthit()
-            Dim qHash = (From x In QueryVsSubject Select x Group x By x.QueryName Into Group).ToDictionary(Function(x) x.QueryName, Function(x) x.Group.TopHit)
-            Dim shash = (From x In SubjectVsQuery Select x Group x By x.QueryName Into Group).ToDictionary(Function(x) x.QueryName, Function(x) x.Group.TopHit)
+        Public Function GetBBHTop(qvs As BestHit(),
+                                  svq As BestHit(),
+                                  Optional identities As Double = -1,
+                                  Optional coverage As Double = -1) As BiDirectionalBesthit()
+
+            Dim qHash As Dictionary(Of String, BestHit) = qvs.__bhHash(identities, coverage)
+            Dim shash As Dictionary(Of String, BestHit) = svq.__bhHash(identities, coverage)
             Dim result As New List(Of BiDirectionalBesthit)
 
             VBDebugger.Mute = True
@@ -281,31 +294,33 @@ Namespace LocalBLAST.Application.BBH
         End Function
 
         <ExportAPI("EnzymeClassification")>
-        Public Function EnzymeClassification(Expasy As NomenclatureDB, bh As BBH.BestHit()) As Expasy.AnnotationsTool.T_EnzymeClass_BLAST_OUT()
-            Dim EnzymeClasses = LANS.SystemsBiology.Assembly.Expasy.AnnotationsTool.API.GenerateBasicDocument(Expasy.Enzymes)
-            Dim LQuery = (From itemObject In EnzymeClasses.AsParallel
-                          Let assignValue = Function() As LANS.SystemsBiology.Assembly.Expasy.AnnotationsTool.T_EnzymeClass_BLAST_OUT()
-                                                Dim GetbhLQuery = (From item As BBH.BestHit In bh Where String.Equals(item.HitName, itemObject.UniprotMatched, StringComparison.OrdinalIgnoreCase) Select item).ToArray
-                                                If Not GetbhLQuery.IsNullOrEmpty Then
-                                                    Dim Linq = (From bhItem As BBH.BestHit In GetbhLQuery
-                                                                Select New Expasy.AnnotationsTool.T_EnzymeClass_BLAST_OUT With {
-                                                                    .Class = itemObject.Class,
-                                                                    .EValue = bhItem.evalue,
-                                                                    .Identity = bhItem.identities,
-                                                                    .ProteinId = bhItem.QueryName,
-                                                                    .UniprotMatched = itemObject.UniprotMatched}).ToArray
-                                                    Return Linq
-                                                Else
-                                                    Return Nothing
-                                                End If
-                                            End Function Select assignValue()).ToArray
-            Dim ChunkList = New List(Of Expasy.AnnotationsTool.T_EnzymeClass_BLAST_OUT)
-            For Each Line In LQuery
-                If Not Line.IsNullOrEmpty Then
-                    Call ChunkList.AddRange(Line)
-                End If
-            Next
-            Return ChunkList.ToArray
+        Public Function EnzymeClassification(Expasy As NomenclatureDB, bh As BBH.BestHit()) As T_EnzymeClass_BLAST_OUT()
+            Dim EnzymeClasses As T_EnzymeClass_BLAST_OUT() = API.GenerateBasicDocument(Expasy.Enzymes)
+            Dim LQuery = (From enzPre As T_EnzymeClass_BLAST_OUT
+                          In EnzymeClasses.AsParallel
+                          Select enzPre.__export(bh)).ToArray
+            Return LQuery.MatrixToVector
+        End Function
+
+        <Extension>
+        Private Function __export(enzPre As T_EnzymeClass_BLAST_OUT, bh As BBH.BestHit()) As T_EnzymeClass_BLAST_OUT()
+            Dim GetbhLQuery = (From item As BBH.BestHit
+                               In bh
+                               Where String.Equals(item.HitName, enzPre.UniprotMatched, StringComparison.OrdinalIgnoreCase)
+                               Select item).ToArray
+
+            If Not GetbhLQuery.IsNullOrEmpty Then
+                Dim Linq = (From bhItem As BBH.BestHit In GetbhLQuery
+                            Select New T_EnzymeClass_BLAST_OUT With {
+                                .Class = enzPre.Class,
+                                .EValue = bhItem.evalue,
+                                .Identity = bhItem.identities,
+                                .ProteinId = bhItem.QueryName,
+                                .UniprotMatched = enzPre.UniprotMatched}).ToArray
+                Return Linq
+            Else
+                Return Nothing
+            End If
         End Function
     End Module
 End Namespace

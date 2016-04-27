@@ -177,6 +177,12 @@ Namespace LocalBLAST.Application.BBH
             Return String.Format("{0} --> {1}; E-value:={2}", QueryName, HitName, evalue)
         End Function
 
+        ''' <summary>
+        ''' <see cref="Besthit.coverage"/> >= <paramref name="coverage"/> AndAlso <see cref="Besthit.identities"/> >= <paramref name="identities"/> 
+        ''' </summary>
+        ''' <param name="identities"></param>
+        ''' <param name="coverage"></param>
+        ''' <returns></returns>
         Public Function IsMatchedBesthit(Optional identities As Double = 0.15, Optional coverage As Double = 0.5) As Boolean
             If length_query = 0 Then
                 Return False

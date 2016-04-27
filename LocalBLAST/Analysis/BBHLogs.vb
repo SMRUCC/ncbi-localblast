@@ -314,7 +314,7 @@ RETURN_VALUE:
 
             Dim ReverEntry = Entry.SelectEquals(Source)
             Dim Rever = Files(ReverEntry)
-            Dim Result = GetBiDirectBhTop(QueryVsSubject:=Query, SubjectVsQuery:=Rever)
+            Dim Result = GetBBHTop(qvs:=Query, svq:=Rever)
 
             Return Result
         End Function

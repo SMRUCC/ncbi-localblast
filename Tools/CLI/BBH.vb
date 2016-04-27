@@ -13,14 +13,23 @@ Imports System.Windows.Forms
 
 Partial Module CLI
 
-    <ExportAPI("/sbh2bbh", Usage:="/sbh2bbh /qvs <qvs.sbh.csv> /svq <svq.sbh.csv> [/all /out <bbh.csv>]")>
+    <ExportAPI("/sbh2bbh",
+               Usage:="/sbh2bbh /qvs <qvs.sbh.csv> /svq <svq.sbh.csv> [/identities <-1> /coverage <-1> /all /out <bbh.csv>]")>
+    <ParameterInfo("/identities", True,
+                   Description:="Makes a further filtering on the bbh by using this option, default value is -1, so that this means no filter.")>
+    <ParameterInfo("/coverage", True,
+                   Description:="Makes a further filtering on the bbh by using this option, default value is -1, so that this means no filter.")>
     Public Function BBHExport2(args As CommandLine.CommandLine) As Integer
         Dim qvs As String = args("/qvs")
         Dim svq As String = args("/svq")
+        Dim identities As Double = args.GetValue("/identities", -1)
+        Dim coverage As Double = args.GetValue("/coverage", -1)
         Dim qsbh = qvs.LoadCsv(Of BestHit)
         Dim ssbh = svq.LoadCsv(Of BestHit)
         Dim all As Boolean = args.GetBoolean("/all")
-        Dim bbh As BiDirectionalBesthit() = If(all, BBHParser.GetDirreBhAll2(qsbh.ToArray, ssbh.ToArray), BBHParser.BBHTop(qsbh.ToArray, ssbh.ToArray))
+        Dim bbh As BiDirectionalBesthit() = If(all,
+            BBHParser.GetDirreBhAll2(qsbh.ToArray, ssbh.ToArray, identities, coverage),
+            BBHParser.GetBBHTop(qsbh.ToArray, ssbh.ToArray, identities, coverage))
         Dim out As String = args.GetValue("/out", qvs.TrimFileExt & ".bbh.csv")
         Return bbh.SaveTo(out).CLICode
     End Function
