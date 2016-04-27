@@ -22,8 +22,8 @@ Partial Module CLI
     Public Function BBHExport2(args As CommandLine.CommandLine) As Integer
         Dim qvs As String = args("/qvs")
         Dim svq As String = args("/svq")
-        Dim identities As Double = args.GetValue("/identities", -1)
-        Dim coverage As Double = args.GetValue("/coverage", -1)
+        Dim identities As Double = args.GetValue("/identities", -1.0R)
+        Dim coverage As Double = args.GetValue("/coverage", -1.0R)
         Dim qsbh = qvs.LoadCsv(Of BestHit)
         Dim ssbh = svq.LoadCsv(Of BestHit)
         Dim all As Boolean = args.GetBoolean("/all")
