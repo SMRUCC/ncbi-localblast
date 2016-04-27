@@ -37,7 +37,7 @@ Namespace NCBIBlastResult
                        In querySide.AsParallel
                        Let subject = query.LogEntry.SelectEquals(hitSide, Function(Entry) Entry.LogEntry)
                        Let bbhData = (From bbbbh As BiDirectionalBesthit
-                                      In BBHParser.BBHTop(QvS:=query.besthitData, SvQ:=subject.besthitData)
+                                      In BBHParser.GetBBHTop(qvs:=query.besthitData, svq:=subject.besthitData)
                                       Where bbbbh.Matched
                                       Select bbbbh).ToArray
                        Select query.ID,
