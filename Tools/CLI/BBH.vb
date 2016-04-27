@@ -30,7 +30,8 @@ Partial Module CLI
         Dim bbh As BiDirectionalBesthit() = If(all,
             BBHParser.GetDirreBhAll2(qsbh.ToArray, ssbh.ToArray, identities, coverage),
             BBHParser.GetBBHTop(qsbh.ToArray, ssbh.ToArray, identities, coverage))
-        Dim out As String = args.GetValue("/out", qvs.TrimFileExt & ".bbh.csv")
+        Dim out As String =
+            args.GetValue("/out", qvs.TrimFileExt & $"{If(all, "-all", "")},{identities},{coverage}.bbh.csv")
         Return bbh.SaveTo(out).CLICode
     End Function
 
