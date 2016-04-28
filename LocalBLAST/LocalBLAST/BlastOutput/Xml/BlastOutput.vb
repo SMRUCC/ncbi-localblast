@@ -67,7 +67,7 @@ Namespace LocalBLAST.BLASTOutput.XmlFile
             If Encoding Is Nothing Then Encoding = System.Text.Encoding.UTF8
 
             Call FileIO.FileSystem.CreateDirectory(FileIO.FileSystem.GetParentPath(FilePath))
-            Return Xml.SaveTo(FilePath, Encoding:=Encoding)
+            Return Xml.SaveTo(FilePath, encoding:=Encoding)
         End Function
 
         ''' <summary>

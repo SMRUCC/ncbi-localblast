@@ -71,6 +71,13 @@ Namespace LocalBLAST.Application.BBH
             Return Me.GetJson
         End Function
 
+        ''' <summary>
+        ''' 
+        ''' </summary>
+        ''' <param name="source"></param>
+        ''' <param name="hitsHash"></param>
+        ''' <param name="trim">这个函数里面默认是消除了KEGG的物种简写代码的</param>
+        ''' <returns></returns>
         Public Shared Function BuildHitsHash(source As IEnumerable(Of BBHIndex),
                                              Optional hitsHash As Boolean = False,
                                              Optional trim As Boolean = True) As Dictionary(Of String, String())
@@ -92,13 +99,13 @@ Namespace LocalBLAST.Application.BBH
                         Select x
                         Group x By x.Value Into Group) _
                              .ToDictionary(Function(x) x.Value,
-                                           Function(x) x.Group.ToArray(Function(o) o.Key))
+                                           Function(x) (From o In x.Group Select o.Key Distinct).ToArray)
             Else
                 Return (From x In LQuery
                         Select x
                         Group x By x.Key Into Group) _
                              .ToDictionary(Function(x) x.Key,
-                                           Function(x) x.Group.ToArray(Function(o) o.Value))
+                                           Function(x) (From o In x.Group Select o.Value Distinct).ToArray)
             End If
         End Function
     End Class

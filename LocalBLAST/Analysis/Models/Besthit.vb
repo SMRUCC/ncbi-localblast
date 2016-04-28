@@ -298,15 +298,21 @@ Namespace Analysis
         ''' <remarks>请注意，为了保持数据之间的一一对应关系，这里不能够再使用并行化了</remarks>
         Public Function ExportCsv(TrimNull As Boolean) As DocumentStream.File
             Dim Head As New DocumentStream.RowObject From {"Description", "QueryProtein"}  ' 生成表头
+            Dim index As List(Of String) =
+                LinqAPI.MakeList(Of String) <=
+                    From x As HitCollection
+                    In hits
+                    Select x.Hits.Select(Function(o) o.tag)   ' 在这里得到所有物种的标签信息
 
             hits = InternalSort(TrimNull).ToArray
             hits = (From item In hits Select nnn = item Order By nnn.QueryName Ascending).ToArray  '对Query的蛋白质编号进行排序
+            index = index.Distinct.ToList
 
             On Error Resume Next
 
-            For Each Hit As Hit In hits.First.Hits
+            For Each name As String In index
                 Call Head.Add("")
-                Call Head.Add(Hit.tag)
+                Call Head.Add(name)
                 Call Head.Add("Identities")
                 Call Head.Add("Positive")
             Next
@@ -314,16 +320,20 @@ Namespace Analysis
             Dim File As DocumentStream.File = New DocumentStream.File + Head
 
             For Each Hit As HitCollection In hits
-                Dim Row = New DocumentStream.RowObject From {Hit.Description, Hit.QueryName}
+                Dim Row As New DocumentStream.RowObject From {Hit.Description, Hit.QueryName}
 
-                For Each HitProtein In Hit.Hits
-                    Call Row.Add("")
-                    Call Row.Add(HitProtein.HitName)
-                    Call Row.Add(HitProtein.Identities)
-                    Call Row.Add(HitProtein.Positive)
+                For Each prot As Hit In Hit.Hits
+                    Dim i As Integer = index.IndexOf(prot.tag)
+                    i = i * 4   ' <space>,name,identities,positive 所占用的位置
+                    i += 2   ' Hit.Description, Hit.QueryName 所占用的位置
+
+                    Row(i) = ""
+                    Row(i + 1) = prot.HitName
+                    Row(i + 2) = prot.Identities
+                    Row(i + 3) = prot.Positive
                 Next
 
-                Call File.Add(Row)
+                File += Row
             Next
 
             Return File
