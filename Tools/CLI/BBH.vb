@@ -13,6 +13,23 @@ Imports System.Windows.Forms
 
 Partial Module CLI
 
+    <ExportAPI("/Select.Meta", Usage:="/Select.Meta /in <meta.Xml> /bbh <bbh.csv> [/out <out.csv>]")>
+    Public Function SelectsMeta(args As CommandLine.CommandLine) As Integer
+        Dim [in] As String = args("/in")
+        Dim bbh As String = args("/bbh")
+        Dim out As String = args.GetValue("/out", [in].TrimFileExt & "." & bbh.BaseName & ".meta.Xml")
+        Dim meta As Analysis.BestHit = [in].LoadXml(Of Analysis.BestHit)
+        Dim bbhs As IEnumerable(Of BBHIndex) = bbh.LoadCsv(Of BBHIndex)
+        Dim uids As IEnumerable(Of String) = (From x As BBHIndex In bbhs Select {x.HitName, x.QueryName}).MatrixAsIterator.Distinct
+
+        meta.hits = (From s As String
+                     In uids
+                     Let h As Analysis.HitCollection = meta.Hit(s)
+                     Where Not h Is Nothing
+                     Select h).ToArray
+        Return meta.SaveAsXml(out).CLICode
+    End Function
+
     <ExportAPI("/sbh2bbh",
                Usage:="/sbh2bbh /qvs <qvs.sbh.csv> /svq <svq.sbh.csv> [/identities <-1> /coverage <-1> /all /out <bbh.csv>]")>
     <ParameterInfo("/identities", True,

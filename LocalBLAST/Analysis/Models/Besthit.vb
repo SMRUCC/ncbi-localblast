@@ -21,6 +21,21 @@ Namespace Analysis
         ''' <remarks></remarks>
         <XmlAttribute> Public Property sp As String
         <XmlElement> Public Property hits As HitCollection()
+            Get
+                Return __hits
+            End Get
+            Set(value As HitCollection())
+                __hits = value
+                If __hits.IsNullOrEmpty Then
+                    __protHash = New Dictionary(Of HitCollection)
+                Else
+                    __protHash = value.ToDictionary
+                End If
+            End Set
+        End Property
+
+        Dim __hits As HitCollection()
+        Dim __protHash As Dictionary(Of HitCollection)
 
         Public Function IndexOf(QueryName As String) As Integer
             Dim LQuery = (From hit As HitCollection
@@ -93,11 +108,11 @@ Namespace Analysis
 
         Default Public ReadOnly Property Hit(QueryName As String) As HitCollection
             Get
-                Dim LQuery = From item As HitCollection
-                             In hits
-                             Where String.Equals(item.QueryName, QueryName, StringComparison.OrdinalIgnoreCase)
-                             Select item
-                Return LQuery.FirstOrDefault
+                If __protHash.ContainsKey(QueryName) Then
+                    Return __protHash(QueryName)
+                Else
+                    Return Nothing
+                End If
             End Get
         End Property
 
