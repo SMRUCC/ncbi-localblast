@@ -106,6 +106,11 @@ Namespace Analysis
             End Get
         End Property
 
+        ''' <summary>
+        ''' 通过query查找的是reference的对象
+        ''' </summary>
+        ''' <param name="QueryName"></param>
+        ''' <returns></returns>
         Default Public ReadOnly Property Hit(QueryName As String) As HitCollection
             Get
                 If __protHash.ContainsKey(QueryName) Then
