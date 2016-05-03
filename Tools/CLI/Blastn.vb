@@ -54,13 +54,13 @@ Partial Module CLI
             Call IO.Flush(outStream)
         End Sub
 
-        Private Shared Function __creates(query As NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus.Query) As LocalBLAST.Application.BBH.BestHit()
-            Dim ntHits = (From x As LocalBLAST.BLASTOutput.BlastPlus.SubjectHit
+        Private Shared Function __creates(query As BlastPlus.Query) As BBH.BestHit()
+            Dim ntHits = (From x As BlastPlus.SubjectHit
                           In query.SubjectHits
-                          Select DirectCast(x, NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus.BlastnHit)).ToArray
-            Dim outStream = (From x As LocalBLAST.BLASTOutput.BlastPlus.BlastnHit
+                          Select DirectCast(x, BlastPlus.BlastnHit)).ToArray
+            Dim outStream = (From x As BlastPlus.BlastnHit
                              In ntHits.AsParallel
-                             Select New NCBI.Extensions.LocalBLAST.Application.BBH.BestHit With {
+                             Select New BBH.BestHit With {
                                  .evalue = x.Score.Expect,
                                  .Score = x.Score.Score,
                                  .HitName = x.Name,
