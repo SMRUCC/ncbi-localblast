@@ -72,10 +72,10 @@ Namespace LocalBLAST.Application.BBH
         End Function
 
         ''' <summary>
-        ''' 
+        ''' 从bbh结果里面构建出比对信息的哈希表
         ''' </summary>
         ''' <param name="source"></param>
-        ''' <param name="hitsHash"></param>
+        ''' <param name="hitsHash">Using <see cref="BBHIndex.HitName"/> as hash key? Default is using <see cref="BBHIndex.QueryName"/></param>
         ''' <param name="trim">这个函数里面默认是消除了KEGG的物种简写代码的</param>
         ''' <returns></returns>
         Public Shared Function BuildHitsHash(source As IEnumerable(Of BBHIndex),
