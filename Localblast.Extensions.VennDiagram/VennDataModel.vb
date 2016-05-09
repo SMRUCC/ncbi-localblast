@@ -156,7 +156,8 @@ Namespace BlastAPI
                                   <Parameter("Dir.Export", "The data directory for export the blastp data between the query and subject.")> EXPORT As String,
                                   <Parameter("E-Value", "The blastp except value.")> Optional Evalue As String = "1e-3",
                                   <Parameter("Exists.Overriding", "Overrides the exists blastp result if the file length is not ZERO length.")> Optional [Overrides] As Boolean = False,
-                                  <Parameter("Using.Parallel")> Optional Parallel As Boolean = False)
+                                  <Parameter("Using.Parallel")> Optional Parallel As Boolean = False,
+                                  Optional numThreads As Integer = -1)
 
             Dim Queries As Dictionary(Of String, String) = Query.LoadSourceEntryList({"*.fasta", "*.fsa", "*.txt", "*.faa"})
 
@@ -182,7 +183,7 @@ Namespace BlastAPI
             Dim runTask As Func(Of IORedirectFile, Integer) = Function(x) x.Start(WaitForExit:=True)
 
             If Parallel Then
-                Call BatchTask(tasks, runTask)
+                Call BatchTask(tasks, runTask, numThreads)
             Else
                 Handle.NumThreads = Environment.ProcessorCount / 2
                 Call BatchTask(tasks, runTask, numThreads:=1)
@@ -209,7 +210,8 @@ Namespace BlastAPI
                                     <Parameter("Dir.Export", "The data directory for export the blastp data between the query and subject.")> EXPORT As String,
                                     <Parameter("E-Value", "The blastp except value.")> Optional Evalue As String = "1e-3",
                                     <Parameter("Exists.Overriding", "Overrides the exists blastp result if the file length is not ZERO length.")>
-                                    Optional [Overrides] As Boolean = False) As String()
+                                    Optional [Overrides] As Boolean = False,
+                                    Optional numThreads As Integer = -1) As String()
 
             Dim Subjects As Dictionary(Of String, String) =
                 Subject.LoadSourceEntryList({"*.fasta", "*.fsa", "*.txt", "*.faa"})
@@ -227,7 +229,10 @@ Namespace BlastAPI
                                                                      EXPORT:=EXPORT,
                                                                      num_threads:=Environment.ProcessorCount / 2,
                                                                      [Overrides]:=[Overrides])
-            Dim LQuery As String() = Parallel.BatchTask(Of String, String)(Subjects.Values, task)
+            Dim LQuery As String() = Parallel.BatchTask(Of String, String)(
+                Subjects.Values,
+                task,
+                numThreads:=numThreads)
             Return LQuery
         End Function
 

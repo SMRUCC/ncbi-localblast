@@ -14,7 +14,7 @@ Imports System.Windows.Forms
 Partial Module CLI
 
     <ExportAPI("/Blastp.BBH.Query",
-               Usage:="/Blastp.BBH.Query /query <query.fasta> /hit <hit.source> [/out <outDIR> /overrides]")>
+               Usage:="/Blastp.BBH.Query /query <query.fasta> /hit <hit.source> [/out <outDIR> /overrides /num_threads <-1>]")>
     Public Function BlastpBBHQuery(args As CommandLine.CommandLine) As Integer
         Dim [in] As String = args("/query")
         Dim subject As String = args("/hit")
@@ -22,11 +22,12 @@ Partial Module CLI
         Dim localBlast As New LocalBLAST.Programs.BLASTPlus(GCModeller.FileSystem.GetLocalBlast)
         Dim blastp As INVOKE_BLAST_HANDLE = localBlast.CreateInvokeHandle
         Dim [overrides] As Boolean = args.GetBoolean("/overrides")
+        Dim nt As Integer = args.GetValue("/num_threads", -1)
 
         Call "Start [query ==> {Hits}] direction...".__DEBUG_ECHO
-        Call VennDataModel.BatchBlastp(blastp, [in], subject, out, 10, [overrides])
+        Call VennDataModel.BatchBlastp(blastp, [in], subject, out, 10, [overrides], numThreads:=nt)
         Call "Start [{Hits} ==> query] direction...".__DEBUG_ECHO
-        Call VennDataModel.BatchBlastpRev(localBlast, subject, [in], out, 10, [overrides], True)
+        Call VennDataModel.BatchBlastpRev(localBlast, subject, [in], out, 10, [overrides], True, numThreads:=nt)
 
         Return 0
     End Function
