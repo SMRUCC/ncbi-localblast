@@ -14,16 +14,19 @@ Imports System.Windows.Forms
 Partial Module CLI
 
     <ExportAPI("/Blastp.BBH.Query",
-               Usage:="/Blastp.BBH.Query /query <query.fasta> /hit <hit.source> [/out <outDIR>]")>
+               Usage:="/Blastp.BBH.Query /query <query.fasta> /hit <hit.source> [/out <outDIR> /overrides]")>
     Public Function BlastpBBHQuery(args As CommandLine.CommandLine) As Integer
         Dim [in] As String = args("/query")
         Dim subject As String = args("/hit")
         Dim out As String = args.GetValue("/out", [in].TrimFileExt & "-" & subject.BaseName & ".BBH_OUT/")
         Dim localBlast As New LocalBLAST.Programs.BLASTPlus(GCModeller.FileSystem.GetLocalBlast)
         Dim blastp As INVOKE_BLAST_HANDLE = localBlast.CreateInvokeHandle
+        Dim [overrides] As Boolean = args.GetBoolean("/overrides")
 
-        Call 
+        Call VennDataModel.BatchBlastp(blastp, [in], subject, out, 10, [overrides])
+        Call VennDataModel.BatchBlastpRev(localBlast, subject, [in], out, 10, [overrides], True)
 
+        Return 0
     End Function
 
     <ExportAPI("/Select.Meta", Usage:="/Select.Meta /in <meta.Xml> /bbh <bbh.csv> [/out <out.csv>]")>
