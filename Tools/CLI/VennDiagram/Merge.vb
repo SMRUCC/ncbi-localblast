@@ -3,6 +3,7 @@ Imports Microsoft.VisualBasic.Terminal.STDIO
 Imports Microsoft.VisualBasic.DocumentFormat.Csv
 Imports Microsoft.VisualBasic.Linq.Extensions
 Imports Microsoft.VisualBasic
+Imports Microsoft.VisualBasic.Language.UnixBash
 
 Partial Module CLI
 
@@ -29,14 +30,18 @@ Partial Module CLI
         Dim Directory As String = args("-d")
         Dim SavedFile As String = args("-o")
 
-        Dim CsvFiles = From File As String In FileIO.FileSystem.GetFiles(Directory, FileIO.SearchOption.SearchTopLevelOnly, "*.csv")
+        Dim CsvFiles = From File As String
+                       In ls - l - wildcards("*.Csv") <= Directory
                        Let Csv As DocumentStream.File = Sort(DocumentStream.File.Load(File))
-                       Select Csv Order By Csv.Width Descending   '
+                       Select Csv
+                       Order By Csv.Width Descending   '
 
-        Dim CsvFile = __mergeFile(CsvFiles.ToList)
+        Dim CsvFile As DocumentStream.File =
+            __mergeFile(CsvFiles.ToList)
         CsvFile = DocumentStream.File.Distinct(CsvFile, Scan0, True)
         CsvFile = DocumentStream.File.RemoveSubRow(CsvFile)
-        For Each Column In CsvFile.Columns
+
+        For Each Column As String() In CsvFile.Columns
             Dim Query = From s As String In Column.AsParallel Where Len(Trim(s)) > 0 Select 1 '
             Console.WriteLine("Column counts: {0}", Query.Count)
         Next
