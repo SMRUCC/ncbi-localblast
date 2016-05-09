@@ -22,6 +22,8 @@ Partial Module CLI
         Dim localBlast As New LocalBLAST.Programs.BLASTPlus(GCModeller.FileSystem.GetLocalBlast)
         Dim blastp As INVOKE_BLAST_HANDLE = localBlast.CreateInvokeHandle
 
+        Call 
+
     End Function
 
     <ExportAPI("/Select.Meta", Usage:="/Select.Meta /in <meta.Xml> /bbh <bbh.csv> [/out <out.csv>]")>

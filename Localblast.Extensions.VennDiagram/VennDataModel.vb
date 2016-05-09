@@ -19,7 +19,8 @@ Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.BatchParallel
 Imports LANS.SystemsBiology.NCBI.Extensions
 Imports LANS.SystemsBiology.SequenceModel.FASTA
 Imports LANS.SystemsBiology.Assembly.NCBI.GenBank.CsvExports
-
+Imports Microsoft.VisualBasic.CommandLine
+Imports Microsoft.VisualBasic.Language
 
 Namespace BlastAPI
 
@@ -143,7 +144,9 @@ Namespace BlastAPI
         End Function
 
         ''' <summary>
-        ''' 这个方法是与<see cref="BatchBlastp"></see>相反的，即使用多个Query来查询一个Subject
+        ''' {Queries} -> Subject
+        ''' 
+        ''' .(这个方法是与<see cref="BatchBlastp"></see>相反的，即使用多个Query来查询一个Subject)
         ''' </summary>
         ''' <remarks></remarks>
         <ExportAPI("Blastp.Invoke_Batch", Info:="Batch parallel task scheduler.")>
@@ -165,29 +168,40 @@ Namespace BlastAPI
             Call FileIO.FileSystem.CreateDirectory(EXPORT)
             Call Handle.FormatDb(Subject, Handle.MolTypeProtein).Start(WaitForExit:=True)
 
+            Dim tasks As IORedirectFile() =
+                LinqAPI.Exec(Of IORedirectFile) <= From Path As PathEntry
+                                                   In Queries
+                                                   Let log As String = EXPORT & "/" & Path.Key & ".txt"
+                                                   Let invoke As IORedirectFile =
+                                                       Handle.Blastp(
+                                                       Input:=Path.Value,
+                                                       TargetDb:=Subject,
+                                                       e:=Evalue,
+                                                       Output:=log)
+                                                   Select invoke
+            Dim runTask As Func(Of IORedirectFile, Integer) = Function(x) x.Start(WaitForExit:=True)
+
             If Parallel Then
-                Call (From Path As PathEntry
-                      In Queries.AsParallel
-                      Let log As String = EXPORT & "/" & Path.Key & ".txt"
-                      Let invoke = Handle.Blastp(
-                          Input:=Path.Value,
-                          TargetDb:=Subject,
-                          e:=Evalue,
-                          Output:=log)
-                      Select invoke.Start(WaitForExit:=True)).ToArray
+                Call BatchTask(tasks, runTask)
             Else
                 Handle.NumThreads = Environment.ProcessorCount / 2
-
-                Call (From Path As PathEntry
-                      In Queries
-                      Let log As String = EXPORT & "/" & Path.Key & ".txt"
-                      Let invoke = Handle.Blastp(Input:=Path.Value, TargetDb:=Subject, e:=Evalue, Output:=log)
-                      Select invoke.Start(WaitForExit:=True)).ToArray
+                Call BatchTask(tasks, runTask, numThreads:=1)
             End If
         End Sub
 
         Const SubjectNotFound As String = "Could not found the subject protein database fasta file ""{0}""!"
+        Const QueryNotFound As String = "Could not found the query protein fasta file ""{0}""!"
 
+        ''' <summary>
+        ''' Query -> {Subjects}
+        ''' </summary>
+        ''' <param name="Handle"></param>
+        ''' <param name="Query"></param>
+        ''' <param name="Subject"></param>
+        ''' <param name="EXPORT"></param>
+        ''' <param name="Evalue"></param>
+        ''' <param name="[Overrides]"></param>
+        ''' <returns></returns>
         <ExportAPI("Blastp.Invoke_Batch")>
         Public Function BatchBlastp(<Parameter("Handle.Blastp", "This handle value is the blastp handle, not blastn handle.")> Handle As INVOKE_BLAST_HANDLE,
                                     <Parameter("Path.Query", "The file path value of the query protein fasta data.")> Query As String,
@@ -201,14 +215,19 @@ Namespace BlastAPI
                 Subject.LoadSourceEntryList({"*.fasta", "*.fsa", "*.txt"})
 
             If Not FileIO.FileSystem.FileExists(Query) Then
-                Throw New Exception($"Could not found the query protein fasta file ""{Query.ToFileURL}""!")
+                Dim msg As String = String.Format(QueryNotFound, Query.ToFileURL)
+                Throw New Exception(msg)
             End If
 
             Call FileIO.FileSystem.CreateDirectory(EXPORT)
 
-            Dim LQuery = (From Path As PathEntry
-                          In Subjects.AsParallel
-                          Select Handle(Query, Subject:=Path.Value, Evalue:=Evalue, EXPORT:=EXPORT, num_threads:=Environment.ProcessorCount / 2, [Overrides]:=[Overrides])).ToArray
+            Dim task As Func(Of String, String) = Function(x) Handle(Query,
+                                                                     Subject:=x,
+                                                                     Evalue:=Evalue,
+                                                                     EXPORT:=EXPORT,
+                                                                     num_threads:=Environment.ProcessorCount / 2,
+                                                                     [Overrides]:=[Overrides])
+            Dim LQuery As String() = Parallel.BatchTask(Of String, String)(Subjects.Values, task)
             Return LQuery
         End Function
 
