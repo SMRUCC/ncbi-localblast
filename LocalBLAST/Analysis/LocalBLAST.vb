@@ -1,6 +1,7 @@
-﻿Imports Microsoft.VisualBasic
+﻿Imports Microsoft.VisualBasic.ComponentModel
+Imports Microsoft.VisualBasic
 Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.InteropService
-Imports Microsoft.VisualBasic.ComponentModel
+Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.BatchParallel
 
 Namespace Analysis
 
@@ -12,10 +13,9 @@ Namespace Analysis
                                  logDIR As String,
                                  LocalBlast As InteropService) As String   '匿名函数返回日志文件名
 
-            Dim LogName As String = GetFileName(File1, File2)
-            Dim LogFile As String = String.Format("{0}/{1}__{2}.log", logDIR, Idx, LogName)
+            Dim LogFile As String = VennDataBuilder.BuildFileName(File1, File2, logDIR)
 
-            Call Console.WriteLine("[{0}, {1}]", File1, File2)
+            Call $"[{File1}, {File2}]".__DEBUG_ECHO
             Call LocalBlast.Blastp(File1, File2, LogFile, e:="1").Start(WaitForExit:=True) 'performence the BLAST
 
             Return LogFile
@@ -32,7 +32,7 @@ Namespace Analysis
             Dim Files As Comb(Of String) = lstFiles
             Dim LocalBlast As InteropService = CreateInstance(pBlast)
             Dim DirIndex As Integer = 1
-            Dim ReturnedList As List(Of Pair()) = New List(Of Pair())
+            Dim ReturnedList As New List(Of Pair())
 
             For Each File As String In lstFiles  'formatdb
                 Call LocalBlast.FormatDb(File, "").Start(WaitForExit:=True)
@@ -58,12 +58,6 @@ Namespace Analysis
             Next
 
             Return ReturnedList
-        End Function
-
-        Private Function GetFileName(File1 As String, File2 As String) As String
-            Dim N1 As String = File1.Replace("\", "/").Split(CChar("/")).Last.Split(CChar(".")).First
-            Dim N2 As String = File2.Replace("\", "/").Split(CChar("/")).Last.Split(CChar(".")).First
-            Return String.Format("{0}_{1}", N1, N2)
         End Function
     End Module
 End Namespace

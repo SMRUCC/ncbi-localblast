@@ -46,12 +46,21 @@ Namespace LocalBLAST.Programs
 
         Const BLAST_PLUS_ARGUMS As String = "-query ""{0}"" -db ""{1}"" -evalue {2} -out ""{3}"" -num_threads {4}"
 
+        ''' <summary>
+        ''' 这个函数只是生成了一个blastp的操作任务，但是并没有被启动
+        ''' </summary>
+        ''' <param name="Input"></param>
+        ''' <param name="TargetDb"></param>
+        ''' <param name="Output"></param>
+        ''' <param name="e"></param>
+        ''' <returns></returns>
         Public Overrides Function Blastp(Input As String, TargetDb As String, Output As String, Optional e As String = "10") As IORedirectFile
             If String.IsNullOrEmpty(e) Then
                 e = "1e-3"
             End If
 
             Dim DIR As String = FileIO.FileSystem.GetFileInfo(Output).Directory.FullName
+
             Call FileIO.FileSystem.CreateDirectory(DIR)
 
             Dim argv As String = String.Format(BLAST_PLUS_ARGUMS, Input, TargetDb, e, Output, NumThreads)

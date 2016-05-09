@@ -15,10 +15,14 @@ Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput
 Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.BBH
 Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application
 Imports Microsoft.VisualBasic.Language
+Imports Microsoft.VisualBasic.Language.UnixBash
 
 Namespace Analysis
 
-    <PackageNamespace("NCBI.LocalBlast.BBH", Publisher:="amethyst.asuka@gcmodeller.org", Category:=APICategories.ResearchTools, Url:="http://gcmodeller.org")>
+    <PackageNamespace("NCBI.LocalBlast.BBH",
+                      Publisher:="amethyst.asuka@gcmodeller.org",
+                      Category:=APICategories.ResearchTools,
+                      Url:="http://gcmodeller.org")>
     Public Module BBHLogs
 
         ''' <summary>
@@ -30,9 +34,7 @@ Namespace Analysis
         <ExportAPI("LoadEntries")>
         <Extension>
         Public Function LoadEntries(DIR As String, Optional ext As String = "*.txt") As AlignEntry()
-            Dim Logs = (From path As String
-                        In FileIO.FileSystem.GetFiles(DIR, FileIO.SearchOption.SearchTopLevelOnly, ext).AsParallel
-                        Select LogNameParser(path)).ToArray
+            Dim Logs As AlignEntry() = (ls - l - wildcards(ext) <= DIR).ToArray(AddressOf LogNameParser)
             Return Logs
         End Function
 
@@ -44,10 +46,15 @@ Namespace Analysis
             Do While source.Count > 0
                 Dim First = source.First
                 Call source.RemoveAt(Scan0)
-                Dim Paired = (From entry In source Where entry.BiDirEquals(First) Select entry).FirstOrDefault
-                If Not Paired Is Nothing Then
-                    Call source.Remove(Paired)
-                    Call lstPairs.Add(New Entry(First, Paired))
+
+                Dim paired As AlignEntry = (From entry As AlignEntry
+                                            In source
+                                            Where entry.BiDirEquals(First)
+                                            Select entry).FirstOrDefault
+
+                If Not paired Is Nothing Then
+                    Call source.Remove(paired)
+                    Call lstPairs.Add(New Entry(First, paired))
                     Call Console.Write(".")
                 End If
             Loop
@@ -79,11 +86,14 @@ Namespace Analysis
         ''' <returns></returns>
         <ExportAPI("Load.SBHEntry")>
         Public Function LoadSBHEntry(DIR As String, query As String) As String()
-            Dim LQuery = FileIO.FileSystem.GetFiles(DIR, FileIO.SearchOption.SearchTopLevelOnly, "*.*").ToArray(AddressOf LogNameParser)
-            Dim Paths = (From entry As AlignEntry
-                         In LQuery.AsParallel
-                         Where String.Equals(query, entry.QueryName, StringComparison.OrdinalIgnoreCase)
-                         Select entry.FilePath).ToArray
+            Dim LQuery As AlignEntry() = (ls - l - wildcards("*.*") <= DIR).ToArray(AddressOf LogNameParser)
+            Dim Paths As String() =
+                LinqAPI.Exec(Of String) <=
+                From entry As AlignEntry
+                In LQuery.AsParallel
+                Where String.Equals(query, entry.QueryName, StringComparison.OrdinalIgnoreCase)
+                Select entry.FilePath
+
             Return Paths
         End Function
 
@@ -116,7 +126,7 @@ Namespace Analysis
                 SubjectGrep = TextGrepScriptEngine.Compile("Tokens ' ' First")
             End If
 
-            Dim Logs = LoadEntries(Source)
+            Dim Logs As AlignEntry() = LoadEntries(Source)
 
             If UltraLargeSize Then
                 Return ExportLogDataUltraLargeSize(Logs, EXPORT, QueryGrep, SubjectGrep)
@@ -126,8 +136,7 @@ Namespace Analysis
         End Function
 
         <ExportAPI("Export.LogData.UltraLargeSize", Info:="Batch export the log data into the besthit data from the batch blastp operation.")>
-        Public Function ExportLogDataUltraLargeSize(<Parameter("DataList.Logs.Entry")>
-                                                    Source As IEnumerable(Of AlignEntry),
+        Public Function ExportLogDataUltraLargeSize(<Parameter("DataList.Logs.Entry")> source As IEnumerable(Of AlignEntry),
                                                     <Parameter("Dir.Export")> EXPORT As String,
                                                     <Parameter("Grep.Query")> Optional QueryGrep As TextGrepScriptEngine = Nothing,
                                                     <Parameter("Grep.Subject")> Optional SubjectGrep As TextGrepScriptEngine = Nothing) As <FunctionReturns("")> AlignEntry()
@@ -135,11 +144,13 @@ Namespace Analysis
             If QueryGrep Is Nothing Then QueryGrep = TextGrepScriptEngine.Compile("tokens | first")
             If SubjectGrep Is Nothing Then SubjectGrep = TextGrepScriptEngine.Compile("tokens | first")
 
-            Dim LQuery = (From path As AlignEntry
-                          In Source.AsParallel
-                          Let InternalOperation = __operation(EXPORT, path, QueryGrep, SubjectGrep)
-                          Where Not InternalOperation Is Nothing
-                          Select InternalOperation).ToArray
+            Dim LQuery As AlignEntry() =
+                LinqAPI.Exec(Of AlignEntry) <= From path As AlignEntry
+                                               In source.AsParallel
+                                               Let reuslt As AlignEntry =
+                                                   __operation(EXPORT, path, QueryGrep, SubjectGrep)
+                                               Where Not reuslt Is Nothing
+                                               Select reuslt
 
             Call "All of the available besthit data was exported!".__DEBUG_ECHO
 
@@ -247,16 +258,20 @@ RETURN_VALUE:
                                                    Optional CDSInfo As Dictionary(Of String, GeneDumpInfo) = Nothing,
                                                    <Parameter("Null.Trim")> Optional TrimNull As Boolean = False) As BestHit()
 
-            Dim Files = (From Path As AlignEntry
+            Dim Files = (From path As AlignEntry
                          In Source
-                         Let besthitData = Path.FilePath.LoadCsv(Of BBH.BestHit)(False).ToArray
-                         Select Path,
-                             besthitData).ToDictionary(Function(item) item.Path,
-                                                       Function(item) item.besthitData)
+                         Let besthitData As BBH.BestHit() =
+                             path.FilePath.LoadCsv(Of BBH.BestHit)(False).ToArray
+                         Select path,
+                             besthitData).ToDictionary(Function(x) x.path,
+                                                       Function(x) x.besthitData)
             Dim CreateBestHit = (From Path As KeyValuePair(Of AlignEntry, BBH.BestHit())
                                  In Files
-                                 Let Data = __export(Source, Path.Key, Files, Path.Value)
-                                 Select Path = Path.Key, Data)
+                                 Let Data As BiDirectionalBesthit() =
+                                     __export(Source, Path.Key, Files, Path.Value)
+                                 Select Path = Path.Key,
+                                     Data)
+
             Dim getDescrib As BiDirectionalBesthit.GetDescriptionHandle
 
             If CDSInfo Is Nothing Then
@@ -264,6 +279,7 @@ RETURN_VALUE:
             Else
                 getDescrib = Function(Id As String) If(CDSInfo.ContainsKey(Id), CDSInfo(Id).CommonName, "")
             End If
+
             Dim GetDescriptionResult = (From item
                                         In CreateBestHit
                                         Let descrMatches As BiDirectionalBesthit() =

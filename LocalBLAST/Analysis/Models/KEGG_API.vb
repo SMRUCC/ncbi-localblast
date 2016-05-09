@@ -9,7 +9,10 @@ Namespace Analysis
     ''' </summary>
     Public Module KEGG_API
 
-        Public Function EXPORT(source As IEnumerable(Of SSDB.OrthologREST), Optional coverage As Double = 0.8, Optional identities As Double = 0.3) As BestHit
+        Public Function EXPORT(source As IEnumerable(Of SSDB.OrthologREST),
+                               Optional coverage As Double = 0.8,
+                               Optional identities As Double = 0.3) As BestHit
+
             Dim result As New BestHit With {
                 .sp = source.First.KEGG_ID.Split(":"c).First,
                 .hits = LinqAPI.Exec(Of HitCollection) <= From query As SSDB.OrthologREST
@@ -19,7 +22,10 @@ Namespace Analysis
             Return result
         End Function
 
-        <Extension> Public Function Export(source As SSDB.OrthologREST, Optional coverage As Double = 0.8, Optional identities As Double = 0.3) As HitCollection
+        <Extension> Public Function Export(source As SSDB.OrthologREST,
+                                           Optional coverage As Double = 0.8,
+                                           Optional identities As Double = 0.3) As HitCollection
+
             If source.Orthologs.IsNullOrEmpty Then
                 Return New HitCollection With {
                     .Description = source.Definition,
@@ -33,13 +39,18 @@ Namespace Analysis
                 .QueryName = source.KEGG_ID.Split(":"c).Last,
                 .Hits = LinqAPI.Exec(Of Hit) <= From x As SSDB.SShit
                                                 In source.Orthologs
-                                                Where x.Coverage >= coverage AndAlso Val(x.Identity) >= identities
+                                                Where x.Coverage >= coverage AndAlso
+                                                    Val(x.Identity) >= identities
                                                 Select x.__export
             }
             Return hits
         End Function
 
-        Public Function Export(source As IEnumerable(Of SSDB.Ortholog), tag As String, Optional coverage As Double = 0.8, Optional identities As Double = 0.3) As HitCollection
+        Public Function Export(source As IEnumerable(Of SSDB.Ortholog),
+                               tag As String,
+                               Optional coverage As Double = 0.8,
+                               Optional identities As Double = 0.3) As HitCollection
+
             Dim hits As New HitCollection With {
                 .QueryName = tag,
                 .Hits = LinqAPI.Exec(Of SSDB.Ortholog, Hit)(source) <= Function(x) KEGG_API.__export(x)

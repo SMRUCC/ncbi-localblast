@@ -40,7 +40,7 @@
         ''' <param name="data"></param>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        Public Function SelectEquals(data As Generic.IEnumerable(Of AlignEntry)) As AlignEntry
+        Public Function SelectEquals(data As IEnumerable(Of AlignEntry)) As AlignEntry
             Dim LQuery = (From logEntry As AlignEntry In data
                           Where String.Equals(logEntry.HitName, QueryName) AndAlso
                               String.Equals(logEntry.QueryName, HitName)
@@ -48,7 +48,7 @@
             Return LQuery
         End Function
 
-        Public Function SelectEquals(Of TAnonymousType As Class)(data As Generic.IEnumerable(Of TAnonymousType),
+        Public Function SelectEquals(Of TAnonymousType As Class)(data As IEnumerable(Of TAnonymousType),
                                                                  [Select] As Func(Of TAnonymousType, AlignEntry)) As TAnonymousType
             Dim LQuery = (From item As TAnonymousType In data
                           Where Me.BiDirEquals([Select](item))

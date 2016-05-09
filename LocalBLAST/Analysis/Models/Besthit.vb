@@ -65,7 +65,7 @@ Namespace Analysis
                           Select (From sp_obj As Hit
                                   In hit.Hits
                                   Where String.Equals(sp, sp_obj.tag, StringComparison.OrdinalIgnoreCase)
-                                  Select sp_obj.Identities).ToArray).MatrixToList
+                                  Select sp_obj.Identities)).MatrixToList
             If LQuery.IsNullOrEmpty Then
                 Return 0
             Else
@@ -81,10 +81,12 @@ Namespace Analysis
         ''' <remarks></remarks>
         Public Function GetUnConservedRegions(conserved As IReadOnlyList(Of String())) As String()
             Dim index As List(Of String) = conserved.MatrixToList
-            Dim LQuery As String() = (From hit As HitCollection
-                                      In Me.hits
-                                      Where index.IndexOf(hit.QueryName) = -1
-                                      Select hit.QueryName).ToArray
+            Dim LQuery As String() = LinqAPI.Exec(Of String) <=
+                From hit As HitCollection
+                In Me.hits
+                Where index.IndexOf(hit.QueryName) = -1
+                Select hit.QueryName
+
             Return LQuery
         End Function
 
@@ -139,13 +141,14 @@ Namespace Analysis
                               Where Not String.IsNullOrEmpty(hitData.HitName)
                               Select hitData
                               Group By hitData.tag Into Group)
-                Dim Id As String() = (From Tag In (From bacData
-                                                   In Groups
-                                                   Where bacData.Group.Count > 0
-                                                   Select bacData.tag,
-                                                       n = bacData.Group.Count
-                                                   Order By n Descending).ToArray
-                                      Select Tag.tag).ToArray
+                Dim source = From bacData
+                             In Groups
+                             Where bacData.Group.Count > 0
+                             Select bacData.tag,
+                                 n = bacData.Group.Count
+                             Order By n Descending
+                Dim Id As String() = LinqAPI.Exec(Of String) <= From Tag In source Select Tag.tag
+
                 Return Id
             End Get
         End Property
@@ -157,7 +160,8 @@ Namespace Analysis
         ''' <returns></returns>
         ''' <remarks></remarks>
         Public Function TrimEmpty(p As Double) As BestHit
-            Dim LQuery = (From hit As HitCollection In hits Select hit.Hits).MatrixToList
+            Dim LQuery As IEnumerable(Of Hit) =
+                Me.hits.Select(Function(hit) hit.Hits).MatrixAsIterator
             Dim Grouped = (From hit As Hit
                            In LQuery
                            Where Not String.IsNullOrEmpty(hit.HitName)
@@ -166,14 +170,15 @@ Namespace Analysis
             Dim Id As String() = (From hit In Grouped
                                   Where hit.Group.Count >= p * (Grouped.Count - 1)
                                   Select hit.tag).ToArray
-            Dim ChunkBuffer = (From hit As HitCollection
-                               In Me.hits
-                               Let __hits As Hit() = (From nn As Hit
-                                                      In hit.Hits
-                                                      Where Array.IndexOf(Id, nn.tag) > -1
-                                                      Select nn).ToArray
-                               Select hit.InvokeSet(NameOf(hit.Hits), __hits)).ToArray
-            Me.hits = ChunkBuffer
+            Dim hits As HitCollection() =
+                LinqAPI.Exec(Of HitCollection) <= From hit As HitCollection
+                                                  In Me.hits
+                                                  Let __hits As Hit() = (From x As Hit
+                                                                         In hit.Hits
+                                                                         Where Array.IndexOf(Id, x.tag) > -1
+                                                                         Select x).ToArray
+                                                  Select hit.InvokeSet(NameOf(hit.Hits), __hits)
+            Me.hits = hits
 
             Return Me
         End Function
@@ -225,11 +230,11 @@ Namespace Analysis
                 End If
             Next
 
-            Dim DeleteUnConserveds = (From x In LQuery Where Not x.IsConserved Select x.QueryName).ToArray
+            Dim unConserved As String() = (From x In LQuery Where Not x.IsConserved Select x.QueryName).ToArray
             buf = (From locus As String()
                    In buf
                    Where locus.Count > 1 OrElse
-                       (locus.Count = 1 AndAlso Array.IndexOf(DeleteUnConserveds, locus.First) = -1)
+                       (locus.Count = 1 AndAlso Array.IndexOf(unConserved, locus.First) = -1)
                    Select locus).ToList '删除不保守的位点
 
             Return buf
@@ -244,7 +249,7 @@ Namespace Analysis
         ''' <remarks></remarks>
         Public Function SelectSourceFromHits(source As String, copyTo As String) As String()
             Dim gbEntry As Dictionary(Of String, String) = gbExportService.LoadGbkSource(source)
-            Dim LQuery As IEnumerable(Of Hit) = (From hit As HitCollection In hits Select hit.Hits).MatrixAsIterator
+            Dim LQuery As IEnumerable(Of Hit) = hits.Select(Function(hit) hit.Hits).MatrixAsIterator
             Dim Grouped = (From hit As Hit
                            In LQuery
                            Where Not String.IsNullOrEmpty(hit.HitName)
