@@ -23,7 +23,9 @@ Partial Module CLI
         Dim blastp As INVOKE_BLAST_HANDLE = localBlast.CreateInvokeHandle
         Dim [overrides] As Boolean = args.GetBoolean("/overrides")
 
+        Call "Start [query ==> {Hits}] direction...".__DEBUG_ECHO
         Call VennDataModel.BatchBlastp(blastp, [in], subject, out, 10, [overrides])
+        Call "Start [{Hits} ==> query] direction...".__DEBUG_ECHO
         Call VennDataModel.BatchBlastpRev(localBlast, subject, [in], out, 10, [overrides], True)
 
         Return 0

@@ -158,7 +158,7 @@ Namespace BlastAPI
                                   <Parameter("Exists.Overriding", "Overrides the exists blastp result if the file length is not ZERO length.")> Optional [Overrides] As Boolean = False,
                                   <Parameter("Using.Parallel")> Optional Parallel As Boolean = False)
 
-            Dim Queries As Dictionary(Of String, String) = Query.LoadSourceEntryList({"*.fasta", "*.fsa", "*.txt"})
+            Dim Queries As Dictionary(Of String, String) = Query.LoadSourceEntryList({"*.fasta", "*.fsa", "*.txt", "*.faa"})
 
             If Not FileIO.FileSystem.FileExists(Subject) Then
                 Dim msg As String = String.Format(SubjectNotFound, Subject.ToFileURL)
@@ -212,7 +212,7 @@ Namespace BlastAPI
                                     Optional [Overrides] As Boolean = False) As String()
 
             Dim Subjects As Dictionary(Of String, String) =
-                Subject.LoadSourceEntryList({"*.fasta", "*.fsa", "*.txt"})
+                Subject.LoadSourceEntryList({"*.fasta", "*.fsa", "*.txt", "*.faa"})
 
             If Not FileIO.FileSystem.FileExists(Query) Then
                 Dim msg As String = String.Format(QueryNotFound, Query.ToFileURL)
