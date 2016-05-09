@@ -10,6 +10,7 @@ Imports Microsoft.VisualBasic.Language.UnixBash
 Imports System.Text.RegularExpressions
 Imports System.Text
 Imports Microsoft.VisualBasic.Serialization
+Imports Microsoft.VisualBasic.Terminal
 
 Partial Module CLI
 
@@ -105,7 +106,7 @@ Partial Module CLI
 
         For Each gene In LQuery
             Dim locusId As String =
-                $"{prefix}_{ConsoleDevice.STDIO.ZeroFill(idx.MoveNext, 4)}"
+                $"{prefix}_{STDIO.ZeroFill(idx.MoveNext, 4)}"
 
             For Each feature In gene.Group
                 feature.x.SetValue(FeatureQualifiers.locus_tag, locusId)

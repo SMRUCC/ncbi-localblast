@@ -1,11 +1,10 @@
 ﻿Imports Microsoft.VisualBasic.Extensions
-Imports Microsoft.VisualBasic.ConsoleDevice.STDIO
-
+Imports Microsoft.VisualBasic.Terminal.STDIO
 Imports Microsoft.VisualBasic.DocumentFormat.Csv.StorageProvider.Reflection
 Imports Microsoft.VisualBasic.DocumentFormat.Csv.Extensions
 Imports Microsoft.VisualBasic.Text
-Imports LANS.SystemsBiology.SequenceModel.FASTA
 Imports Microsoft.VisualBasic.DocumentFormat.Csv
+Imports LANS.SystemsBiology.SequenceModel.FASTA
 
 Namespace LocalBLAST.Application.BBH
 

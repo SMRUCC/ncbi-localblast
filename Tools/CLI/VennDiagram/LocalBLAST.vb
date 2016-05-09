@@ -1,7 +1,7 @@
 ﻿Imports LANS.SystemsBiology.NCBI.Extensions.Analysis
 Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.InteropService
 Imports Microsoft.VisualBasic.CommandLine.Reflection
-Imports Microsoft.VisualBasic.ConsoleDevice.STDIO
+Imports Microsoft.VisualBasic.Terminal.STDIO
 Imports Microsoft.VisualBasic.Extensions
 Imports Microsoft.VisualBasic
 

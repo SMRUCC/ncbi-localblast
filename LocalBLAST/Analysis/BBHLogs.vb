@@ -14,6 +14,7 @@ Imports LANS.SystemsBiology.Assembly.NCBI.GenBank.CsvExports
 Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput
 Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.BBH
 Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application
+Imports Microsoft.VisualBasic.Language
 
 Namespace Analysis
 
@@ -79,7 +80,8 @@ Namespace Analysis
         <ExportAPI("Load.SBHEntry")>
         Public Function LoadSBHEntry(DIR As String, query As String) As String()
             Dim LQuery = FileIO.FileSystem.GetFiles(DIR, FileIO.SearchOption.SearchTopLevelOnly, "*.*").ToArray(AddressOf LogNameParser)
-            Dim Paths = (From entry In LQuery.AsParallel
+            Dim Paths = (From entry As AlignEntry
+                         In LQuery.AsParallel
                          Where String.Equals(query, entry.QueryName, StringComparison.OrdinalIgnoreCase)
                          Select entry.FilePath).ToArray
             Return Paths
@@ -138,16 +140,20 @@ Namespace Analysis
                           Let InternalOperation = __operation(EXPORT, path, QueryGrep, SubjectGrep)
                           Where Not InternalOperation Is Nothing
                           Select InternalOperation).ToArray
+
             Call "All of the available besthit data was exported!".__DEBUG_ECHO
+
             Return LQuery
         End Function
 
         Private Function __operation(EXPORT As String, Path As AlignEntry, QueryGrep As TextGrepScriptEngine, SubjectGrep As TextGrepScriptEngine) As AlignEntry
             Dim FilePath As String = EXPORT & "/" & IO.Path.GetFileNameWithoutExtension(Path.FilePath) & ".besthit.csv"
-            If FileIO.FileSystem.FileExists(FilePath) AndAlso FileIO.FileSystem.GetFileInfo(FilePath).Length > 0 Then
+            If FileIO.FileSystem.FileExists(FilePath) AndAlso
+                FileIO.FileSystem.GetFileInfo(FilePath).Length > 0 Then
                 GoTo RETURN_VALUE
             End If
-            Dim OutputLog As BlastPlus.v228 = BlastPlus.Parser.TryParse(Path.FilePath)
+            Dim OutputLog As BlastPlus.v228 =
+                BlastPlus.Parser.TryParse(Path.FilePath)
             If OutputLog Is Nothing Then
                 Return Nothing
             End If
@@ -251,15 +257,17 @@ RETURN_VALUE:
                                  In Files
                                  Let Data = __export(Source, Path.Key, Files, Path.Value)
                                  Select Path = Path.Key, Data)
-            Dim GetDescriptionHandle As BiDirectionalBesthit.GetDescriptionHandle
+            Dim getDescrib As BiDirectionalBesthit.GetDescriptionHandle
+
             If CDSInfo Is Nothing Then
-                GetDescriptionHandle = Function(null) ""
+                getDescrib = Function(null) ""
             Else
-                GetDescriptionHandle = Function(Id As String) If(CDSInfo.ContainsKey(Id), CDSInfo(Id).CommonName, "")
+                getDescrib = Function(Id As String) If(CDSInfo.ContainsKey(Id), CDSInfo(Id).CommonName, "")
             End If
             Dim GetDescriptionResult = (From item
                                         In CreateBestHit
-                                        Let descrMatches = BiDirectionalBesthit.MatchDescription(item.Data, SourceDescription:=GetDescriptionHandle)
+                                        Let descrMatches As BiDirectionalBesthit() =
+                                            BiDirectionalBesthit.MatchDescription(item.Data, SourceDescription:=getDescrib)
                                         Select Path = item.Path,
                                             descrMatches)
 
@@ -273,20 +281,21 @@ RETURN_VALUE:
             Next
 
             Dim Grouped = (From item In result Select item Group By item.Path.QueryName Into Group)        '按照Query分组
-            Dim Exports = (From Data In Grouped.AsParallel
-                           Let hitData = (From item In Data.Group
-                                          Select New KeyValuePair(Of String, Dictionary(Of String, BiDirectionalBesthit))(item.Path.HitName, __getDirectionary(item.descrMatches))).ToArray
+            Dim EXPORTS = (From Data In Grouped.AsParallel
+                           Let hitData = (From x
+                                          In Data.Group
+                                          Select New KeyValuePair(Of String, Dictionary(Of String, BiDirectionalBesthit))(x.Path.HitName, __getDirectionary(x.descrMatches))).ToArray
                            Select __export(Data.QueryName, hitData)).ToArray   '按照分组将数据导出
 
             '保存临时数据
-            For Each item In Exports
+            For Each item As BestHit In EXPORTS
                 Dim path As String = EXPORT & "/CompiledBesthits/" & item.sp & ".xml"
                 Call item.GetXml.SaveTo(path)
                 path = EXPORT & "/CompiledCsvData/" & item.sp & ".csv"
                 Call item.ExportCsv(TrimNull).Save(path, False)
             Next
 
-            Return Exports
+            Return EXPORTS
         End Function
 
         Private Function __getDirectionary(data As BiDirectionalBesthit()) As Dictionary(Of String, BiDirectionalBesthit)
@@ -324,23 +333,30 @@ RETURN_VALUE:
                 .sp = QuerySpeciesName
             }
             Dim QueryProteins As String() = data.First.Value.Keys.ToArray   '作为主键的蛋白质编号
-            Dim LQuery = (From QueryProtein As String
-                          In QueryProteins
-                          Let hitCollection = (From HitSpecies As KeyValuePair(Of String, Dictionary(Of String, BiDirectionalBesthit)) In data
-                                               Let hitttt = __export(HitSpecies.Value, QueryProtein)
-                                               Let hhh As Hit = New Hit With {
-                                                        .tag = HitSpecies.Key,
-                                                        .HitName = hitttt.HitName,
-                                                        .Identities = hitttt.Identities,
-                                                        .Positive = hitttt.Positive
-                                                    }
-                                               Select desc = hitttt.Description, hhh).ToArray
-                          Let hitCol As HitCollection = New HitCollection With {
-                              .QueryName = QueryProtein,
-                              .Description = hitCollection.First.desc,
-                              .Hits = (From ddd In hitCollection Select ddd.hhh).ToArray
-                          }
-                          Select hitCol).ToArray
+            Dim LQuery As HitCollection() =
+                LinqAPI.Exec(Of HitCollection) <=
+                From query As String
+                In QueryProteins
+                Let hits = (From sp As KeyValuePair(Of String, Dictionary(Of String, BiDirectionalBesthit))
+                            In data
+                            Let hitttt As BiDirectionalBesthit =
+                                __export(sp.Value, query)
+                            Let hhh As Hit = New Hit With {
+                                .tag = sp.Key,
+                                .HitName = hitttt.HitName,
+                                .Identities = hitttt.Identities,
+                                .Positive = hitttt.Positive
+                            }
+                            Select desc = hitttt.Description,
+                                hhh).ToArray
+                Let hitCol As HitCollection =
+                    New HitCollection With {
+                        .QueryName = query,
+                        .Description = hits.First.desc,
+                        .Hits = hits.ToArray(Function(x) x.hhh)
+                    }
+                Select hitCol
+
             Return New BestHit With {
                 .sp = QuerySpeciesName,
                 .hits = LQuery

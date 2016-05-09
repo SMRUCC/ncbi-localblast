@@ -1,6 +1,6 @@
 ﻿Imports LANS.SystemsBiology.NCBI.Extensions.Analysis
 Imports Microsoft.VisualBasic.CommandLine.Reflection
-Imports Microsoft.VisualBasic.ConsoleDevice.STDIO
+Imports Microsoft.VisualBasic.Terminal.STDIO
 Imports Microsoft.VisualBasic.DocumentFormat.Csv
 Imports Microsoft.VisualBasic.Extensions
 Imports Microsoft.VisualBasic.Text

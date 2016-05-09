@@ -2,7 +2,7 @@
 Imports System.Text.RegularExpressions
 Imports Microsoft.VisualBasic.Linq.Extensions
 Imports Microsoft.VisualBasic.Extensions
-Imports Microsoft.VisualBasic.ConsoleDevice.Utility
+Imports Microsoft.VisualBasic.Terminal.Utility
 Imports Microsoft.VisualBasic.Text
 Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.Views
 Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus.v228

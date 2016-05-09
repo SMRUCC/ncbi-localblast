@@ -52,10 +52,11 @@ Namespace BlastAPI
 
         <ExportAPI("Blast_Plus.Session.New()")>
         Public Function NewBlastPlusSession(<Parameter("Blast.Bin", "The program group of the local blast program group.")>
-                                        DIR As String) As BLASTPlus
+                                            DIR As String) As BLASTPlus
             Return New BLASTPlus(DIR)
         End Function
 
+        <Extension>
         <ExportAPI("Blast_Handle.Create()")>
         Public Function CreateInvokeHandle(<Parameter("Session.Handle")> SessionHandle As BLASTPlus,
                                            <Parameter("Invoke.Blastp",
@@ -182,13 +183,15 @@ Namespace BlastAPI
 
         <ExportAPI("Blastp.Invoke_Batch")>
         Public Function BatchBlastp(<Parameter("Handle.Blastp", "This handle value is the blastp handle, not blastn handle.")> Handle As INVOKE_BLAST_HANDLE,
-                                <Parameter("Path.Query", "The file path value of the query protein fasta data.")> Query As String,
-                                <Parameter("Dir.Subject", "The data directory which contains the subject protein fasta data.")> Subject As String,
-                                <Parameter("Dir.Export", "The data directory for export the blastp data between the query and subject.")> EXPORT As String,
-                                <Parameter("E-Value", "The blastp except value.")> Optional Evalue As String = "1e-3",
-                                <Parameter("Exists.Overriding", "Overrides the exists blastp result if the file length is not ZERO length.")>
+                                    <Parameter("Path.Query", "The file path value of the query protein fasta data.")> Query As String,
+                                    <Parameter("Dir.Subject", "The data directory which contains the subject protein fasta data.")> Subject As String,
+                                    <Parameter("Dir.Export", "The data directory for export the blastp data between the query and subject.")> EXPORT As String,
+                                    <Parameter("E-Value", "The blastp except value.")> Optional Evalue As String = "1e-3",
+                                    <Parameter("Exists.Overriding", "Overrides the exists blastp result if the file length is not ZERO length.")>
                                     Optional [Overrides] As Boolean = False) As String()
-            Dim Subjects = Subject.LoadSourceEntryList({"*.fasta", "*.fsa", "*.txt"})
+
+            Dim Subjects As Dictionary(Of String, String) =
+                Subject.LoadSourceEntryList({"*.fasta", "*.fsa", "*.txt"})
 
             If Not FileIO.FileSystem.FileExists(Query) Then
                 Throw New Exception($"Could not found the query protein fasta file ""{Query.ToFileURL}""!")
@@ -197,7 +200,7 @@ Namespace BlastAPI
             Call FileIO.FileSystem.CreateDirectory(EXPORT)
 
             Dim LQuery = (From Path As PathEntry
-                      In Subjects.AsParallel
+                          In Subjects.AsParallel
                           Select Handle(Query, Subject:=Path.Value, Evalue:=Evalue, EXPORT:=EXPORT, num_threads:=Environment.ProcessorCount / 2, [Overrides]:=[Overrides])).ToArray
             Return LQuery
         End Function
@@ -222,7 +225,8 @@ Namespace BlastAPI
             Dim LQuery As IEnumerable(Of String) = (From Path As PathEntry
                                                     In Subjects.AsParallel
                                                     Select __bbh(Path, Query, Evalue, EXPORT, Handle, [Overrides])).MatrixAsIterator
-            Return (From Path As String In LQuery.AsParallel
+            Return (From Path As String
+                    In LQuery.AsParallel
                     Select LogNameParser(Path)).ToArray
         End Function
 

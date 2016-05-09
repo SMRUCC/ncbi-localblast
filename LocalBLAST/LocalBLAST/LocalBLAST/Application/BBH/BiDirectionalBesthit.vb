@@ -63,6 +63,11 @@ Namespace LocalBLAST.Application.BBH
             Return data
         End Function
 
+        ''' <summary>
+        ''' Get gene function description from the specific locus_tag
+        ''' </summary>
+        ''' <param name="locusId"></param>
+        ''' <returns></returns>
         Public Delegate Function GetDescriptionHandle(locusId As String) As String
 
         Public Shared Function MatchDescription(data As BiDirectionalBesthit(), SourceDescription As GetDescriptionHandle) As BiDirectionalBesthit()
