@@ -5,13 +5,17 @@ Imports Microsoft.VisualBasic.CommandLine.Reflection
 Imports Microsoft.VisualBasic
 Imports System.Runtime.CompilerServices
 Imports Microsoft.VisualBasic.Parallel
+Imports Microsoft.VisualBasic.Linq
+Imports Microsoft.VisualBasic.ComponentModel
+Imports Microsoft.VisualBasic.Language.UnixBash
+Imports Microsoft.VisualBasic.Language
 
 Namespace LocalBLAST.Application.BatchParallel
 
     ''' <summary>
     ''' The batch blast module for the preparations of the Venn diagram drawing data model.(为文氏图的绘制准备数据的批量blast模块)
     ''' </summary>
-    ''' <remarks></remarks>
+    ''' <remarks>这里面的方法都是完全的两两组合的BBH</remarks>
     '''
     <PackageNamespace("Venn.Builder",
                       Category:=APICategories.ResearchTools,
@@ -63,68 +67,69 @@ Namespace LocalBLAST.Application.BatchParallel
                                     evalue As String,
                                     InvokedBLASTAction As INVOKE_BLAST_HANDLE,
                                     Optional [Overrides] As Boolean = False) As AlignEntry()
-            Dim Files As String() = FileIO.FileSystem.GetFiles(input, FileIO.SearchOption.SearchAllSubDirectories, "*.fasta", "*.fsa").ToArray
-            Dim ComboList = Microsoft.VisualBasic.ComponentModel.Comb(Of String).CreateCompleteObjectPairs(Files)
+            Dim Files As String() = ls - l - r - wildcards("*.fasta", "*.fsa") <= input
+            Dim ComboList = Comb(Of String).CreateCompleteObjectPairs(Files)
 
             Call FileIO.FileSystem.CreateDirectory(EXPORT)
 
-            Dim FileList As List(Of String) = New List(Of String)
+            Dim FileList As New List(Of String)
 
             For Each pairedList In ComboList
-                For Each paired In pairedList
-                    Call FileList.Add(InvokedBLASTAction(Query:=paired.Key,
-                                                         Subject:=paired.Value,
-                                                         Evalue:=evalue,
-                                                         EXPORT:=EXPORT,
-                                                         num_threads:=RecommendedThreads,
-                                                         [Overrides]:=[Overrides]))
+                For Each paired As KeyValuePair(Of String, String) In pairedList
+                    FileList += InvokedBLASTAction(Query:=paired.Key,
+                                                   Subject:=paired.Value,
+                                                   Evalue:=evalue,
+                                                   EXPORT:=EXPORT,
+                                                   num_threads:=RecommendedThreads,
+                                                   [Overrides]:=[Overrides])
                 Next
             Next
 
             On Error Resume Next
 
-            Return (From path As String In FileList.AsParallel Select LogNameParser(path)).ToArray
+            Return FileList.ToArray(AddressOf LogNameParser)
         End Function
 
         ''' <summary>
         ''' The parallel edition for the invoke function <see cref="TaskBuilder"></see>.(<see cref="TaskBuilder"></see>的并行版本)
         ''' </summary>
         ''' <param name="input"></param>
-        ''' <param name="export"></param>
+        ''' <param name="EXPORT"></param>
         ''' <param name="evalue"></param>
         ''' <param name="InvokedBLASTAction"></param>
         ''' <remarks></remarks>
         '''
         <ExportAPI("Task.Builder.Parallel")>
         Public Function TaskBuilder_p(Input As String,
-                                      Export As String,
+                                      EXPORT As String,
                                       Evalue As String,
                                       InvokedBLASTAction As INVOKE_BLAST_HANDLE,
                                       Optional [Overrides] As Boolean = False) As AlignEntry()
 
-            Dim Files As String() = FileIO.FileSystem.GetFiles(Input, FileIO.SearchOption.SearchAllSubDirectories, "*.fasta", "*.fsa", "*.fa").ToArray
+            Dim Files As String() = ls - l - r - wildcards("*.fasta", "*.fsa", "*.fa") <= Input
             Dim ComboList As KeyValuePair(Of String, String)()() =
-                Microsoft.VisualBasic.ComponentModel.Comb(Of String).CreateCompleteObjectPairs(Files)
+                Comb(Of String).CreateCompleteObjectPairs(Files)
 
-            Call FileIO.FileSystem.CreateDirectory(Export)
+            Call FileIO.FileSystem.CreateDirectory(EXPORT)
 
-            Dim FileList As List(Of String) = New List(Of String)
+            Dim FileList As New List(Of String)
 
             For Each pairedList As KeyValuePair(Of String, String)() In ComboList
-                Dim LQuery As String() = (From paired As KeyValuePair(Of String, String)
-                                          In pairedList.AsParallel
-                                          Select InvokedBLASTAction(
-                                              Query:=paired.Key,
-                                              Subject:=paired.Value,
-                                              Evalue:=Evalue,
-                                              EXPORT:=Export,
-                                              num_threads:=RecommendedThreads,
-                                              [Overrides]:=[Overrides])).ToArray
-                Call FileList.AddRange(LQuery)
+                Dim LQuery As String() =
+                    LinqAPI.Exec(Of String) <= From x As KeyValuePair(Of String, String)
+                                               In pairedList.AsParallel
+                                               Select InvokedBLASTAction(
+                                                   Query:=x.Key,
+                                                   Subject:=x.Value,
+                                                   Evalue:=Evalue,
+                                                   EXPORT:=EXPORT,
+                                                   num_threads:=RecommendedThreads,
+                                                   [Overrides]:=[Overrides])
+                FileList += LQuery
             Next
 
             'On Error Resume Next
-            Return (From path As String In FileList.AsParallel Select LogNameParser(path)).ToArray
+            Return FileList.ToArray(AddressOf LogNameParser)
         End Function
 
 #End Region
@@ -145,14 +150,12 @@ Namespace LocalBLAST.Application.BatchParallel
                                      blastTask As INVOKE_BLAST_HANDLE,
                                      Optional [overrides] As Boolean = False,
                                      Optional num_threads As Integer = -1) As AlignEntry()
-            Dim Files As String() = FileIO.FileSystem.GetFiles(inputDIR,
-                                                               FileIO.SearchOption.SearchAllSubDirectories,
-                                                               "*.fasta",
-                                                               "*.fsa",
-                                                               "*.fa").ToArray
+
+            Dim Files As String() = ls - l - r - wildcards("*.fasta", "*.fsa", "*.fa") <= inputDIR
             Dim ComboList As KeyValuePair(Of String, String)()() =
-                Microsoft.VisualBasic.ComponentModel.Comb(Of String).CreateCompleteObjectPairs(Files)
-            Dim taskList As Func(Of String)() = (From task In ComboList.MatrixToList.AsParallel
+                Comb(Of String).CreateCompleteObjectPairs(Files)
+            Dim taskList As Func(Of String)() = (From task As KeyValuePair(Of String, String)
+                                                 In ComboList.MatrixAsIterator.AsParallel
                                                  Let taskHandle As Func(Of String) =
                                                      Function() blastTask(Query:=task.Key,
                                                                           Subject:=task.Value,
@@ -175,25 +178,25 @@ Namespace LocalBLAST.Application.BatchParallel
                                                               numThreads:=num_threads, ' 启动批量本地blast操作
                                                               TimeInterval:=10)
             'On Error Resume Next
-            Return (From path As String In fileList.AsParallel Select LogNameParser(path)).ToArray
+            Return fileList.ToArray(AddressOf LogNameParser)
         End Function
 
         Public Const QUERY_LINKS_SUBJECT As String = "_vs__"
 
         ''' <summary>
-        ''' 去掉了fasta文件的后缀名
+        ''' <paramref name="query"/> <see cref="QUERY_LINKS_SUBJECT"/> <paramref name="subject"/>.(去掉了fasta文件的后缀名)
         ''' </summary>
         ''' <param name="Query"></param>
         ''' <param name="Subject"></param>
-        ''' <param name="ExportDIR"></param>
+        ''' <param name="EXPORT"></param>
         ''' <returns></returns>
         ''' <remarks></remarks>
         '''
         <ExportAPI("Build.Entry")>
-        Public Function BuildFileName(Query As String, Subject As String, ExportDIR As String) As String
+        Public Function BuildFileName(Query As String, Subject As String, EXPORT As String) As String
             Query = IO.Path.GetFileNameWithoutExtension(Query)
             Subject = IO.Path.GetFileNameWithoutExtension(Subject)
-            Return $"{ExportDIR}/{Query}{QUERY_LINKS_SUBJECT}{Subject}.txt"
+            Return $"{EXPORT}/{Query}{QUERY_LINKS_SUBJECT}{Subject}.txt"
         End Function
 
         ''' <summary>
@@ -217,23 +220,24 @@ Namespace LocalBLAST.Application.BatchParallel
         ''' <summary>
         ''' 批量两两比对blastp，以用于生成文氏图的分析数据
         ''' </summary>
-        ''' <param name="ServiceHandle"></param>
+        ''' <param name="localblast"></param>
         ''' <returns></returns>
         ''' <remarks></remarks>
         '''
         <ExportAPI("Get.Blastp.Handle")>
         <Extension>
-        Public Function BuildBLASTP_InvokeHandle(ServiceHandle As LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Programs.BLASTPlus) As INVOKE_BLAST_HANDLE
+        Public Function BuildBLASTP_InvokeHandle(localblast As Programs.BLASTPlus) As INVOKE_BLAST_HANDLE
             Dim Handle As INVOKE_BLAST_HANDLE = Function(Query As String, Subject As String,
                                                          num_threads As Integer,
                                                          Evalue As String,
-                                                         ExportDir As String,
-                                                         [Overrides] As Boolean) __blastpHandle(ServiceHandle, Query:=Query,
-                                                                                                               Evalue:=Evalue,
-                                                                                                               ExportDir:=ExportDir,
-                                                                                                               Num_Threads:=num_threads,
-                                                                                                               [Overrides]:=[Overrides],
-                                                                                                               Subject:=Subject)
+                                                         EXPORT As String,
+                                                         [Overrides] As Boolean) localblast.__blastpHandle(
+                                                                                    Query:=Query,
+                                                                                    Evalue:=Evalue,
+                                                                                    EXPORT:=EXPORT,
+                                                                                    Num_Threads:=num_threads,
+                                                                                    [Overrides]:=[Overrides],
+                                                                                    Subject:=Subject)
             Return Handle
         End Function
 
@@ -245,24 +249,26 @@ Namespace LocalBLAST.Application.BatchParallel
         ''' <param name="Subject"></param>
         ''' <param name="Num_Threads"></param>
         ''' <param name="Evalue"></param>
-        ''' <param name="ExportDir"></param>
+        ''' <param name="EXPORT"></param>
         ''' <param name="Overrides">当目标文件存在并且长度不为零的时候，是否进行覆盖，假若为否，则直接忽略过这个文件</param>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        Private Function __blastpHandle(ServiceHandle As LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Programs.BLASTPlus,
+        ''' 
+        <Extension>
+        Private Function __blastpHandle(ServiceHandle As Programs.BLASTPlus,
                                         Query As String,
                                         Subject As String,
                                         Num_Threads As Integer,
                                         Evalue As String,
-                                        ExportDir As String,
+                                        EXPORT As String,
                                         [Overrides] As Boolean) As String
 
-            Dim LogOut As String = BuildFileName(Query, Subject, ExportDir)
+            Dim logOut As String = BuildFileName(Query, Subject, EXPORT)
 
-            If IsAvailable(LogOut) Then
+            If IsAvailable(logOut) Then
                 If Not [Overrides] Then
                     Call Console.Write(".")
-                    Return LogOut  '文件已经存在，则会更具是否进行覆写这个参数来决定是否需要进行blast操作
+                    Return logOut  '文件已经存在，则会更具是否进行覆写这个参数来决定是否需要进行blast操作
                 End If
             End If
 
@@ -270,21 +276,22 @@ Namespace LocalBLAST.Application.BatchParallel
 
             Call ServiceHandle.FormatDb(Query, ServiceHandle.MolTypeProtein).Start(True)
             Call ServiceHandle.FormatDb(Subject, ServiceHandle.MolTypeProtein).Start(True)
-            Call ServiceHandle.Blastp(Query, Subject, LogOut, Evalue).Start(True)
+            Call ServiceHandle.Blastp(Query, Subject, logOut, Evalue).Start(True)
 
-            Return LogOut
+            Return logOut
         End Function
 
         <ExportAPI("Get.Blastn.Handle")>
         <Extension>
-        Public Function BuildBLASTN_InvokeHandle(service As LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Programs.BLASTPlus) As INVOKE_BLAST_HANDLE
-            Dim Handle As INVOKE_BLAST_HANDLE = AddressOf New __handle With {.service = service}.invokeHandle
+        Public Function BuildBLASTN_InvokeHandle(service As Programs.BLASTPlus) As INVOKE_BLAST_HANDLE
+            Dim Handle As INVOKE_BLAST_HANDLE =
+                AddressOf New __handle With {.service = service}.invokeHandle
             Return Handle
         End Function
 
-        Private Class __handle
+        Private Structure __handle
 
-            Public service As LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Programs.BLASTPlus
+            Public service As Programs.BLASTPlus
 
             Public Function invokeHandle(Query As String, Subject As String, num_threads As Integer, Evalue As String, ExportDir As String, [Overrides] As Boolean) As String
                 Dim LogOut As String = BuildFileName(Query, Subject, ExportDir)
@@ -304,6 +311,6 @@ Namespace LocalBLAST.Application.BatchParallel
 
                 Return LogOut
             End Function
-        End Class
+        End Structure
     End Module
 End Namespace
