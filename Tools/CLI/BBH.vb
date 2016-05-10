@@ -213,7 +213,9 @@ Partial Module CLI
     <ExportAPI("/venn.cache",
                Info:="1. [SBH_Batch] Creates the sbh cache data for the downstream bbh analysis. 
                And this batch function is suitable with any scale of the blastp sbh data output.",
-               Usage:="/venn.cache /imports <blastp.DIR> [/out <sbh.out.DIR> /coverage <0.6> /identities <0.3>]")>
+               Usage:="/venn.cache /imports <blastp.DIR> [/out <sbh.out.DIR> /coverage <0.6> /identities <0.3> /num_threads <-1>]")>
+    <ParameterInfo("/num_threads", True,
+                   Description:="The number of the sub process thread. -1 value is stands for auto config by the system.")>
     Public Function VennCache(args As CommandLine.CommandLine) As Integer
         Dim importsDIR As String = args("/imports")
         Dim coverage As Double = args.GetValue("/coverage", 0.6)
@@ -226,8 +228,13 @@ Partial Module CLI
             LinqAPI.Exec(Of String) <= From blastp As String
                                        In ls - l - r - wildcards("*.txt") <= importsDIR
                                        Select taskBuilder(blastp)
+        Dim numT As Integer = args.GetValue("/num_threads", -1)
 
-        Return App.SelfFolks(CLI, LQuerySchedule.Recommended_NUM_THREADS)
+        If numT <= 0 Then
+            numT = LQuerySchedule.Recommended_NUM_THREADS
+        End If
+
+        Return App.SelfFolks(CLI, numT)
     End Function
 
     <ExportAPI("/locus.Selects", Usage:="/locus.Selects /locus <locus.txt> /bh <bbhindex.csv> [/out <out.csv>]")>
