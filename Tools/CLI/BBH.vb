@@ -10,6 +10,8 @@ Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput
 Imports Microsoft.VisualBasic.Text
 Imports Microsoft.VisualBasic.Linq
 Imports System.Windows.Forms
+Imports Microsoft.VisualBasic.Language
+Imports Microsoft.VisualBasic.Language.UnixBash
 
 Partial Module CLI
 
@@ -184,7 +186,13 @@ Partial Module CLI
         Return VennTable > (out & "/Venn.Csv")
     End Function
 
-    <ExportAPI("/venn.sbh.thread", Usage:="/venn.sbh.thread /in <blastp.txt> [/out <out.sbh.csv> /coverage <0.6> /identities <0.3>]")>
+    ''' <summary>
+    ''' 导出单项最佳比对数据的工作线程
+    ''' </summary>
+    ''' <param name="args"></param>
+    ''' <returns></returns>
+    <ExportAPI("/venn.sbh.thread",
+               Usage:="/venn.sbh.thread /in <blastp.txt> [/out <out.sbh.csv> /coverage <0.6> /identities <0.3>]")>
     Public Function SBHThread(args As CommandLine.CommandLine) As Integer
         Dim blastp As String = args("/in")
         Dim out As String = args.GetValue("/out", blastp.TrimFileExt & ".sbh.csv")
@@ -203,7 +211,7 @@ Partial Module CLI
     ''' <param name="args"></param>
     ''' <returns></returns>
     <ExportAPI("/venn.cache",
-               Info:="1. Creates the sbh cache data for the downstream bbh analysis.",
+               Info:="1. [SBH_Batch] Creates the sbh cache data for the downstream bbh analysis.",
                Usage:="/venn.cache /imports <blastp.DIR> [/out <sbh.out.DIR> /coverage <0.6> /identities <0.3>]")>
     Public Function VennCache(args As CommandLine.CommandLine) As Integer
         Dim importsDIR As String = args("/imports")
@@ -211,9 +219,12 @@ Partial Module CLI
         Dim identities As Double = args.GetValue("/identities", 0.3)
         Dim out As String = args.GetValue("/out", importsDIR & ".venn-SBH/")
         Dim files = FileIO.FileSystem.GetFiles(importsDIR, FileIO.SearchOption.SearchAllSubDirectories, "*.txt")
+        Dim taskBuilder = Function(blastp) _
+                              $"{GetType(CLI).API(NameOf(SBHThread))} /in {blastp.CliPath} /out {(out & "/" & blastp.BaseName & ".csv").CliPath} /coverage {coverage} /identities {identities}"
         Dim CLI As String() =
-            files.ToArray(
-            Function(blastp) $"{GetType(CLI).API(NameOf(SBHThread))} /in {blastp.CliPath} /out {(out & "/" & blastp.BaseName & ".csv").CliPath} /coverage {coverage} /identities {identities}")
+            LinqAPI.Exec(Of String) <= From blastp As String
+                                       In ls - l - r - wildcards("*.txt") <= importsDIR
+                                       Select taskBuilder(blastp)
 
         Return App.SelfFolks(CLI, LQuerySchedule.Recommended_NUM_THREADS)
     End Function

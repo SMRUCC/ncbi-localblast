@@ -4,7 +4,10 @@ Imports Microsoft.VisualBasic.DocumentFormat.Csv
 
 Partial Module CLI
 
-    <ExportAPI("-export_besthit", Info:="", Usage:="-export_besthit -i <input_csv_file> -o <output_saved_csv>", Example:="")>
+    <ExportAPI("-export_besthit",
+               Info:="",
+               Usage:="-export_besthit -i <input_csv_file> -o <output_saved_csv>",
+               Example:="")>
     Public Function ExportBestHit(args As CommandLine.CommandLine) As Integer
         Dim Input As String = args("-i"), Output As String = args("-o")
         Dim File As DocumentStream.File = DocumentStream.File.Load(Input)
