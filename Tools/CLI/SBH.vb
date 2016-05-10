@@ -9,6 +9,8 @@ Imports Microsoft.VisualBasic.Linq.Extensions
 Imports Microsoft.VisualBasic
 Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application
 Imports LANS.SystemsBiology.NCBI.Extensions
+Imports LANS.SystemsBiology.NCBI.Extensions.Analysis.BBHLogs
+Imports Microsoft.VisualBasic.Language
 
 Partial Module CLI
 
@@ -23,7 +25,11 @@ Partial Module CLI
         Return paralogs.SaveTo(out).CLICode
     End Function
 
-    Private Function __evalueRow(hitsTags As String(), queryName As String, hashHits As Dictionary(Of String, BestHit()), flip As Boolean) As RowObject
+    Private Function __evalueRow(hitsTags As String(),
+                                 queryName As String,
+                                 hashHits As Dictionary(Of String, BestHit()),
+                                 flip As Boolean) As RowObject
+
         Dim row As New DocumentStream.RowObject From {queryName}
 
         For Each hit As String In hitsTags
@@ -57,7 +63,10 @@ Partial Module CLI
         Return row
     End Function
 
-    Private Function __HitsRow(hitsTags As String(), queryName As String, hashHits As Dictionary(Of String, LocalBLAST.Application.BBH.BestHit())) As RowObject
+    Private Function __HitsRow(hitsTags As String(),
+                               queryName As String,
+                               hashHits As Dictionary(Of String, BestHit())) As RowObject
+
         Dim row As New DocumentStream.RowObject From {queryName}
 
         For Each hit As String In hitsTags
@@ -126,20 +135,23 @@ Partial Module CLI
         Dim query As String = args("/prefix")
         Dim isTxtLog As Boolean = args.GetBoolean("/txt")
         Dim out As String = args("/out")
-        Dim lst As String() = LANS.SystemsBiology.NCBI.Extensions.Analysis.BBHLogs.LoadSBHEntry(inDIR, query)
-        Dim blastp As BestHit()()
+        Dim lst As String() = LoadSBHEntry(inDIR, query)
+        Dim blastp As BBH.BestHit()()
 
         If isTxtLog Then
             blastp = (From x As String
                       In lst
                       Select BlastPlus.Parser.TryParse(x).ExportAllBestHist).ToArray
         Else
-            blastp = lst.ToArray(Function(x) x.LoadCsv(Of BestHit).ToArray)
+            blastp = lst.ToArray(Function(x) x.LoadCsv(Of BBH.BestHit).ToArray)
         End If
 
-        Dim LQuery As IEnumerable(Of BestHit) = (From x As BestHit()
-                                                 In blastp
-                                                 Select x.ToArray(Function(xx) xx, where:=Function(xx) xx.Matched)).MatrixToList
+        Dim LQuery As BBH.BestHit() =
+            LinqAPI.Exec(Of BestHit) <= From x As BBH.BestHit()
+                                        In blastp
+                                        Select x.ToArray(
+                                            Function(xx) xx,
+                                            Function(xx) xx.Matched)
         Return LQuery.SaveTo(out).CLICode
     End Function
 
