@@ -211,7 +211,8 @@ Partial Module CLI
     ''' <param name="args"></param>
     ''' <returns></returns>
     <ExportAPI("/venn.cache",
-               Info:="1. [SBH_Batch] Creates the sbh cache data for the downstream bbh analysis.",
+               Info:="1. [SBH_Batch] Creates the sbh cache data for the downstream bbh analysis. 
+               And this batch function is suitable with any scale of the blastp sbh data output.",
                Usage:="/venn.cache /imports <blastp.DIR> [/out <sbh.out.DIR> /coverage <0.6> /identities <0.3>]")>
     Public Function VennCache(args As CommandLine.CommandLine) As Integer
         Dim importsDIR As String = args("/imports")
