@@ -192,13 +192,21 @@ Partial Module CLI
     ''' <param name="args"></param>
     ''' <returns></returns>
     <ExportAPI("/venn.sbh.thread",
-               Usage:="/venn.sbh.thread /in <blastp.txt> [/out <out.sbh.csv> /coverage <0.6> /identities <0.3>]")>
+               Usage:="/venn.sbh.thread /in <blastp.txt> [/out <out.sbh.csv> /coverage <0.6> /identities <0.3> /overrides]")>
     Public Function SBHThread(args As CommandLine.CommandLine) As Integer
         Dim blastp As String = args("/in")
         Dim out As String = args.GetValue("/out", blastp.TrimFileExt & ".sbh.csv")
         Dim coverage As Double = args.GetValue("/coverage", 0.6)
         Dim identities As Double = args.GetValue("/identities", 0.3)
-        Dim logs = BlastPlus.TryParse(blastp)
+        Dim [overrides] As Boolean = args.GetBoolean("/overrides")
+
+        If Not [overrides] Then
+            If out.FileExists Then
+                Return 0
+            End If
+        End If
+
+        Dim logs As BlastPlus.v228 = BlastPlus.ParsingSizeAuto(blastp)
         Dim GrepMethod = TextGrepScriptEngine.Compile("tokens ' ' first").Method
         Dim GrepOperation As GrepOperation = New GrepOperation(GrepMethod, GrepMethod)
         Call GrepOperation.Grep(logs)
@@ -213,7 +221,7 @@ Partial Module CLI
     <ExportAPI("/venn.cache",
                Info:="1. [SBH_Batch] Creates the sbh cache data for the downstream bbh analysis. 
                And this batch function is suitable with any scale of the blastp sbh data output.",
-               Usage:="/venn.cache /imports <blastp.DIR> [/out <sbh.out.DIR> /coverage <0.6> /identities <0.3> /num_threads <-1>]")>
+               Usage:="/venn.cache /imports <blastp.DIR> [/out <sbh.out.DIR> /coverage <0.6> /identities <0.3> /num_threads <-1> /overrides]")>
     <ParameterInfo("/num_threads", True,
                    Description:="The number of the sub process thread. -1 value is stands for auto config by the system.")>
     Public Function VennCache(args As CommandLine.CommandLine) As Integer
@@ -221,9 +229,11 @@ Partial Module CLI
         Dim coverage As Double = args.GetValue("/coverage", 0.6)
         Dim identities As Double = args.GetValue("/identities", 0.3)
         Dim out As String = args.GetValue("/out", importsDIR & ".venn-SBH/")
-        Dim files = FileIO.FileSystem.GetFiles(importsDIR, FileIO.SearchOption.SearchAllSubDirectories, "*.txt")
-        Dim taskBuilder = Function(blastp As String) _
-                              $"{GetType(CLI).API(NameOf(SBHThread))} /in {blastp.CliPath} /out {(out & "/" & blastp.BaseName & ".csv").CliPath} /coverage {coverage} /identities {identities}"
+        Dim files As IEnumerable(Of String) = ls - l - r - wildcards("*.txt") <= importsDIR
+        Dim [overrides] As String = If(args.GetBoolean("/overrides"), "/overrides", "")
+        Dim taskBuilder As Func(Of String, String) =
+            Function(blastp) _
+                $"{GetType(CLI).API(NameOf(SBHThread))} /in {blastp.CliPath} /out {(out & "/" & blastp.BaseName & ".csv").CliPath} /coverage {coverage} /identities {identities} {[overrides]}"
         Dim CLI As String() =
             LinqAPI.Exec(Of String) <= From blastp As String
                                        In ls - l - r - wildcards("*.txt") <= importsDIR

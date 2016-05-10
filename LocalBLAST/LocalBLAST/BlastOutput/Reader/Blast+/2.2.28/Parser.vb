@@ -21,12 +21,13 @@ Namespace LocalBLAST.BLASTOutput.BlastPlus
         End Function
 
         ''' <summary>
-        ''' 当blast的输出文件非常大的时候，会自动选择分片段解析读取的方法工作
+        ''' The parser worker will be select automatically based on the blast output file size.
+        ''' (当blast的输出文件非常大的时候，会自动选择分片段解析读取的方法工作)
         ''' </summary>
         ''' <param name="path"></param>
         ''' <param name="encoding"></param>
         ''' <returns></returns>
-        Public Function ParsingSizeAuto(path As String, Optional encoding As System.Text.Encoding = Nothing) As v228
+        Public Function ParsingSizeAuto(path As String, Optional encoding As Encoding = Nothing) As v228
             If __fileSizeTooLarge(path) Then
                 Return Parser.TryParseUltraLarge(path, Encoding:=encoding)
             Else
@@ -79,15 +80,20 @@ Namespace LocalBLAST.BLASTOutput.BlastPlus
         ''' <param name="Path">Original plant text file path of the blast output file.</param>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        Public Function TryParse(Path As String) As v228
-            Call Console.WriteLine("Regular Expression parsing blast output...")
+        Public Function TryParse(path As String, Optional encoding As Encoding = Nothing) As v228
+            Call "Regular Expression parsing blast output...".__DEBUG_ECHO
+
+            If encoding Is Nothing Then
+                encoding = Text.Encoding.Default
+            End If
 
             Using p As CBusyIndicator = New CBusyIndicator(_start:=True)
-                Dim source As String = IO.File.ReadAllText(Path) 'LogFile.ReadUltraLargeTextFile(System.Text.Encoding.UTF8)
+                Dim source As String = IO.File.ReadAllText(path, encoding) 'LogFile.ReadUltraLargeTextFile(System.Text.Encoding.UTF8)
+
                 If IsBlastn(source) Then
-                    Return __tryParseBlastnOutput(source, Path)
+                    Return __tryParseBlastnOutput(source, path)
                 Else
-                    Return __parsingInner(source, Path)
+                    Return __parsingInner(source, path)
                 End If
             End Using
         End Function
@@ -129,18 +135,24 @@ Namespace LocalBLAST.BLASTOutput.BlastPlus
 
         Public ReadOnly Property DefaultEncoding As System.Text.Encoding = System.Text.Encoding.UTF8
 
+        ''' <summary>
+        ''' The target blast output text file is from the blastp or blastn?
+        ''' </summary>
+        ''' <param name="path"></param>
+        ''' <param name="Encoding"></param>
+        ''' <returns></returns>
         Public Function [GetType](path As String, Optional Encoding As System.Text.Encoding = Nothing) As ReaderTypes
             Dim s As String
 
             Using IO As IO.FileStream = New IO.FileStream(path, System.IO.FileMode.Open, System.IO.FileAccess.Read)
-                Dim ChunkBuffer As Byte() = New Byte(1024 * 5) {}
+                Dim buf As Byte() = New Byte(1024 * 5) {}
 
                 If Encoding Is Nothing Then
                     Encoding = DefaultEncoding
                 End If
 
-                Call IO.Read(ChunkBuffer, 0, ChunkBuffer.Length - 1)
-                s = Encoding.GetString(ChunkBuffer)
+                Call IO.Read(buf, 0, buf.Length - 1)
+                s = Encoding.GetString(buf)
             End Using
 
             If IsBlastn(s) Then
@@ -277,7 +289,7 @@ Namespace LocalBLAST.BLASTOutput.BlastPlus
             'The regular expression parsing function just single thread, here using parallel to parsing the cache data can speed up the regular expression parsing job when dealing with the ultra large text file.
             Dim Sections As LinkedList(Of String) = (From strLine As String In readsBuffer.AsParallel
                                                      Let strData As String = strLine.Replace(oldChar:=NIL, newChar:=" "c)
-                                                     Select __queryParser(strData)).ToArray.MatrixToUltraLargeVector
+                                                     Select __queryParser(strData)).MatrixToUltraLargeVector
             Call ($"[Parsing Job Done!]  ==> {Sections.Count} Queries..." & vbCrLf & vbTab & vbTab & "Start to loading blast query hits data...").__DEBUG_ECHO
 
             Dim Sw As Stopwatch = Stopwatch.StartNew
@@ -296,7 +308,7 @@ Namespace LocalBLAST.BLASTOutput.BlastPlus
             Return BLASTOutput
         End Function
 
-        Private Iterator Function __loadData(path As String, CHUNK_SIZE As Long, Encoding As System.Text.Encoding) As IEnumerable(Of String)
+        Private Iterator Function __loadData(path As String, CHUNK_SIZE As Long, Encoding As Encoding) As IEnumerable(Of String)
             Dim readBuffer As Byte() = New Byte(CHUNK_SIZE - 1) {}
             Dim LastIndex As StringBuilder = New StringBuilder '(capacity:=Integer.MaxValue)'StringBuilder不能够太大，会出现内存溢出的错误
             ' Dim readsBuffer As LinkedList(Of String) = New LinkedList(Of String)
