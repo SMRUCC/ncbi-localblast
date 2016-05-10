@@ -220,7 +220,7 @@ Partial Module CLI
         Dim identities As Double = args.GetValue("/identities", 0.3)
         Dim out As String = args.GetValue("/out", importsDIR & ".venn-SBH/")
         Dim files = FileIO.FileSystem.GetFiles(importsDIR, FileIO.SearchOption.SearchAllSubDirectories, "*.txt")
-        Dim taskBuilder = Function(blastp) _
+        Dim taskBuilder = Function(blastp As String) _
                               $"{GetType(CLI).API(NameOf(SBHThread))} /in {blastp.CliPath} /out {(out & "/" & blastp.BaseName & ".csv").CliPath} /coverage {coverage} /identities {identities}"
         Dim CLI As String() =
             LinqAPI.Exec(Of String) <= From blastp As String
