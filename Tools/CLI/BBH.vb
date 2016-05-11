@@ -73,7 +73,32 @@ Partial Module CLI
         Return bbh.SaveTo(out).CLICode
     End Function
 
-    <ExportAPI("/bbh.Export", Usage:="/bbh.Export /query <query.blastp_out> /subject <subject.blast_out> [/out <bbh.csv> /evalue 1e-3 /coverage 0.85 /identities 0.3]")>
+    <ExportAPI("/SBH.BBH.Batch",
+               Usage:="/SBH.BBH.Batch /in <sbh.DIR> [/identities <-1> /coverage <-1> /all /out <bbh.DIR> /num_threads <-1>]")>
+    Public Function SBH_BBH_Batch(args As CommandLine.CommandLine) As Integer
+        Dim inDIR As String = args("/in")
+        Dim identities As Double = args.GetValue("/identities", -1.0R)
+        Dim coverage As Double = args.GetValue("/coverage", -1.0R)
+        Dim isAll As String = If(args.GetBoolean("/all"), "/all", "")
+        Dim outDIR As String = args.GetValue("/out", inDIR & ".BBH_OUT/")
+        Dim files As IEnumerable(Of String) = ls - r - l - wildcards("*.csv") <= inDIR
+        Dim entries = BuildBBHEntry(inDIR, "*.csv")
+        Dim taskBuilder As Func(Of String, String, String) =
+            Function(query, subject) _
+                $"{GetType(CLI).API(NameOf(BBHExport2))} /qvs {query.CliPath} /svq {subject.CliPath} /identities {identities} /coverage {coverage} /out {outDIR & "/" & query.BaseName & ".bbh.csv"} {isAll}"
+        Dim CLI As String() =
+            LinqAPI.Exec(Of String) <= From x In entries Select taskBuilder(x.Key.FilePath, x.Value.FilePath)
+        Dim numT As Integer = args.GetValue("/num_threads", -1)
+
+        If numT <= 0 Then
+            numT = LQuerySchedule.Recommended_NUM_THREADS
+        End If
+
+        Return App.SelfFolks(CLI, numT)
+    End Function
+
+    <ExportAPI("/bbh.Export",
+               Usage:="/bbh.Export /query <query.blastp_out> /subject <subject.blast_out> [/out <bbh.csv> /evalue 1e-3 /coverage 0.85 /identities 0.3]")>
     Public Function BBHExportFile(args As CommandLine.CommandLine) As Integer
         Dim query As String = args("/query")
         Dim subject As String = args("/subject")
@@ -135,13 +160,13 @@ Partial Module CLI
     '''
     <ExportAPI("/venn.BlastAll",
                Usage:="/venn.BlastAll /query <queryDIR> /out <outDIR> [/num_threads <-1> /evalue 10 /overrides /all /coverage <0.8> /identities <0.3>]",
-               Info:="Completely paired combos blastp bbh operations for the venn diagram or network builder.")>
+               Info:="Completely paired combos blastp bbh operations for the venn diagram Or network builder.")>
     <ParameterInfo("/num_threads", True,
-                   Description:="The number of the parallel blast task in this command, default value is -1 which means the number of the blast threads is determined by system automatically.")>
+                   Description:="The number of the parallel blast task in this command, default value Is -1 which means the number of the blast threads Is determined by system automatically.")>
     <ParameterInfo("/all", True,
-                   Description:="If this parameter is represent, then all of the paired best hit will be export, otherwise only the top best will be export.")>
+                   Description:="If this parameter Is represent, then all of the paired best hit will be export, otherwise only the top best will be export.")>
     <ParameterInfo("/query", False,
-                   Description:="Recommended format of the fasta title is that the fasta title only contains gene locus_tag.")>
+                   Description:="Recommended format of the fasta title Is that the fasta title only contains gene locus_tag.")>
     Public Function vennBlastAll(args As CommandLine.CommandLine) As Integer
         Dim queryDIR As String = args("/query")
         Dim out As String = args("/out")
@@ -168,10 +193,10 @@ Partial Module CLI
     End Function
 
     <ExportAPI("/venn.BBH",
-               Info:="2. Build venn table and bbh data from the blastp result out or sbh data cache.",
+               Info:="2. Build venn table And bbh data from the blastp result out Or sbh data cache.",
                Usage:="/venn.BBH /imports <blastp_out.DIR> [/skip-load /query <queryName> /all /coverage <0.6> /identities <0.3> /out <outDIR>]")>
     <ParameterInfo("/skip-load", True,
-                   Description:="If the data source in the imports directory is already the sbh data source, then using this parameter to skip the blastp file parsing.")>
+                   Description:="If the data source in the imports directory Is already the sbh data source, then using this parameter to skip the blastp file parsing.")>
     Public Function VennBBH(args As CommandLine.CommandLine) As Integer
         Dim importsDIR As String = args("/imports")
         Dim all As Boolean = args.GetBoolean("/all")

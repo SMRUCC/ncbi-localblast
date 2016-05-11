@@ -1,9 +1,12 @@
-﻿Namespace LocalBLAST.Application.BatchParallel
+﻿Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.BBH
+Imports Microsoft.VisualBasic.Language
+
+Namespace LocalBLAST.Application.BatchParallel
 
     ''' <summary>
     ''' blast结果文件的路径，在这里面包含有query和subject的来源的信息
     ''' </summary>
-    Public Class AlignEntry : Inherits LocalBLAST.Application.BBH.I_BlastQueryHit
+    Public Class AlignEntry : Inherits I_BlastQueryHit
 
         ''' <summary>
         ''' The file path of the blast output log data or the csv data file.(日志文件或者Csv数据文件)
@@ -41,18 +44,24 @@
         ''' <returns></returns>
         ''' <remarks></remarks>
         Public Function SelectEquals(data As IEnumerable(Of AlignEntry)) As AlignEntry
-            Dim LQuery = (From logEntry As AlignEntry In data
-                          Where String.Equals(logEntry.HitName, QueryName) AndAlso
-                              String.Equals(logEntry.QueryName, HitName)
-                          Select logEntry).FirstOrDefault
+            Dim LQuery As AlignEntry =
+                LinqAPI.DefaultFirst(Of AlignEntry) <= From logEntry As AlignEntry
+                                                       In data
+                                                       Where String.Equals(logEntry.HitName, QueryName) AndAlso
+                                                           String.Equals(logEntry.QueryName, HitName)
+                                                       Select logEntry
             Return LQuery
         End Function
 
-        Public Function SelectEquals(Of TAnonymousType As Class)(data As IEnumerable(Of TAnonymousType),
-                                                                 [Select] As Func(Of TAnonymousType, AlignEntry)) As TAnonymousType
-            Dim LQuery = (From item As TAnonymousType In data
-                          Where Me.BiDirEquals([Select](item))
-                          Select item).FirstOrDefault
+        Public Function SelectEquals(Of TAnonymousType As Class)(
+                                        data As IEnumerable(Of TAnonymousType),
+                                       [Select] As Func(Of TAnonymousType, AlignEntry)) As TAnonymousType
+
+            Dim LQuery As TAnonymousType =
+                LinqAPI.DefaultFirst(Of TAnonymousType) <= From x As TAnonymousType
+                                                           In data
+                                                           Where Me.BiDirEquals([Select](x))
+                                                           Select x
             Return LQuery
         End Function
     End Class
