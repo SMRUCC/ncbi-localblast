@@ -288,7 +288,7 @@ Partial Module CLI
     Public Function ExportLocus(args As CommandLine.CommandLine) As Integer
         Dim [in] As String = args("/in")
         Dim isHit As Boolean = args.GetBoolean("/hit")
-        Dim out As String = args.GetValue("/out", [in] & "-" & If(isHit, "hit_name", "query_name") & ".csv")
+        Dim out As String = args.GetValue("/out", [in] & "-" & If(isHit, "hit_name", "query_name") & ".txt")
         Dim source As IEnumerable(Of BBHIndex) =
             (ls - l - r - wildcards("*.csv") <= [in]).Select(AddressOf LoadCsv(Of BBHIndex)).MatrixAsIterator
         Dim locus As String()
