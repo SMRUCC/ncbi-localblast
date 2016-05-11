@@ -272,7 +272,8 @@ Partial Module CLI
         Return App.SelfFolks(CLI, numT)
     End Function
 
-    <ExportAPI("/locus.Selects", Usage:="/locus.Selects /locus <locus.txt> /bh <bbhindex.csv> [/out <out.csv>]")>
+    <ExportAPI("/locus.Selects",
+               Usage:="/locus.Selects /locus <locus.txt> /bh <bbhindex.csv> [/out <out.csv>]")>
     Public Function LocusSelects(args As CommandLine.CommandLine) As Integer
         Dim [in] As String = args("/locus")
         Dim bh As String = args("/bh")
@@ -281,5 +282,36 @@ Partial Module CLI
         Dim locus As List(Of String) = [in].ReadAllLines.ToList
         Dim LQuery = (From x In bbh.AsParallel Where locus.IndexOf(x.QueryName) > -1 Select x).ToArray
         Return LQuery.SaveTo(out).CLICode
+    End Function
+
+    <ExportAPI("/Export.Locus", Usage:="/Export.Locus /in <sbh/bbh_DIR> [/hit /out <out.txt>]")>
+    Public Function ExportLocus(args As CommandLine.CommandLine) As Integer
+        Dim [in] As String = args("/in")
+        Dim isHit As Boolean = args.GetBoolean("/hit")
+        Dim out As String = args.GetValue("/out", [in] & "-" & If(isHit, "hit_name", "query_name") & ".csv")
+        Dim source As IEnumerable(Of BBHIndex) =
+            (ls - l - r - wildcards("*.csv") <= [in]).Select(AddressOf LoadCsv(Of BBHIndex)).MatrixAsIterator
+        Dim locus As String()
+        Dim getName As Func(Of BBHIndex, String)
+        Dim test As Func(Of BBHIndex, Boolean)
+
+        If isHit Then
+            getName = Function(x) x.HitName
+            test = Function(x) Not String.IsNullOrEmpty(x.HitName) AndAlso
+                Not String.Equals(IBlastOutput.HITS_NOT_FOUND, x.HitName)
+        Else
+            getName = Function(x) x.QueryName
+            test = Function(x) Not String.IsNullOrEmpty(x.QueryName) AndAlso
+                Not String.Equals(IBlastOutput.HITS_NOT_FOUND, x.QueryName)
+        End If
+
+        locus =
+            LinqAPI.Exec(Of String) <= From x As BBHIndex
+                                       In source
+                                       Where test(x)
+                                       Select getName(x)
+                                       Distinct
+
+        Return locus.FlushAllLines(out).CLICode
     End Function
 End Module
