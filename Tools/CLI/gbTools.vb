@@ -11,8 +11,24 @@ Imports System.Text.RegularExpressions
 Imports System.Text
 Imports Microsoft.VisualBasic.Serialization
 Imports Microsoft.VisualBasic.Terminal
+Imports LANS.SystemsBiology.Assembly.NCBI.GenBank.TabularFormat.ComponentModels
+Imports LANS.SystemsBiology.Assembly.NCBI.GenBank.TabularFormat
 
 Partial Module CLI
+
+    <ExportAPI("/Export.gpff", Usage:="/Export.gpff /in <genome.gpff> [/out <out.PTT>]")>
+    Public Function EXPORTgpff(args As CommandLine.CommandLine) As Integer
+        Dim [in] As String = args("/in")
+        Dim out As String = args.GetValue("/out", [in].TrimFileExt & ".PTT")
+        Dim gpff As IEnumerable(Of GBFF.File) = GBFF.File.LoadDatabase([in]).ToArray
+        Dim genes As GeneBrief() = From gb As GBFF.File
+                                   In gpff
+                                   Let ORF As GeneBrief = gb.GPFF2Feature
+                                   Where Not ORF Is Nothing
+                                   Select ORF
+        Dim PTT As New PTT(genes, gpff.First.Source.SpeciesName)
+        Return PTT.Save(out)
+    End Function
 
     <ExportAPI("/Copy.PTT", Usage:="/Copy.PTT /in <inDIR> [/out <outDIR>]")>
     Public Function CopyPTT(args As CommandLine.CommandLine) As Integer
@@ -93,7 +109,7 @@ Partial Module CLI
         Dim prefix As String = args("/prefix")
         Dim out As String = args.GetValue("/out", gbFile.TrimFileExt & $".{prefix}.gb")
         Dim gb As GBFF.File = GBFF.File.Load(gbFile)
-        Dim LQuery = (From x As Feature
+        Dim LQuery = (From x As GBFF.Keywords.FEATURES.Nodes.Feature
                       In gb.Features
                       Where String.Equals(x.KeyName, "gene") OrElse
                           String.Equals(x.KeyName, "CDS", StringComparison.OrdinalIgnoreCase)
@@ -104,11 +120,11 @@ Partial Module CLI
 
         Dim idx As Integer = 1
 
-        For Each gene In LQuery
+        For Each geneX In LQuery
             Dim locusId As String =
                 $"{prefix}_{STDIO.ZeroFill(idx.MoveNext, 4)}"
 
-            For Each feature In gene.Group
+            For Each feature In geneX.Group
                 feature.x.SetValue(FeatureQualifiers.locus_tag, locusId)
             Next
 
@@ -133,7 +149,7 @@ Partial Module CLI
 
         For Each anno In annos
             Dim features = gb.Features.GetByLocation(anno.Minimum, anno.Maximum)
-            For Each feature As Feature In features
+            For Each feature As GBFF.Keywords.FEATURES.Nodes.Feature In features
                 Call feature.Add(tag, anno.Name)
             Next
         Next
