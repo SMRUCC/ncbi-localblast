@@ -13,6 +13,7 @@ Imports Microsoft.VisualBasic.Serialization
 Imports Microsoft.VisualBasic.Terminal
 Imports LANS.SystemsBiology.Assembly.NCBI.GenBank.TabularFormat.ComponentModels
 Imports LANS.SystemsBiology.Assembly.NCBI.GenBank.TabularFormat
+Imports Microsoft.VisualBasic.Language
 
 Partial Module CLI
 
@@ -20,12 +21,19 @@ Partial Module CLI
     Public Function EXPORTgpff(args As CommandLine.CommandLine) As Integer
         Dim [in] As String = args("/in")
         Dim out As String = args.GetValue("/out", [in].TrimFileExt & ".PTT")
-        Dim gpff As IEnumerable(Of GBFF.File) = GBFF.File.LoadDatabase([in]).ToArray
-        Dim genes As GeneBrief() = From gb As GBFF.File
-                                   In gpff
-                                   Let ORF As GeneBrief = gb.GPFF2Feature
-                                   Where Not ORF Is Nothing
-                                   Select ORF
+
+        VBDebugger.Mute = True
+
+        Dim gpff As IEnumerable(Of GBFF.File) = GBFF.File.LoadDatabase([in])
+
+        VBDebugger.Mute = False
+
+        Dim genes As GeneBrief() =
+            LinqAPI.Exec(Of GeneBrief) <= From gb As GBFF.File
+                                          In gpff
+                                          Let ORF As GeneBrief = gb.GPFF2Feature
+                                          Where Not ORF Is Nothing
+                                          Select ORF
         Dim PTT As New PTT(genes, gpff.First.Source.SpeciesName)
         Return PTT.Save(out)
     End Function
