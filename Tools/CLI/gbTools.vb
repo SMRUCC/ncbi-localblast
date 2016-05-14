@@ -44,16 +44,29 @@ Partial Module CLI
 
     <ExportAPI("/Export.gpffs", Usage:="/Export.gpffs [/in <inDIR>]")>
     Public Function EXPORTgpffs(args As CommandLine.CommandLine) As Integer
-        Dim inDIR As String = args - "/in"
+        Dim inDIR As String = args.GetValue("/in", App.CurrentDirectory)
         Dim gpffs As IEnumerable(Of String) = ls - l - r - wildcards("*.gpff") <= inDIR
         Dim gffs As IEnumerable(Of String) = ls - l - r - wildcards("*.gff") <= inDIR
 
-        For Each pair In PathMatch.Pairs(gpffs, gffs)
+        Call $"Found {gpffs.Count} *.gpff and {gffs.Count} *.gff files....".__DEBUG_ECHO
+
+        For Each pair In PathMatch.Pairs(gpffs, gffs, AddressOf __trimName)
             Dim out As String = pair.Pair1.TrimFileExt & ".PTT"
             Call __EXPORTgpff(pair.Pair1, pair.Pair2).Save(out)
         Next
 
         Return 0
+    End Function
+
+    Private Function __trimName(name As String) As String
+        If name Is Nothing Then
+            Return ""
+        Else
+            name = Regex.Replace(name, "_genomic", "", RegexICSng)
+            name = Regex.Replace(name, "_protein", "", RegexICSng)
+
+            Return name
+        End If
     End Function
 
     <ExportAPI("/Copy.PTT", Usage:="/Copy.PTT /in <inDIR> [/out <outDIR>]")>
