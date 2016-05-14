@@ -76,7 +76,7 @@ Partial Module CLI
     Private Function ToXml(FileList As LogsPair, XmlLogsDir As String) As LogsPair
         Dim ReturnedPair As List(Of Pair()) = New List(Of Pair())
 
-        For Each Pairs In FileList.Logs
+        For Each Pairs As Pair() In FileList.Logs
             Dim TEMPList As List(Of Pair) = New List(Of Pair)
 
             For Each Pair In Pairs

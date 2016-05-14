@@ -15,6 +15,11 @@ Imports Microsoft.VisualBasic.Language.UnixBash
 
 Partial Module CLI
 
+    ''' <summary>
+    ''' 
+    ''' </summary>
+    ''' <param name="args"></param>
+    ''' <returns></returns>
     <ExportAPI("/Blastp.BBH.Query",
                Usage:="/Blastp.BBH.Query /query <query.fasta> /hit <hit.source> [/out <outDIR> /overrides /num_threads <-1>]")>
     Public Function BlastpBBHQuery(args As CommandLine.CommandLine) As Integer

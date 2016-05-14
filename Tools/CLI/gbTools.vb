@@ -17,25 +17,43 @@ Imports Microsoft.VisualBasic.Language
 
 Partial Module CLI
 
-    <ExportAPI("/Export.gpff", Usage:="/Export.gpff /in <genome.gpff> [/out <out.PTT>]")>
+    <ExportAPI("/Export.gpff", Usage:="/Export.gpff /in <genome.gpff> /gff <genome.gff> [/out <out.PTT>]")>
     Public Function EXPORTgpff(args As CommandLine.CommandLine) As Integer
         Dim [in] As String = args("/in")
         Dim out As String = args.GetValue("/out", [in].TrimFileExt & ".PTT")
+        Dim PTT As PTT = __EXPORTgpff([in], args - "/gff")
+        Return PTT.Save(out)
+    End Function
 
+    Private Function __EXPORTgpff([in] As String, gffFile As String) As PTT
         VBDebugger.Mute = True
 
         Dim gpff As IEnumerable(Of GBFF.File) = GBFF.File.LoadDatabase([in])
-
-        VBDebugger.Mute = False
-
+        Dim gff As GFF = TabularFormat.GFF.LoadDocument(gffFile)
+        Dim CDSHash = gff.GetsAllFeatures(Features.CDS).ToDictionary(Function(x) x.attributes("name"))
         Dim genes As GeneBrief() =
             LinqAPI.Exec(Of GeneBrief) <= From gb As GBFF.File
                                           In gpff
-                                          Let ORF As GeneBrief = gb.GPFF2Feature
+                                          Let ORF As GeneBrief = gb.GPFF2Feature(gff:=CDSHash)
                                           Where Not ORF Is Nothing
                                           Select ORF
-        Dim PTT As New PTT(genes, gpff.First.Source.SpeciesName)
-        Return PTT.Save(out)
+        VBDebugger.Mute = False
+
+        Return New PTT(genes, gpff.First.Source.SpeciesName)
+    End Function
+
+    <ExportAPI("/Export.gpffs", Usage:="/Export.gpffs [/in <inDIR>]")>
+    Public Function EXPORTgpffs(args As CommandLine.CommandLine) As Integer
+        Dim inDIR As String = args - "/in"
+        Dim gpffs As IEnumerable(Of String) = ls - l - r - wildcards("*.gpff") <= inDIR
+        Dim gffs As IEnumerable(Of String) = ls - l - r - wildcards("*.gff") <= inDIR
+
+        For Each pair In PathMatch.Pairs(gpffs, gffs)
+            Dim out As String = pair.Pair1.TrimFileExt & ".PTT"
+            Call __EXPORTgpff(pair.Pair1, pair.Pair2).Save(out)
+        Next
+
+        Return 0
     End Function
 
     <ExportAPI("/Copy.PTT", Usage:="/Copy.PTT /in <inDIR> [/out <outDIR>]")>
