@@ -30,7 +30,12 @@ Partial Module CLI
 
         Dim gpff As IEnumerable(Of GBFF.File) = GBFF.File.LoadDatabase([in])
         Dim gff As GFF = TabularFormat.GFF.LoadDocument(gffFile)
-        Dim CDSHash = gff.GetsAllFeatures(Features.CDS).ToDictionary(Function(x) x.attributes("name"))
+        Dim CDSHash = (From x As TabularFormat.Feature
+                       In gff.GetsAllFeatures(Features.CDS)
+                       Select x
+                       Group x By x.ProteinId Into Group) _
+                            .ToDictionary(Function(x) x.ProteinId,
+                                          Function(x) x.Group.First)
         Dim genes As GeneBrief() =
             LinqAPI.Exec(Of GeneBrief) <= From gb As GBFF.File
                                           In gpff
@@ -52,7 +57,14 @@ Partial Module CLI
 
         For Each pair In PathMatch.Pairs(gpffs, gffs, AddressOf __trimName)
             Dim out As String = pair.Pair1.TrimFileExt & ".PTT"
-            Call __EXPORTgpff(pair.Pair1, pair.Pair2).Save(out)
+
+            Try
+                Call __EXPORTgpff(pair.Pair1, pair.Pair2).Save(out)
+            Catch ex As Exception
+                ex = New Exception(out, ex)
+                ex = New Exception(pair.GetJson, ex)
+                Throw ex
+            End Try
         Next
 
         Return 0
