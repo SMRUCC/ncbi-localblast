@@ -13,6 +13,9 @@ Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput
 Imports LANS.SystemsBiology.SequenceModel.FASTA
 Imports System.Text.RegularExpressions
 Imports Microsoft.VisualBasic.Text
+Imports Microsoft.VisualBasic.Language.UnixBash
+Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST
+Imports LANS.SystemsBiology.SequenceModel
 
 <PackageNamespace("NCBI.LocalBlast", Category:=APICategories.CLI_MAN,
                   Description:="Wrapper tools for the ncbi blast+ program and the blast output data analysis program.",
@@ -34,7 +37,7 @@ Module CLI
     Public Function XmlToExcel(args As CommandLine.CommandLine) As Integer
         Dim inXml As String = args("/in")
         Dim out As String = args.GetValue("/out", inXml.TrimFileExt & ".Csv")
-        Dim blastOut = inXml.LoadXml(Of NCBI.Extensions.LocalBLAST.BLASTOutput.XmlFile.BlastOutput)
+        Dim blastOut = inXml.LoadXml(Of XmlFile.BlastOutput)
         Dim hits = blastOut.ExportOverview.GetExcelData
         Return hits.SaveTo(out).CLICode
     End Function
@@ -44,11 +47,11 @@ Module CLI
         Dim inDIR As String = args("/in")
         Dim out As String = args.GetValue("/out", inDIR & ".Exports/")
         Dim Merge As Boolean = args.GetBoolean("/merge")
-        Dim MergeList As New List(Of LocalBLAST.Application.BBH.BestHit)
+        Dim MergeList As New List(Of BestHit)
 
         For Each inXml As String In FileIO.FileSystem.GetFiles(inDIR, FileIO.SearchOption.SearchTopLevelOnly, "*.xml")
             Dim outCsv As String = out & "/" & IO.Path.GetFileNameWithoutExtension(inXml) & ".Csv"
-            Dim blastOut = inXml.LoadXml(Of NCBI.Extensions.LocalBLAST.BLASTOutput.XmlFile.BlastOutput)
+            Dim blastOut = inXml.LoadXml(Of XmlFile.BlastOutput)
             Dim hits = blastOut.ExportOverview.GetExcelData
             Call hits.SaveTo(outCsv)
             Call MergeList.Add(hits)
@@ -92,7 +95,7 @@ Module CLI
         Next
 
         Dim Allbbh = (From hitPair As BiDirectionalBesthit
-                      In ParsingTask.ToArray(Function(sp) sp.bbh).MatrixToList.AsParallel
+                      In ParsingTask.ToArray(Function(sp) sp.bbh).MatrixAsIterator.AsParallel
                       Where hitPair.Matched
                       Select hitPair).ToArray  ' 最后将所有的结果进行合并然后保存
         Dim inDIR As String = FileIO.FileSystem.GetParentPath(entries.First.Key.FilePath)
@@ -146,14 +149,18 @@ Module CLI
 
     Private Delegate Function __bbhParser(query As String, subject As String, coverage As Double, identities As Double) As BiDirectionalBesthit()
 
-    Private Function ParsebbhBesthit(queryFile As String, subjectFile As String, coverage As Double, identities As Double) As BiDirectionalBesthit()
-        Dim query = LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus.Parser.TryParse(queryFile)
+    Private Function ParsebbhBesthit(queryFile As String,
+                                     subjectFile As String,
+                                     coverage As Double,
+                                     identities As Double) As BiDirectionalBesthit()
+
+        Dim query As BlastPlus.v228 = BlastPlus.Parser.TryParse(queryFile)
         If query Is Nothing Then
             Call $"Query file {queryFile.ToFileURL} is not valid!".__DEBUG_ECHO
             Return Nothing
         End If
 
-        Dim subject = LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus.Parser.TryParse(subjectFile)
+        Dim subject As BlastPlus.v228 = BlastPlus.Parser.TryParse(subjectFile)
         If subject Is Nothing Then
             Call $"Subject file {subjectFile.ToFileURL} is not valid!".__DEBUG_ECHO
             Return Nothing
@@ -212,22 +219,27 @@ Module CLI
         Call CollectionIO.SetHandle(AddressOf ISaveCsv)
     End Sub
 
-    <ExportAPI("--blast.self", Usage:="--blast.self /query <query.fasta> [/blast <blast_HOME>]")>
+    <ExportAPI("--blast.self", Usage:="--blast.self /query <query.fasta> [/blast <blast_HOME> /out <out.csv>]")>
     Public Function SelfBlast(args As CommandLine.CommandLine) As Integer
         Dim query As String = args("/query")
         Dim blast As String = args("/blast")
+
         If String.IsNullOrEmpty(blast) Then
             blast = Settings.SettingsFile.BlastBin
         End If
+
         Dim out As String = query.TrimFileExt & ".BlastSelf.txt"
-        Dim localblast As New LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Programs.BLASTPlus(blast)
+        Dim localblast As New Programs.BLASTPlus(blast)
+
         Call localblast.FormatDb(query, localblast.MolTypeProtein).Start(WaitForExit:=True)
         Call localblast.Blastp(query, query, out, "1e-3").Start(WaitForExit:=True)
 
-        Dim outLog = LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus.Parser.TryParse(out)
-        Dim hits = outLog.ExportOverview.GetExcelData
+        Dim outLog As BlastPlus.v228 = BlastPlus.Parser.TryParse(out)
+        Dim hits As BestHit() = outLog.ExportOverview.GetExcelData
 
-        Return hits.SaveTo(out.TrimFileExt & ".Csv")
+        out = args.GetValue("/out", out.TrimFileExt & ".Csv")
+
+        Return hits.SaveTo(out).CLICode
     End Function
 
     <ExportAPI("/export.prot", Usage:="/export.prot /gb <genome.gbk> [/out <out.fasta>]")>
@@ -235,7 +247,7 @@ Module CLI
         Dim gb As String = args("/gb")
         Dim out As String = args.GetValue("/out", gb.TrimFileExt & "_prot.fasta")
         Dim gbk As GBFF.File = GBFF.File.Load(gb)
-        Dim prot As SequenceModel.FASTA.FastaFile = gbk.ExportProteins_Short
+        Dim prot As FASTA.FastaFile = gbk.ExportProteins_Short
         Return prot.Save(out).CLICode
     End Function
 
@@ -250,14 +262,17 @@ Module CLI
             Dim prot As FastaFile = gb.ExportProteins_Short
             Dim path As String = out & "/" & gb.Locus.AccessionID & ".fasta"
             Dim nulls = (From x In prot Where String.IsNullOrEmpty(x.SequenceData) Select x).ToArray
-            prot = New FastaFile((From x In prot.AsParallel Where Not String.IsNullOrEmpty(x.SequenceData) Select x).ToArray)
-            For Each x In nulls
+            prot = New FastaFile(From x As FASTA.FastaToken
+                                 In prot.AsParallel
+                                 Where Not String.IsNullOrEmpty(x.SequenceData)
+                                 Select x)
+            For Each x As FastaToken In nulls
                 Call VBDebugger.Warning(x.Title & "  have not sequence data!")
             Next
             Call prot.Save(path)
         Next
 
-        For Each fasta As String In FileIO.FileSystem.GetFiles(inDIR, FileIO.SearchOption.SearchAllSubDirectories, "*.fasta", "*.fsa", "*.faa", "*.fa")
+        For Each fasta As String In ls - l - r - wildcards("*.fasta", "*.fsa", "*.faa", "*.fa") <= inDIR
             Dim fa As FastaFile = FastaFile.Read(fasta, True)
             fa = New FastaFile((From x As FastaToken
                                 In fa
