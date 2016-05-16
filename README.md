@@ -1,5 +1,5 @@
-# localblast
-GCModeller tools for NCBI localblast wrapper
+# NCBI localblast library
+GCModeller tools for NCBI blast+ (version 2.28 or later) localblast data parser and analysis toolkit for .NET language
 
 Download library from nuget:
 https://www.nuget.org/packages/NCBI_localblast/
