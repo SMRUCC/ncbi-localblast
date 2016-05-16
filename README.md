@@ -1,6 +1,11 @@
 # localblast
 GCModeller tools for NCBI localblast wrapper
 
+Download library from nuget:
+https://www.nuget.org/packages/NCBI_localblast/
+
+Install nuget package:
+> PM> Install-Package NCBI_localblast
 
 ![Blastp Analysis of plasmid pXOCgx01](https://raw.githubusercontent.com/SMRUCC/ncbi-localblast/master/data/pxocgx01_blastx-lightbox.png)
 _Niu, X.-N., et al. (2015)._ **"Complete sequence and detailed analysis of the first indigenous plasmid from Xanthomonas oryzae pv. oryzicola."** BMC Microbiol 15(1): 1-15.
