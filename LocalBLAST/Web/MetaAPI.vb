@@ -7,7 +7,7 @@ Namespace NCBIBlastResult
     ''' <summary>
     ''' <see cref="Analysis.BestHit"/> -> <see cref="AlignmentTable"/>
     ''' </summary>
-    Public Module MetaAPI
+    Public Module BBHMetaAPI
 
         ''' <summary>
         ''' 
