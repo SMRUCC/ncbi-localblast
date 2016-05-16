@@ -214,6 +214,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <Compile Include="Web\AlignmentTable.vb" />
+    <Compile Include="Web\MetaAPI.vb" />
     <Compile Include="Web\SBH_Tabular.vb" />
     <Compile Include="Web\ParserAPI.vb" />
     <Compile Include="Web\Hit.vb" />

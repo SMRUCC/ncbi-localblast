@@ -1,6 +1,7 @@
 ﻿Imports System.Text.RegularExpressions
 Imports System.Xml.Serialization
 Imports Microsoft.VisualBasic.DocumentFormat.Csv.StorageProvider.Reflection
+Imports Microsoft.VisualBasic.Language
 
 Namespace NCBIBlastResult
 
@@ -11,7 +12,7 @@ Namespace NCBIBlastResult
     ''' Fields: query id, subject ids, % identity, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score
     ''' </remarks>
     <XmlType("hit", [Namespace]:="http://gcmodeller.org/visual/circos/blast_hit")>
-    Public Class HitRecord
+    Public Class HitRecord : Inherits ClassObject
 
         <XmlAttribute("query_name")> <Column("query id")>
         Public Property QueryID As String
@@ -48,7 +49,7 @@ Namespace NCBIBlastResult
 
         Public ReadOnly Property GI As String()
             Get
-                Dim GIList = (From m As Match In Regex.Matches(Me.SubjectIDs, "gi\|\d+") Select m.Value.Split(CChar("|")).Last).ToArray
+                Dim GIList As String() = Regex.Matches(Me.SubjectIDs, "gi\|\d+").ToArray(Function(s) s.Split("|"c).Last)
                 Return GIList
             End Get
         End Property

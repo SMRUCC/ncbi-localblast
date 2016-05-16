@@ -7,6 +7,9 @@ Imports Microsoft.VisualBasic.Language.UnixBash
 
 Namespace NCBIBlastResult
 
+    ''' <summary>
+    ''' 从NCBI网站之中下载的比对结果的表格文本文件之中进行数据的解析操作
+    ''' </summary>
     Public Module ParserAPI
 
         Public Function LoadDocument(path As String) As AlignmentTable
