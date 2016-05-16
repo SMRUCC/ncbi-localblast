@@ -27,9 +27,9 @@ Namespace NCBIBlastResult
                            Select ID = path.Key,
                                LogEntry = Log,
                                besthitData = path.Value.LoadCsv(Of BestHit)(False).ToArray).ToArray
-            Dim querySide = (From entry In Entries
-                             Where String.Equals(entry.LogEntry.QueryName, QueryID, StringComparison.OrdinalIgnoreCase)
-                             Select entry) '得到Query的比对方向的数据
+            Dim querySide = From entry In Entries
+                            Where String.Equals(entry.LogEntry.QueryName, QueryID, StringComparison.OrdinalIgnoreCase)
+                            Select entry '得到Query的比对方向的数据
             Dim hitSide = (From entry In Entries
                            Where String.Equals(entry.LogEntry.HitName, QueryID, StringComparison.OrdinalIgnoreCase)
                            Select entry).ToArray

@@ -1,20 +1,25 @@
 ﻿Imports System.Runtime.CompilerServices
 Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus
 Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus.BlastX
+Imports Microsoft.VisualBasic.Language
 Imports Microsoft.VisualBasic.Linq
+Imports Microsoft.VisualBasic.Language.UnixBash
 
 Namespace NCBIBlastResult
 
     Public Module ParserAPI
 
         Public Function LoadDocument(path As String) As AlignmentTable
-            Dim docBuffer As String() = (From s As String In path.ReadAllLines
-                                         Where Not String.IsNullOrEmpty(s)
-                                         Select s).ToArray
+            Dim docBuffer As String() =
+                LinqAPI.Exec(Of String) <= From s As String
+                                           In path.ReadAllLines
+                                           Where Not String.IsNullOrEmpty(s)
+                                           Select s
             Dim head As String() = (From s As String In docBuffer Where InStr(s, "# ") = 1 Select s).ToArray
-            Dim hits As HitRecord() = (From s As String
-                                       In docBuffer.Skip(head.Length).AsParallel
-                                       Select HitRecord.Mapper(s)).ToArray
+            Dim hits As HitRecord() =
+                LinqAPI.Exec(Of HitRecord) <= From s As String
+                                              In docBuffer.Skip(head.Length).AsParallel
+                                              Select HitRecord.Mapper(s)
             Dim headAttrs As Dictionary(Of String, String) = (From s As String In head
                                                               Let t = Strings.Split(s, ": ")
                                                               Select Key = t.First,
@@ -40,17 +45,18 @@ Namespace NCBIBlastResult
         End Function
 
         Private Function __createFromBlastn(sId As String, hits As SubjectHit()) As HitRecord()
-            Dim LQuery = (From hspNT As SubjectHit
-                          In hits
-                          Let row As HitRecord = New HitRecord With {
-                              .Identity = hspNT.Score.Identities.Value,
-                              .DebugTag = hspNT.Name,
-                              .SubjectIDs = sId,
-                              .BitScore = hspNT.Score.RawScore,
-                              .QueryStart = hspNT.QueryLocation.Left,
-                              .QueryEnd = hspNT.QueryLocation.Right
-                          }
-                          Select row).ToArray
+            Dim LQuery As HitRecord() =
+                LinqAPI.Exec(Of HitRecord) <= From hspNT As SubjectHit
+                                              In hits
+                                              Let row As HitRecord = New HitRecord With {
+                                                  .Identity = hspNT.Score.Identities.Value,
+                                                  .DebugTag = hspNT.Name,
+                                                  .SubjectIDs = sId,
+                                                  .BitScore = hspNT.Score.RawScore,
+                                                  .QueryStart = hspNT.QueryLocation.Left,
+                                                  .QueryEnd = hspNT.QueryLocation.Right
+                                              }
+                                              Select row
             Return LQuery
         End Function
 
@@ -79,10 +85,10 @@ Namespace NCBIBlastResult
 
         Public Function CreateFromBlastX(source As String) As AlignmentTable
             Dim Files = (From path As String
-                         In FileIO.FileSystem.GetFiles(source, FileIO.SearchOption.SearchAllSubDirectories, "*.txt")
+                         In ls - l - r - wildcards("*.txt") <= source
                          Select ID = path.BaseName,
                              XOutput = OutputReader.TryParseOutput(path)).ToArray
-            Dim LQuery = (From file In Files Select file.ID.__hits(file.XOutput)).MatrixToVector
+            Dim LQuery As HitRecord() = (From file In Files Select file.ID.__hits(file.XOutput)).MatrixToVector
             Dim Tab = New AlignmentTable With {
                 .Hits = LQuery,
                 .Query = Files.First.XOutput.Queries.First.QueryName,
