@@ -1,21 +1,38 @@
-﻿Imports System.Runtime.CompilerServices
+﻿Imports System.Text.RegularExpressions
+Imports System.Text
+Imports System.Runtime.CompilerServices
 Imports LANS.SystemsBiology.Assembly.NCBI.GenBank
 Imports LANS.SystemsBiology.Assembly.NCBI.GenBank.GBFF.Keywords.FEATURES.Nodes
 Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput
 Imports LANS.SystemsBiology.SequenceModel.FASTA
+Imports LANS.SystemsBiology.Assembly.NCBI.GenBank.TabularFormat.ComponentModels
+Imports LANS.SystemsBiology.Assembly.NCBI.GenBank.TabularFormat
 Imports Microsoft.VisualBasic.CommandLine.Reflection
 Imports Microsoft.VisualBasic.DocumentFormat.Csv
 Imports Microsoft.VisualBasic.Linq
 Imports Microsoft.VisualBasic.Language.UnixBash
-Imports System.Text.RegularExpressions
-Imports System.Text
 Imports Microsoft.VisualBasic.Serialization
 Imports Microsoft.VisualBasic.Terminal
-Imports LANS.SystemsBiology.Assembly.NCBI.GenBank.TabularFormat.ComponentModels
-Imports LANS.SystemsBiology.Assembly.NCBI.GenBank.TabularFormat
 Imports Microsoft.VisualBasic.Language
+Imports Microsoft.VisualBasic.ComponentModel.DataSourceModel
 
 Partial Module CLI
+
+    <ExportAPI("/Print", Usage:="/Print /in <inDIR> [/ext <ext> /out <out.Csv>]")>
+    Public Function Print(args As CommandLine.CommandLine) As Integer
+        Dim ext As String = args.GetValue("/ext", "*.*")
+        Dim inDIR As String = args - "/in"
+        Dim out As String = args.GetValue("/out", inDIR.TrimDIR & ".contents.Csv")
+        Dim files As IEnumerable(Of String) =
+            ls - l - r - wildcards(ext) <= inDIR
+        Dim content As NamedValue(Of String)() =
+            LinqAPI.Exec(Of NamedValue(Of String)) <= From file As String
+                                                      In files
+                                                      Let name As String = file.BaseName
+                                                      Let genome As String = file.ParentDirName
+                                                      Select New NamedValue(Of String)(genome, name)
+        Return content.SaveTo(out).CLICode
+    End Function
 
     <ExportAPI("/Export.gpff", Usage:="/Export.gpff /in <genome.gpff> /gff <genome.gff> [/out <out.PTT>]")>
     Public Function EXPORTgpff(args As CommandLine.CommandLine) As Integer
