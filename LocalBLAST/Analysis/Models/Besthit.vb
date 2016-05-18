@@ -49,13 +49,13 @@ Namespace Analysis
             End If
         End Function
 
-        Public Function Take(lstId As String()) As BestHit
+        Public Function Take(spTags As String()) As BestHit
             Return New BestHit With {
                 .sp = sp,
                 .hits = LinqAPI.Exec(Of HitCollection) <=
                         From x As HitCollection
                         In hits.AsParallel
-                        Select x.Take(lstId)
+                        Select x.Take(spTags)
             }
         End Function
 

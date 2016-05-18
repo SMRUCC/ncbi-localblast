@@ -1,6 +1,7 @@
 ﻿Imports System.Xml.Serialization
 Imports Microsoft.VisualBasic.ComponentModel.Collection.Generic
 Imports Microsoft.VisualBasic.DocumentFormat.Csv
+Imports Microsoft.VisualBasic.Language
 
 Namespace Analysis
 
@@ -12,11 +13,18 @@ Namespace Analysis
     ''' </remarks>
     Public Class HitCollection : Implements sIdEnumerable
 
-        Public Function Take(IDList As String()) As HitCollection
-            Dim LQuery = (From hitData As Hit
-                          In Hits
-                          Where Array.IndexOf(IDList, hitData.tag) > -1
-                          Select hitData).ToArray
+        ''' <summary>
+        ''' 按照物种编号取出数据构建一个新的bbh集合
+        ''' </summary>
+        ''' <param name="spTags"></param>
+        ''' <returns></returns>
+        Public Function Take(spTags As String()) As HitCollection
+            Dim LQuery As Hit() =
+                LinqAPI.Exec(Of Hit) <= From hitData As Hit
+                                        In Hits
+                                        Where Array.IndexOf(spTags, hitData.tag) > -1
+                                        Select hitData
+
             Return New HitCollection With {
                 .Hits = LQuery,
                 .Description = Description,
@@ -31,11 +39,13 @@ Namespace Analysis
         ''' <returns></returns>
         ''' <remarks></remarks>
         <XmlAttribute> Public Property QueryName As String Implements sIdEnumerable.Identifier
+
         ''' <summary>
         ''' Query protein functional annotation.
         ''' </summary>
         ''' <returns></returns>
         Public Property Description As String
+
         ''' <summary>
         ''' Query hits protein.
         ''' </summary>
@@ -97,10 +107,11 @@ Namespace Analysis
         ''' <returns></returns>
         ''' <remarks></remarks>
         Protected Friend Function __orderBySp() As HitCollection
-            Me.Hits = (From hit As Hit
-                       In Me.Hits
-                       Select hit
-                       Order By hit.tag Ascending).ToArray
+            Me.Hits =
+                LinqAPI.Exec(Of Hit) <= From hit As Hit
+                                        In Me.Hits
+                                        Select hit
+                                        Order By hit.tag Ascending
             Return Me
         End Function
     End Class
