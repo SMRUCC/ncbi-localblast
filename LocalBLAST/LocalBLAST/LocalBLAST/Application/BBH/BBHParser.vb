@@ -9,6 +9,7 @@ Imports Microsoft.VisualBasic.DocumentFormat.Csv
 Imports Microsoft.VisualBasic.Linq
 Imports LANS.SystemsBiology.Assembly.Expasy.AnnotationsTool
 Imports System.Runtime.CompilerServices
+Imports Microsoft.VisualBasic.Language
 
 Namespace LocalBLAST.Application.BBH
 
@@ -295,28 +296,37 @@ Namespace LocalBLAST.Application.BBH
 
         <ExportAPI("EnzymeClassification")>
         Public Function EnzymeClassification(Expasy As NomenclatureDB, bh As BBH.BestHit()) As T_EnzymeClass_BLAST_OUT()
-            Dim EnzymeClasses As T_EnzymeClass_BLAST_OUT() = API.GenerateBasicDocument(Expasy.Enzymes)
-            Dim LQuery = (From enzPre As T_EnzymeClass_BLAST_OUT
-                          In EnzymeClasses.AsParallel
-                          Select enzPre.__export(bh)).ToArray
-            Return LQuery.MatrixToVector
+            Dim EnzymeClasses As T_EnzymeClass_BLAST_OUT() =
+                API.GenerateBasicDocument(Expasy.Enzymes)
+            Dim LQuery As T_EnzymeClass_BLAST_OUT() =
+                LinqAPI.Exec(Of T_EnzymeClass_BLAST_OUT) <= From enzPre As T_EnzymeClass_BLAST_OUT
+                                                            In EnzymeClasses.AsParallel
+                                                            Select enzPre.__export(bh)
+            Return LQuery
         End Function
 
         <Extension>
         Private Function __export(enzPre As T_EnzymeClass_BLAST_OUT, bh As BBH.BestHit()) As T_EnzymeClass_BLAST_OUT()
-            Dim GetbhLQuery = (From item As BBH.BestHit
-                               In bh
-                               Where String.Equals(item.HitName, enzPre.UniprotMatched, StringComparison.OrdinalIgnoreCase)
-                               Select item).ToArray
+            Dim getbhLQuery As BestHit() =
+                LinqAPI.Exec(Of BestHit) <= From hit As BBH.BestHit
+                                            In bh
+                                            Where String.Equals(
+                                                hit.HitName,
+                                                enzPre.UniprotMatched,
+                                                StringComparison.OrdinalIgnoreCase)
+                                            Select hit
 
-            If Not GetbhLQuery.IsNullOrEmpty Then
-                Dim Linq = (From bhItem As BBH.BestHit In GetbhLQuery
-                            Select New T_EnzymeClass_BLAST_OUT With {
-                                .Class = enzPre.Class,
-                                .EValue = bhItem.evalue,
-                                .Identity = bhItem.identities,
-                                .ProteinId = bhItem.QueryName,
-                                .UniprotMatched = enzPre.UniprotMatched}).ToArray
+            If Not getbhLQuery.IsNullOrEmpty Then
+                Dim Linq As T_EnzymeClass_BLAST_OUT() =
+                    LinqAPI.Exec(Of T_EnzymeClass_BLAST_OUT) <= From bhItem As BBH.BestHit
+                                                                In getbhLQuery
+                                                                Select New T_EnzymeClass_BLAST_OUT With {
+                                                                    .Class = enzPre.Class,
+                                                                    .EValue = bhItem.evalue,
+                                                                    .Identity = bhItem.identities,
+                                                                    .ProteinId = bhItem.QueryName,
+                                                                    .UniprotMatched = enzPre.UniprotMatched
+                                                                }
                 Return Linq
             Else
                 Return Nothing

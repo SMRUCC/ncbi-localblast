@@ -283,7 +283,7 @@ RETURN_VALUE:
             Dim GetDescriptionResult = (From item
                                         In CreateBestHit
                                         Let descrMatches As BiDirectionalBesthit() =
-                                            BiDirectionalBesthit.MatchDescription(item.Data, SourceDescription:=getDescrib)
+                                            BiDirectionalBesthit.MatchDescription(item.Data, sourceDescription:=getDescrib)
                                         Select Path = item.Path,
                                             descrMatches)
 

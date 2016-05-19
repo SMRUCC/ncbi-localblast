@@ -40,11 +40,11 @@ Namespace NCBIBlastResult
         End Function
 
         Private Function __createFromBlastn(sId As String, out As v228) As HitRecord()
-            Dim LQuery = (From Query As Query
-                          In out.Queries
-                          Select __createFromBlastn(sId, Query.SubjectHits)).ToArray
-            Dim result = LQuery.MatrixToVector
-            Return result
+            Dim LQuery As HitRecord() =
+                LinqAPI.Exec(Of HitRecord) <= From Query As Query
+                                              In out.Queries
+                                              Select __createFromBlastn(sId, Query.SubjectHits)
+            Return LQuery
         End Function
 
         Private Function __createFromBlastn(sId As String, hits As SubjectHit()) As HitRecord()
@@ -66,7 +66,7 @@ Namespace NCBIBlastResult
         Public Function CreateFromBlastn(sourceDIR As String) As AlignmentTable
             Dim Files = (From path As String
                          In FileIO.FileSystem.GetFiles(sourceDIR, FileIO.SearchOption.SearchAllSubDirectories, "*.txt")
-                         Let XOutput = Parser.LoadBlastOutput(path)
+                         Let XOutput As v228 = Parser.LoadBlastOutput(path)
                          Where Not XOutput Is Nothing AndAlso
                              Not XOutput.Queries.IsNullOrEmpty
                          Select ID = path.BaseName,

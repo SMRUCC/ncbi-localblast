@@ -5,6 +5,7 @@ Imports Microsoft.VisualBasic.CommandLine.Reflection
 Imports Microsoft.VisualBasic.DocumentFormat.Csv.Extensions
 Imports Microsoft.VisualBasic.Scripting.MetaData
 Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.BatchParallel
+Imports Microsoft.VisualBasic.Language
 
 Namespace NCBIBlastResult
 
@@ -22,10 +23,7 @@ Namespace NCBIBlastResult
         ''' <remarks></remarks>
         ''' 
         <ExportAPI("Alignment.Table.From.bbh.Orthologous")>
-        Public Function CreateFromBBHOrthologous(QueryID As String,
-                                                 sbhDIR As String,
-                                                 <Parameter("Query.Info")> queryInfo As IEnumerable(Of GeneDumpInfo)) As AlignmentTable
-
+        Public Function CreateFromBBHOrthologous(QueryID As String, sbhDIR As String, <Parameter("Query.Info")> queryInfo As IEnumerable(Of GeneDumpInfo)) As AlignmentTable
             Dim Entries = (From path As KeyValuePair(Of String, String)
                            In sbhDIR.LoadSourceEntryList({"*.csv"})
                            Let Log As AlignEntry = LogNameParser(path.Value)
@@ -41,25 +39,30 @@ Namespace NCBIBlastResult
             Dim BBH = (From query
                        In querySide.AsParallel
                        Let subject = query.LogEntry.SelectEquals(hitSide, Function(Entry) Entry.LogEntry)
-                       Let bbhData As BiDirectionalBesthit() = (From bbbbh As BiDirectionalBesthit
-                                                                In BBHParser.GetBBHTop(qvs:=query.besthitData, svq:=subject.besthitData)
-                                                                Where bbbbh.Matched
-                                                                Select bbbbh).ToArray
+                       Let bbhData As BiDirectionalBesthit() =
+                           (LinqAPI.Exec(Of BiDirectionalBesthit) <= From __bbh As BiDirectionalBesthit
+                                                                     In BBHParser.GetBBHTop(
+                                                                         query.besthitData,
+                                                                         subject.besthitData)
+                                                                     Where __bbh.Matched
+                                                                     Select __bbh)
                        Select query.ID,
                            query.LogEntry,
                            bbhData).ToArray
-            Dim queryDict As Dictionary(Of String, GeneDumpInfo) = queryInfo.ToDictionary(Function(item) item.LocusID)
-            Dim hits As HitRecord() = (From Genome In BBH
-                                       Select (From Gene As BiDirectionalBesthit
-                                               In Genome.bbhData
-                                               Let QueryGene As GeneDumpInfo = queryDict(Gene.QueryName)
-                                               Let row = New HitRecord With {
-                                                   .Identity = Gene.Identities,
-                                                   .QueryStart = QueryGene.Left,
-                                                   .QueryEnd = QueryGene.Right,
-                                                   .SubjectIDs = Genome.LogEntry.HitName
-                                               }
-                                               Select row)).MatrixToVector
+
+            Dim queryDict As Dictionary(Of GeneDumpInfo) = queryInfo.ToDictionary
+            Dim hits As HitRecord() =
+                LinqAPI.Exec(Of HitRecord) <= From genome
+                                              In BBH
+                                              Select From gene As BiDirectionalBesthit
+                                                     In genome.bbhData
+                                                     Let QueryGene As GeneDumpInfo = queryDict(gene.QueryName)
+                                                     Select New HitRecord With {
+                                                         .Identity = gene.Identities,
+                                                         .QueryStart = QueryGene.Left,
+                                                         .QueryEnd = QueryGene.Right,
+                                                         .SubjectIDs = genome.LogEntry.HitName
+                                                     }
             Dim Table As New AlignmentTable With {
                 .Database = sbhDIR,
                 .Hits = hits.ToArray,

@@ -106,6 +106,12 @@ Namespace NCBIBlastResult
             Return hitEntry
         End Function
 
+        ''' <summary>
+        ''' Save as XML
+        ''' </summary>
+        ''' <param name="Path"></param>
+        ''' <param name="encoding"></param>
+        ''' <returns></returns>
         Public Overrides Function Save(Optional Path As String = "", Optional encoding As System.Text.Encoding = Nothing) As Boolean Implements ISaveHandle.Save
             Return Me.GetXml.SaveTo(Path, encoding)
         End Function

@@ -70,9 +70,9 @@ Namespace LocalBLAST.Application.BBH
         ''' <returns></returns>
         Public Delegate Function GetDescriptionHandle(locusId As String) As String
 
-        Public Shared Function MatchDescription(data As BiDirectionalBesthit(), SourceDescription As GetDescriptionHandle) As BiDirectionalBesthit()
+        Public Shared Function MatchDescription(data As BiDirectionalBesthit(), sourceDescription As GetDescriptionHandle) As BiDirectionalBesthit()
             Dim LQuery = (From ItemObject As BiDirectionalBesthit In data.AsParallel
-                          Let desc As String = SourceDescription(locusId:=ItemObject.QueryName)
+                          Let desc As String = sourceDescription(locusId:=ItemObject.QueryName)
                           Select ItemObject.InvokeSet(NameOf(ItemObject.Description), desc)).ToArray
             Return LQuery
         End Function
@@ -200,14 +200,14 @@ Namespace LocalBLAST.Application.BBH
             Return LQuery
         End Function
 
-        Public Shared Function IsNullOrEmpty(Of T As BestHit)(data As Generic.IEnumerable(Of T), Optional TrimSelfAligned As Boolean = False) As Boolean
+        Public Shared Function IsNullOrEmpty(Of T As BestHit)(data As IEnumerable(Of T), Optional TrimSelfAligned As Boolean = False) As Boolean
             If data.IsNullOrEmpty Then
                 Return True
             End If
 
             If Not TrimSelfAligned Then
                 Dim LQuery = (From hit As T In data.AsParallel
-                              Where Not String.Equals(hit.HitName, NCBI.Extensions.LocalBLAST.BLASTOutput.IBlastOutput.HITS_NOT_FOUND)
+                              Where Not String.Equals(hit.HitName, IBlastOutput.HITS_NOT_FOUND)
                               Select hit).FirstOrDefault
                 Return LQuery Is Nothing
             Else
