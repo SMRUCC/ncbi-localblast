@@ -11,10 +11,10 @@ Namespace LocalBLAST.Application.RpsBLAST
     ''' COG output data from http://weizhong-lab.ucsd.edu/metagenomic-analysis/server/
     ''' </summary>
     Public Class MGACOG
-        Implements sIdEnumerable, I_COGEntry, IQueryHits
+        Implements sIdEnumerable, ICOGDigest, IQueryHits
 
         <Column("#Query")> Public Property QueryName As String Implements IBlastHit.locusId, sIdEnumerable.Identifier
-        Public Property Hit As String Implements IBlastHit.Address, I_COGEntry.COG
+        Public Property Hit As String Implements IBlastHit.Address, ICOGDigest.COG
         <Column("E-value")> Public Property Evalue As Double
         Public Property Score As Double
         <Column("Query-start")> Public Property QueryStart As Integer
@@ -25,11 +25,11 @@ Namespace LocalBLAST.Application.RpsBLAST
 
         <Column("Identity")> Public Property identities As Double Implements IQueryHits.identities
 
-        Public Property description As String Implements I_COGEntry.Product
+        Public Property description As String Implements ICOGDigest.Product
         Public Property [class] As String
         <Column("class description")> Public Property classDescrib As String
 
-        Public Property Length As Integer Implements I_COGEntry.Length
+        Public Property Length As Integer Implements ICOGDigest.Length
 
         Public Function ToMyvaCOG() As MyvaCOG
             Return New MyvaCOG With {
@@ -60,10 +60,10 @@ Namespace LocalBLAST.Application.RpsBLAST
     ''' </summary>
     ''' <remarks></remarks>
     Public Class MyvaCOG
-        Implements sIdEnumerable, I_COGEntry, IQueryHits
+        Implements sIdEnumerable, ICOGDigest, IQueryHits
 
         <Column("query_name")> Public Property QueryName As String Implements sIdEnumerable.Identifier, IBlastHit.locusId
-        Public Property Length As Integer Implements I_COGEntry.Length
+        Public Property Length As Integer Implements ICOGDigest.Length
         <Column("cog_myva")> Public Property MyvaCOG As String
 
         ''' <summary>
@@ -73,8 +73,8 @@ Namespace LocalBLAST.Application.RpsBLAST
         ''' <returns></returns>
         ''' <remarks></remarks>
         <Column("COG_category")> Public Property Category As String
-        <Column("COG")> Public Property COG As String Implements I_COGEntry.COG, IBlastHit.Address
-        <Column("description")> Public Property Description As String Implements I_COGEntry.Product
+        <Column("COG")> Public Property COG As String Implements ICOGDigest.COG, IBlastHit.Address
+        <Column("description")> Public Property Description As String Implements ICOGDigest.Product
 
         Public Property Evalue As Double
         Public Property Identities As Double Implements IQueryHits.identities
