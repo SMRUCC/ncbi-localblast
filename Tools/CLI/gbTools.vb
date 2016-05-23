@@ -15,6 +15,7 @@ Imports Microsoft.VisualBasic.Serialization
 Imports Microsoft.VisualBasic.Terminal
 Imports Microsoft.VisualBasic.Language
 Imports Microsoft.VisualBasic.ComponentModel.DataSourceModel
+Imports LANS.SystemsBiology.Assembly.NCBI.GenBank.GBFF.Keywords.FEATURES
 
 Partial Module CLI
 
@@ -48,7 +49,7 @@ Partial Module CLI
         Dim gpff As IEnumerable(Of GBFF.File) = GBFF.File.LoadDatabase([in])
         Dim gff As GFF = TabularFormat.GFF.LoadDocument(gffFile)
         Dim CDSHash = (From x As TabularFormat.Feature
-                       In gff.GetsAllFeatures(Features.CDS)
+                       In gff.GetsAllFeatures(FeatureKeys.Features.CDS)
                        Select x
                        Group x By x.ProteinId Into Group) _
                             .ToDictionary(Function(x) x.ProteinId,
@@ -177,7 +178,7 @@ Partial Module CLI
         Dim prefix As String = args("/prefix")
         Dim out As String = args.GetValue("/out", gbFile.TrimFileExt & $".{prefix}.gb")
         Dim gb As GBFF.File = GBFF.File.Load(gbFile)
-        Dim LQuery = (From x As GBFF.Keywords.FEATURES.Nodes.Feature
+        Dim LQuery = (From x As GBFF.Keywords.FEATURES.Feature
                       In gb.Features
                       Where String.Equals(x.KeyName, "gene") OrElse
                           String.Equals(x.KeyName, "CDS", StringComparison.OrdinalIgnoreCase)
@@ -217,7 +218,7 @@ Partial Module CLI
 
         For Each anno In annos
             Dim features = gb.Features.GetByLocation(anno.Minimum, anno.Maximum)
-            For Each feature As GBFF.Keywords.FEATURES.Nodes.Feature In features
+            For Each feature As GBFF.Keywords.FEATURES.Feature In features
                 Call feature.Add(tag, anno.Name)
             Next
         Next
