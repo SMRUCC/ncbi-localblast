@@ -1,6 +1,8 @@
 ﻿Imports System.Text.RegularExpressions
 Imports System.Xml.Serialization
 Imports Microsoft.VisualBasic
+Imports Microsoft.VisualBasic.ComponentModel
+Imports Microsoft.VisualBasic.Language
 
 Namespace LocalBLAST.Application.RpsBLAST.Whog
 
@@ -10,11 +12,11 @@ Namespace LocalBLAST.Application.RpsBLAST.Whog
         <XmlAttribute> Public Property CogId As String
         <XmlElement> Public Property Description As String
 
-        <XmlElement> Public Property IdList As LANS.SystemsBiology.ComponentModel.KeyValuePair()
+        <XmlElement> Public Property IdList As KeyValuePair()
             Get
                 Return _IdList
             End Get
-            Set(value As LANS.SystemsBiology.ComponentModel.KeyValuePair())
+            Set(value As KeyValuePair())
                 If value Is Nothing Then
                     Return
                 End If
@@ -26,7 +28,7 @@ Namespace LocalBLAST.Application.RpsBLAST.Whog
             End Set
         End Property
 
-        Dim _IdList As LANS.SystemsBiology.ComponentModel.KeyValuePair()
+        Dim _IdList As KeyValuePair()
         Dim IdTokens As KeyValuePair(Of String, String())()
         Dim _lstLocus As String()
 
@@ -50,13 +52,12 @@ Namespace LocalBLAST.Application.RpsBLAST.Whog
             item.CategoryId = Mid(item.CategoryId, 2, Len(item.CategoryId) - 2)
             item.CogId = Regex.Match(description, REGX_COG_ID).Value
             item.Description = Mid(description, Len(item.CategoryId) + Len(item.CogId) + 4).Trim
-            Dim list As List(Of LANS.SystemsBiology.ComponentModel.KeyValuePair) =
-                New List(Of ComponentModel.KeyValuePair)
+            Dim list As List(Of KeyValuePair) = New List(Of KeyValuePair)
 
             For Each line As String In Tokens.Skip(1)
                 Dim sss = Strings.Split(line, ":")
                 If sss.Count = 2 Then
-                    list += New ComponentModel.KeyValuePair With {
+                    list += New KeyValuePair With {
                         .Key = sss(0).TrimA,
                         .Value = sss(1).Trim
                     }
@@ -74,12 +75,13 @@ Namespace LocalBLAST.Application.RpsBLAST.Whog
             If IdTokens Is Nothing Then
                 Return ""
             End If
-            Dim LQuery = (From item In IdTokens Where Array.IndexOf(item.Value, Id) > -1 Select item.Key).ToArray
-            If LQuery.IsNullOrEmpty Then
-                Return ""
-            Else
-                Return LQuery.First
-            End If
+
+            Dim LQuery As String =
+                LinqAPI.DefaultFirst(Of String) <= From item
+                                                   In IdTokens
+                                                   Where Array.IndexOf(item.Value, Id) > -1
+                                                   Select item.Key
+            Return LQuery
         End Function
     End Class
 End Namespace
