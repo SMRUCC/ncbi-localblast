@@ -424,7 +424,7 @@ Namespace BlastAPI
             End If
 
             Dim dataframe As DocumentStream.File = indexQuery.ExportCsv(TrimNull)
-            Dim sps As String() = (From hit As Hit In indexQuery.hits.First.Hits Select hit.tag).ToArray
+            Dim sps As String() = indexQuery.hits.First.Hits.ToArray(Function(x) x.tag)
 
             For deltaIndex As Integer = 0 To dataHash.Count - 1
                 Dim subMain As BestHit = dataHash.Values(deltaIndex)
@@ -435,12 +435,13 @@ Namespace BlastAPI
                 End If
 
                 Dim di As Integer = deltaIndex
-                Dim subHits As String() = (From row As DocumentStream.RowObject
-                                           In dataframe
-                                           Let d As Integer = 2 + 4 * di + 1
-                                           Let id As String = row(d)
-                                           Where Not String.IsNullOrEmpty(id)
-                                           Select id).ToArray
+                Dim subHits As String() =
+                    LinqAPI.Exec(Of String) <= From row As DocumentStream.RowObject
+                                               In dataframe
+                                               Let d As Integer = 2 + 4 * di + 1
+                                               Let id As String = row(d)
+                                               Where Not String.IsNullOrEmpty(id)
+                                               Select id
 
                 For Each subMainNotHit In From hits As HitCollection
                                           In subMain.hits
@@ -480,9 +481,10 @@ Namespace BlastAPI
 
         <ExportAPI("Load.Xmls.Besthit")>
         Public Function ReadBesthitXML(DIR As String) As BestHit()
-            Dim files = (From path As String
-                         In FileIO.FileSystem.GetFiles(DIR, FileIO.SearchOption.SearchTopLevelOnly, "*.xml").AsParallel
-                         Select path.LoadXml(Of BestHit)()).ToArray
+            Dim files As BestHit() =
+                LinqAPI.Exec(Of BestHit) <= From path As String
+                                            In (ls - l - wildcards("*.xml") <= DIR).AsParallel
+                                            Select path.LoadXml(Of BestHit)()
             Return files
         End Function
 

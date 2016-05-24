@@ -47,11 +47,11 @@ Namespace Analysis
                 Dim First = source.First
                 Call source.RemoveAt(Scan0)
 
-                Dim paired As AlignEntry = (From entry As AlignEntry
-                                            In source
-                                            Where entry.BiDirEquals(First)
-                                            Select entry).FirstOrDefault
-
+                Dim paired As AlignEntry =
+                    LinqAPI.DefaultFirst(Of AlignEntry) <= From entry As AlignEntry
+                                                           In source
+                                                           Where entry.BiDirEquals(First)
+                                                           Select entry
                 If Not paired Is Nothing Then
                     Call source.Remove(paired)
                     Call lstPairs.Add(New Entry(First, paired))
@@ -157,24 +157,26 @@ Namespace Analysis
             Return LQuery
         End Function
 
-        Private Function __operation(EXPORT As String, Path As AlignEntry, QueryGrep As TextGrepScriptEngine, SubjectGrep As TextGrepScriptEngine) As AlignEntry
-            Dim FilePath As String = EXPORT & "/" & IO.Path.GetFileNameWithoutExtension(Path.FilePath) & ".besthit.csv"
-            If FileIO.FileSystem.FileExists(FilePath) AndAlso
-                FileIO.FileSystem.GetFileInfo(FilePath).Length > 0 Then
+        Private Function __operation(EXPORT As String, path As AlignEntry, qgr As TextGrepScriptEngine, sgr As TextGrepScriptEngine) As AlignEntry
+            Dim filePath As String = $"{EXPORT}/{path.FilePath.BaseName}.besthit.csv"
+            If filePath.FileExists Then
                 GoTo RETURN_VALUE
             End If
+
             Dim OutputLog As BlastPlus.v228 =
-                BlastPlus.Parser.TryParse(Path.FilePath)
+                BlastPlus.Parser.TryParse(path.FilePath)
             If OutputLog Is Nothing Then
                 Return Nothing
+            Else
+                Call OutputLog.Grep(Query:=qgr.Method, Hits:=sgr.Method)
             End If
-            Call OutputLog.Grep(Query:=QueryGrep.Method, Hits:=SubjectGrep.Method)
+
             Dim besthitsData As BBH.BestHit() = OutputLog.ExportBestHit
-            Call besthitsData.SaveTo(FilePath, False, System.Text.Encoding.ASCII)
+            Call besthitsData.SaveTo(filePath, False, System.Text.Encoding.ASCII)
 
 RETURN_VALUE:
-            Path.FilePath = FilePath
-            Return Path
+            path.FilePath = filePath
+            Return path
         End Function
 
         ''' <summary>
