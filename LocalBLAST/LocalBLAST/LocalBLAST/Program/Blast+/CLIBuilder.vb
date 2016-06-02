@@ -11,7 +11,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-query_loc", [Optional].Types.String)> Public Property QueryLocation As String
+        <[Optional]("-query_loc", CLITypes.String)> Public Property QueryLocation As String
 #End Region
 
 #Region "*** General search options"
@@ -22,7 +22,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-task", [Optional].Types.String)> Public Property Task As String
+        <[Optional]("-task", CLITypes.String)> Public Property Task As String
 
         ''' <summary>
         ''' Word size for wordfinder algorithm, >=2
@@ -30,7 +30,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-word_size", [Optional].Types.Integer)> Public Property WordSize As Integer
+        <[Optional]("-word_size", CLITypes.Integer)> Public Property WordSize As Integer
 
         ''' <summary>
         ''' Cost to open a gap
@@ -38,7 +38,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-gapopen", [Optional].Types.Integer)> Public Property GapOpen As String
+        <[Optional]("-gapopen", CLITypes.Integer)> Public Property GapOpen As String
 
         ''' <summary>
         ''' Cost to extend a gap
@@ -46,7 +46,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-gapextend", [Optional].Types.Integer)> Public Property GapExtend As String
+        <[Optional]("-gapextend", CLITypes.Integer)> Public Property GapExtend As String
 
         ''' <summary>
         ''' Scoring matrix name (normally BLOSUM62)
@@ -54,7 +54,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-matrix", [Optional].Types.String)> Public Property Matrix As String
+        <[Optional]("-matrix", CLITypes.String)> Public Property Matrix As String
 
         ''' <summary>
         ''' Minimum word score such that the word is added to the BLAST lookup table, >=0
@@ -62,7 +62,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-threshold", [Optional].Types.Double)> Public Property Threshold As String
+        <[Optional]("-threshold", CLITypes.Double)> Public Property Threshold As String
 
         ''' <summary>
         ''' Use composition-based statistics:
@@ -77,7 +77,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-comp_based_stats", [Optional].Types.String)> Public Property CompBasedStats As String
+        <[Optional]("-comp_based_stats", CLITypes.String)> Public Property CompBasedStats As String
 
 #End Region
 
@@ -89,7 +89,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-subject_loc", [Optional].Types.String)> Public Property SubjectLocation As String
+        <[Optional]("-subject_loc", CLITypes.String)> Public Property SubjectLocation As String
 #End Region
 
 #Region "*** Formatting options"
@@ -164,7 +164,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-outfmt", [Optional].Types.String)> Public Property OutFormat As String
+        <[Optional]("-outfmt", CLITypes.String)> Public Property OutFormat As String
 
         ''' <summary>
         ''' Show NCBI GIs in deflines?
@@ -172,7 +172,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-show_gis", [Optional].Types.String)> Public Property ShowGis As String
+        <[Optional]("-show_gis", CLITypes.String)> Public Property ShowGis As String
 
         ''' <summary>
         ''' Number  >=0 of database sequences to show one-line descriptions for Not applicable for outfmt > 4
@@ -182,7 +182,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-num_descriptions", [Optional].Types.Integer)> Public Property NumberDescriptions As String
+        <[Optional]("-num_descriptions", CLITypes.Integer)> Public Property NumberDescriptions As String
 
         ''' <summary>
         ''' Number >=0 of database sequences to show alignments for
@@ -192,7 +192,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-num_alignments", [Optional].Types.Integer)> Public Property NumberAlignments As String
+        <[Optional]("-num_alignments", CLITypes.Integer)> Public Property NumberAlignments As String
 
         ''' <summary>
         ''' Produce HTML output?
@@ -200,7 +200,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-html", [Optional].Types.String)> Public Property Html As String
+        <[Optional]("-html", CLITypes.String)> Public Property Html As String
 #End Region
 
 #Region "*** Query filtering options"
@@ -211,7 +211,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-seg", [Optional].Types.String)> Public Property Seg As String
+        <[Optional]("-seg", CLITypes.String)> Public Property Seg As String
 
         ''' <summary>
         ''' Apply filtering locations as soft masks
@@ -220,7 +220,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-soft_masking", [Optional].Types.String)> Public Property SoftMasking As String
+        <[Optional]("-soft_masking", CLITypes.String)> Public Property SoftMasking As String
 
         ''' <summary>
         ''' Use lower case filtering in query and subject sequence(s)?
@@ -228,7 +228,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-lcase_masking", [Optional].Types.String)> Public Property LCaseMasking As String
+        <[Optional]("-lcase_masking", CLITypes.String)> Public Property LCaseMasking As String
 #End Region
 
 #Region "*** Restrict search or results"
@@ -239,7 +239,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-gilist", [Optional].Types.String)> Public Property GiList As String
+        <[Optional]("-gilist", CLITypes.String)> Public Property GiList As String
 
         ''' <summary>
         ''' Restrict search of database to list of SeqId's
@@ -248,7 +248,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-seqidlist", [Optional].Types.String)> Public Property SeqIdList As String
+        <[Optional]("-seqidlist", CLITypes.String)> Public Property SeqIdList As String
 
         ''' <summary>
         ''' Restrict search of database to everything except the listed GIs
@@ -257,7 +257,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-negative_gilist", [Optional].Types.String)> Public Property NegativeGiList As String
+        <[Optional]("-negative_gilist", CLITypes.String)> Public Property NegativeGiList As String
 
         ''' <summary>
         ''' Restrict search with the given Entrez query
@@ -266,7 +266,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-entrez_query", [Optional].Types.String)> Public Property EntrezQuery As String
+        <[Optional]("-entrez_query", CLITypes.String)> Public Property EntrezQuery As String
 
         ''' <summary>
         ''' Filtering algorithm ID to apply to the BLAST database as soft masking
@@ -275,7 +275,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-db_soft_mask", [Optional].Types.String)> Public Property DbSoftMask As String
+        <[Optional]("-db_soft_mask", CLITypes.String)> Public Property DbSoftMask As String
 
         ''' <summary>
         ''' Filtering algorithm ID to apply to the BLAST database as hard masking
@@ -284,7 +284,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-db_hard_mask", [Optional].Types.String)> Public Property DbHardMask As String
+        <[Optional]("-db_hard_mask", CLITypes.String)> Public Property DbHardMask As String
 
         ''' <summary>
         ''' If the query range of a hit is enveloped by that of at least this many higher-scoring hits >=0, delete the hit
@@ -293,7 +293,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-culling_limit", [Optional].Types.Integer)> Public Property CullingLimit As String
+        <[Optional]("-culling_limit", CLITypes.Integer)> Public Property CullingLimit As String
 
         ''' <summary>
         ''' Best Hit algorithm overhang value ((0, 0.5), recommended value: 0.1)
@@ -302,7 +302,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-best_hit_overhang", [Optional].Types.Double)> Public Property BestHitOverhang As String
+        <[Optional]("-best_hit_overhang", CLITypes.Double)> Public Property BestHitOverhang As String
 
         ''' <summary>
         ''' Best Hit algorithm score edge value ((0, 0.5), recommended value: 0.1)
@@ -311,7 +311,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-best_hit_score_edge", [Optional].Types.Double)> Public Property BestHitScoreEdge As String
+        <[Optional]("-best_hit_score_edge", CLITypes.Double)> Public Property BestHitScoreEdge As String
 
         ''' <summary>
         ''' Maximum number >=1 of aligned sequences to keep 
@@ -322,7 +322,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-max_target_seqs", [Optional].Types.Integer)> Public Property MaxTargetSeqs As String
+        <[Optional]("-max_target_seqs", CLITypes.Integer)> Public Property MaxTargetSeqs As String
 #End Region
 
 #Region "*** Statistical options"
@@ -332,7 +332,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-dbsize", [Optional].Types.Integer)> Public Property DbSize As String
+        <[Optional]("-dbsize", CLITypes.Integer)> Public Property DbSize As String
 
         ''' <summary>
         ''' Effective length >=0 of the search space
@@ -340,7 +340,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-searchsp", [Optional].Types.Integer)> Public Property SearcHsp As String
+        <[Optional]("-searchsp", CLITypes.Integer)> Public Property SearcHsp As String
 
         ''' <summary>
         ''' Override maximum number >=0 of HSPs per subject to save for ungapped searches
@@ -350,7 +350,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-max_hsps_per_subject", [Optional].Types.Integer)> Public Property MaxHspsPerSubject As String
+        <[Optional]("-max_hsps_per_subject", CLITypes.Integer)> Public Property MaxHspsPerSubject As String
 #End Region
 
 #Region "*** Search strategy options"
@@ -361,7 +361,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-import_search_strategy", [Optional].Types.String)> Public Property ImportSearchStrategy As String
+        <[Optional]("-import_search_strategy", CLITypes.String)> Public Property ImportSearchStrategy As String
 
         ''' <summary>
         ''' File name to record the search strategy used
@@ -370,7 +370,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-export_search_strategy", [Optional].Types.String)> Public Property ExportSearchStrategy As String
+        <[Optional]("-export_search_strategy", CLITypes.String)> Public Property ExportSearchStrategy As String
 #End Region
 
 #Region "*** Extension options"
@@ -380,7 +380,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-xdrop_ungap", [Optional].Types.Double)> Public Property XDropUngap As String
+        <[Optional]("-xdrop_ungap", CLITypes.Double)> Public Property XDropUngap As String
 
         ''' <summary>
         ''' X-dropoff value (in bits) for preliminary gapped extensions
@@ -388,7 +388,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-xdrop_gap", [Optional].Types.Double)> Public Property XDropGap As String
+        <[Optional]("-xdrop_gap", CLITypes.Double)> Public Property XDropGap As String
 
         ''' <summary>
         ''' X-dropoff value (in bits) for final gapped alignment
@@ -396,7 +396,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-xdrop_gap_final", [Optional].Types.Double)> Public Property XDropGapFinal As String
+        <[Optional]("-xdrop_gap_final", CLITypes.Double)> Public Property XDropGapFinal As String
 
         ''' <summary>
         ''' Multiple hits window size >=0, use 0 to specify 1-hit algorithm
@@ -404,7 +404,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-window_size", [Optional].Types.Integer)> Public Property WindowSize As String
+        <[Optional]("-window_size", CLITypes.Integer)> Public Property WindowSize As String
 
         ''' <summary>
         ''' Perform ungapped alignment only?
@@ -412,7 +412,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-ungapped", [Optional].Types.String)> Public Property UnGapped As String
+        <[Optional]("-ungapped", CLITypes.String)> Public Property UnGapped As String
 #End Region
 
 #Region "*** Miscellaneous options"
@@ -422,7 +422,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-parse_deflines", [Optional].Types.String)> Public Property ParseDeflines As String
+        <[Optional]("-parse_deflines", CLITypes.String)> Public Property ParseDeflines As String
 
         ''' <summary>
         ''' Number of threads >=1 (CPUs) to use in the BLAST search
@@ -432,7 +432,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-num_threads", [Optional].Types.Integer)> Public Property NumThreads As String
+        <[Optional]("-num_threads", CLITypes.Integer)> Public Property NumThreads As String
 
         ''' <summary>
         ''' Execute search remotely?
@@ -441,7 +441,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-remote", [Optional].Types.String)> Public Property Remote As String
+        <[Optional]("-remote", CLITypes.String)> Public Property Remote As String
 
 
         ''' <summary>
@@ -450,7 +450,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-use_sw_tback", [Optional].Types.String)> Public Property UseSwTback As String
+        <[Optional]("-use_sw_tback", CLITypes.String)> Public Property UseSwTback As String
 #End Region
     End Class
 
@@ -462,7 +462,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-query_loc", [Optional].Types.String)> Public Property QueryLocation As String
+        <[Optional]("-query_loc", CLITypes.String)> Public Property QueryLocation As String
 #End Region
 
 #Region "*** General search options"
@@ -473,7 +473,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-task", [Optional].Types.String)> Public Property Task As String
+        <[Optional]("-task", CLITypes.String)> Public Property Task As String
 
         ''' <summary>
         ''' Word size for wordfinder algorithm, >=2
@@ -481,7 +481,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-word_size", [Optional].Types.Integer)> Public Property WordSize As Integer
+        <[Optional]("-word_size", CLITypes.Integer)> Public Property WordSize As Integer
 
         ''' <summary>
         ''' Cost to open a gap
@@ -489,7 +489,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-gapopen", [Optional].Types.Integer)> Public Property GapOpen As String
+        <[Optional]("-gapopen", CLITypes.Integer)> Public Property GapOpen As String
 
         ''' <summary>
         ''' Cost to extend a gap
@@ -497,7 +497,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-gapextend", [Optional].Types.Integer)> Public Property GapExtend As String
+        <[Optional]("-gapextend", CLITypes.Integer)> Public Property GapExtend As String
 
         ''' <summary>
         ''' Scoring matrix name (normally BLOSUM62)
@@ -505,7 +505,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-matrix", [Optional].Types.String)> Public Property Matrix As String
+        <[Optional]("-matrix", CLITypes.String)> Public Property Matrix As String
 
         ''' <summary>
         ''' Minimum word score such that the word is added to the BLAST lookup table, >=0
@@ -513,7 +513,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-threshold", [Optional].Types.Double)> Public Property Threshold As String
+        <[Optional]("-threshold", CLITypes.Double)> Public Property Threshold As String
 
         ''' <summary>
         ''' Use composition-based statistics:
@@ -528,7 +528,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-comp_based_stats", [Optional].Types.String)> Public Property CompBasedStats As String
+        <[Optional]("-comp_based_stats", CLITypes.String)> Public Property CompBasedStats As String
 
 #End Region
 
@@ -540,7 +540,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-subject_loc", [Optional].Types.String)> Public Property SubjectLocation As String
+        <[Optional]("-subject_loc", CLITypes.String)> Public Property SubjectLocation As String
 #End Region
 
 #Region "*** Formatting options"
@@ -615,7 +615,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-outfmt", [Optional].Types.String)> Public Property OutFormat As String
+        <[Optional]("-outfmt", CLITypes.String)> Public Property OutFormat As String
 
         ''' <summary>
         ''' Show NCBI GIs in deflines?
@@ -623,7 +623,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-show_gis", [Optional].Types.String)> Public Property ShowGis As String
+        <[Optional]("-show_gis", CLITypes.String)> Public Property ShowGis As String
 
         ''' <summary>
         ''' Number  >=0 of database sequences to show one-line descriptions for Not applicable for outfmt > 4
@@ -633,7 +633,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-num_descriptions", [Optional].Types.Integer)> Public Property NumberDescriptions As String
+        <[Optional]("-num_descriptions", CLITypes.Integer)> Public Property NumberDescriptions As String
 
         ''' <summary>
         ''' Number >=0 of database sequences to show alignments for
@@ -643,7 +643,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-num_alignments", [Optional].Types.Integer)> Public Property NumberAlignments As String
+        <[Optional]("-num_alignments", CLITypes.Integer)> Public Property NumberAlignments As String
 
         ''' <summary>
         ''' Produce HTML output?
@@ -651,7 +651,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-html", [Optional].Types.String)> Public Property Html As String
+        <[Optional]("-html", CLITypes.String)> Public Property Html As String
 #End Region
 
 #Region "*** Query filtering options"
@@ -662,7 +662,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-seg", [Optional].Types.String)> Public Property Seg As String
+        <[Optional]("-seg", CLITypes.String)> Public Property Seg As String
 
         ''' <summary>
         ''' Apply filtering locations as soft masks
@@ -671,7 +671,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-soft_masking", [Optional].Types.String)> Public Property SoftMasking As String
+        <[Optional]("-soft_masking", CLITypes.String)> Public Property SoftMasking As String
 
         ''' <summary>
         ''' Use lower case filtering in query and subject sequence(s)?
@@ -679,7 +679,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-lcase_masking", [Optional].Types.String)> Public Property LCaseMasking As String
+        <[Optional]("-lcase_masking", CLITypes.String)> Public Property LCaseMasking As String
 #End Region
 
 #Region "*** Restrict search or results"
@@ -690,7 +690,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-gilist", [Optional].Types.String)> Public Property GiList As String
+        <[Optional]("-gilist", CLITypes.String)> Public Property GiList As String
 
         ''' <summary>
         ''' Restrict search of database to list of SeqId's
@@ -699,7 +699,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-seqidlist", [Optional].Types.String)> Public Property SeqIdList As String
+        <[Optional]("-seqidlist", CLITypes.String)> Public Property SeqIdList As String
 
         ''' <summary>
         ''' Restrict search of database to everything except the listed GIs
@@ -708,7 +708,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-negative_gilist", [Optional].Types.String)> Public Property NegativeGiList As String
+        <[Optional]("-negative_gilist", CLITypes.String)> Public Property NegativeGiList As String
 
         ''' <summary>
         ''' Restrict search with the given Entrez query
@@ -717,7 +717,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-entrez_query", [Optional].Types.String)> Public Property EntrezQuery As String
+        <[Optional]("-entrez_query", CLITypes.String)> Public Property EntrezQuery As String
 
         ''' <summary>
         ''' Filtering algorithm ID to apply to the BLAST database as soft masking
@@ -726,7 +726,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-db_soft_mask", [Optional].Types.String)> Public Property DbSoftMask As String
+        <[Optional]("-db_soft_mask", CLITypes.String)> Public Property DbSoftMask As String
 
         ''' <summary>
         ''' Filtering algorithm ID to apply to the BLAST database as hard masking
@@ -735,7 +735,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-db_hard_mask", [Optional].Types.String)> Public Property DbHardMask As String
+        <[Optional]("-db_hard_mask", CLITypes.String)> Public Property DbHardMask As String
 
         ''' <summary>
         ''' If the query range of a hit is enveloped by that of at least this many higher-scoring hits >=0, delete the hit
@@ -744,7 +744,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-culling_limit", [Optional].Types.Integer)> Public Property CullingLimit As String
+        <[Optional]("-culling_limit", CLITypes.Integer)> Public Property CullingLimit As String
 
         ''' <summary>
         ''' Best Hit algorithm overhang value ((0, 0.5), recommended value: 0.1)
@@ -753,7 +753,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-best_hit_overhang", [Optional].Types.Double)> Public Property BestHitOverhang As String
+        <[Optional]("-best_hit_overhang", CLITypes.Double)> Public Property BestHitOverhang As String
 
         ''' <summary>
         ''' Best Hit algorithm score edge value ((0, 0.5), recommended value: 0.1)
@@ -762,7 +762,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-best_hit_score_edge", [Optional].Types.Double)> Public Property BestHitScoreEdge As String
+        <[Optional]("-best_hit_score_edge", CLITypes.Double)> Public Property BestHitScoreEdge As String
 
         ''' <summary>
         ''' Maximum number >=1 of aligned sequences to keep 
@@ -773,7 +773,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-max_target_seqs", [Optional].Types.Integer)> Public Property MaxTargetSeqs As String
+        <[Optional]("-max_target_seqs", CLITypes.Integer)> Public Property MaxTargetSeqs As String
 #End Region
 
 #Region "*** Statistical options"
@@ -783,7 +783,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-dbsize", [Optional].Types.Integer)> Public Property DbSize As String
+        <[Optional]("-dbsize", CLITypes.Integer)> Public Property DbSize As String
 
         ''' <summary>
         ''' Effective length >=0 of the search space
@@ -791,7 +791,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-searchsp", [Optional].Types.Integer)> Public Property SearcHsp As String
+        <[Optional]("-searchsp", CLITypes.Integer)> Public Property SearcHsp As String
 
         ''' <summary>
         ''' Override maximum number >=0 of HSPs per subject to save for ungapped searches
@@ -801,7 +801,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-max_hsps_per_subject", [Optional].Types.Integer)> Public Property MaxHspsPerSubject As String
+        <[Optional]("-max_hsps_per_subject", CLITypes.Integer)> Public Property MaxHspsPerSubject As String
 #End Region
 
 #Region "*** Search strategy options"
@@ -812,7 +812,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-import_search_strategy", [Optional].Types.String)> Public Property ImportSearchStrategy As String
+        <[Optional]("-import_search_strategy", CLITypes.String)> Public Property ImportSearchStrategy As String
 
         ''' <summary>
         ''' File name to record the search strategy used
@@ -821,7 +821,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-export_search_strategy", [Optional].Types.String)> Public Property ExportSearchStrategy As String
+        <[Optional]("-export_search_strategy", CLITypes.String)> Public Property ExportSearchStrategy As String
 #End Region
 
 #Region "*** Extension options"
@@ -831,7 +831,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-xdrop_ungap", [Optional].Types.Double)> Public Property XDropUngap As String
+        <[Optional]("-xdrop_ungap", CLITypes.Double)> Public Property XDropUngap As String
 
         ''' <summary>
         ''' X-dropoff value (in bits) for preliminary gapped extensions
@@ -839,7 +839,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-xdrop_gap", [Optional].Types.Double)> Public Property XDropGap As String
+        <[Optional]("-xdrop_gap", CLITypes.Double)> Public Property XDropGap As String
 
         ''' <summary>
         ''' X-dropoff value (in bits) for final gapped alignment
@@ -847,7 +847,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-xdrop_gap_final", [Optional].Types.Double)> Public Property XDropGapFinal As String
+        <[Optional]("-xdrop_gap_final", CLITypes.Double)> Public Property XDropGapFinal As String
 
         ''' <summary>
         ''' Multiple hits window size >=0, use 0 to specify 1-hit algorithm
@@ -855,7 +855,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-window_size", [Optional].Types.Integer)> Public Property WindowSize As String
+        <[Optional]("-window_size", CLITypes.Integer)> Public Property WindowSize As String
 
         ''' <summary>
         ''' Perform ungapped alignment only?
@@ -863,7 +863,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-ungapped", [Optional].Types.String)> Public Property UnGapped As String
+        <[Optional]("-ungapped", CLITypes.String)> Public Property UnGapped As String
 #End Region
 
 #Region "*** Miscellaneous options"
@@ -873,7 +873,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-parse_deflines", [Optional].Types.String)> Public Property ParseDeflines As String
+        <[Optional]("-parse_deflines", CLITypes.String)> Public Property ParseDeflines As String
 
         ''' <summary>
         ''' Number of threads >=1 (CPUs) to use in the BLAST search
@@ -883,7 +883,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-num_threads", [Optional].Types.Integer)> Public Property NumThreads As String
+        <[Optional]("-num_threads", CLITypes.Integer)> Public Property NumThreads As String
 
         ''' <summary>
         ''' Execute search remotely?
@@ -892,7 +892,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-remote", [Optional].Types.String)> Public Property Remote As String
+        <[Optional]("-remote", CLITypes.String)> Public Property Remote As String
 
 
         ''' <summary>
@@ -901,7 +901,7 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-use_sw_tback", [Optional].Types.String)> Public Property UseSwTback As String
+        <[Optional]("-use_sw_tback", CLITypes.String)> Public Property UseSwTback As String
 #End Region
 
 #Region "*** Input query options"

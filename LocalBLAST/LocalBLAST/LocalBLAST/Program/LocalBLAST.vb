@@ -24,7 +24,7 @@ Namespace LocalBLAST.Programs
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-e", [Optional].Types.Double)> Public Property EValue As String
+        <[Optional]("-e", CLITypes.Double)> Public Property EValue As String
 
         ''' <summary>
         ''' Alignment view options, Range from 0 to 11:
@@ -45,7 +45,7 @@ Namespace LocalBLAST.Programs
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-m", [Optional].Types.Integer)> Public Property AlignmentView As String
+        <[Optional]("-m", CLITypes.Integer)> Public Property AlignmentView As String
 
         ''' <summary>
         ''' Filter query sequence (DUST with blastn, SEG with others) [String]
@@ -54,7 +54,7 @@ Namespace LocalBLAST.Programs
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-F", [Optional].Types.String)> Public Property Filter As String
+        <[Optional]("-F", CLITypes.String)> Public Property Filter As String
 
         ''' <summary>
         ''' Cost to open a gap (-1 invokes default behavior) [Integer]
@@ -63,7 +63,7 @@ Namespace LocalBLAST.Programs
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-G", [Optional].Types.Integer)> Public Property GapOpen As String
+        <[Optional]("-G", CLITypes.Integer)> Public Property GapOpen As String
 
         ''' <summary>
         ''' Cost to extend a gap (-1 invokes default behavior) [Integer]
@@ -72,7 +72,7 @@ Namespace LocalBLAST.Programs
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-E", [Optional].Types.Integer)> Public Property GapExtend As String
+        <[Optional]("-E", CLITypes.Integer)> Public Property GapExtend As String
 
         ''' <summary>
         ''' X dropoff value for gapped alignment (in bits) (zero invokes default behavior)
@@ -82,7 +82,7 @@ Namespace LocalBLAST.Programs
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-X", [Optional].Types.Integer)> Public Property DropoffValue As String
+        <[Optional]("-X", CLITypes.Integer)> Public Property DropoffValue As String
 
         ''' <summary>
         ''' Show GI's in deflines [T/F]
@@ -91,7 +91,7 @@ Namespace LocalBLAST.Programs
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-I", [Optional].Types.String)> Public Property GI As String
+        <[Optional]("-I", CLITypes.String)> Public Property GI As String
 
         ''' <summary>
         ''' Penalty for a nucleotide mismatch (blastn only) [Integer]
@@ -100,7 +100,7 @@ Namespace LocalBLAST.Programs
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-q", [Optional].Types.Integer)> Public Property MismatchPenalty As String
+        <[Optional]("-q", CLITypes.Integer)> Public Property MismatchPenalty As String
 
         ''' <summary>
         ''' Reward for a nucleotide match (blastn only) [Integer]
@@ -109,7 +109,7 @@ Namespace LocalBLAST.Programs
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-r", [Optional].Types.Integer)> Public Property MatchReward As String
+        <[Optional]("-r", CLITypes.Integer)> Public Property MatchReward As String
 
         ''' <summary>
         ''' Number of database sequences to show one-line descriptions for (V) [Integer]
@@ -118,7 +118,7 @@ Namespace LocalBLAST.Programs
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-v", [Optional].Types.Integer)> Public Property ForceLegacyNumber As String
+        <[Optional]("-v", CLITypes.Integer)> Public Property ForceLegacyNumber As String
 
         ''' <summary>
         ''' Number of database sequence to show alignments for (B) [Integer]
@@ -127,7 +127,7 @@ Namespace LocalBLAST.Programs
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-b", [Optional].Types.Integer)> Public Property ConcatenatedQueriesNumber As String
+        <[Optional]("-b", CLITypes.Integer)> Public Property ConcatenatedQueriesNumber As String
 
         ''' <summary>
         ''' Threshold for extending hits, default if zero
@@ -138,7 +138,7 @@ Namespace LocalBLAST.Programs
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-f", [Optional].Types.Double)> Public Property Threshold As String
+        <[Optional]("-f", CLITypes.Double)> Public Property Threshold As String
 
         ''' <summary>
         ''' Perform gapped alignment (not available with tblastx) [T/F]
@@ -147,7 +147,7 @@ Namespace LocalBLAST.Programs
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-g", [Optional].Types.String)> Public Property GappedAlignment As String
+        <[Optional]("-g", CLITypes.String)> Public Property GappedAlignment As String
 
         ''' <summary>
         ''' Query Genetic code to use [Integer]
@@ -156,7 +156,7 @@ Namespace LocalBLAST.Programs
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-Q", [Optional].Types.Integer)> Public Property QueryGeneticCode As String
+        <[Optional]("-Q", CLITypes.Integer)> Public Property QueryGeneticCode As String
 
         ''' <summary>
         ''' DB Genetic code (for tblast[nx] only) [Integer]
@@ -165,7 +165,7 @@ Namespace LocalBLAST.Programs
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-D", [Optional].Types.Integer)> Public Property DBGeneticCode As String
+        <[Optional]("-D", CLITypes.Integer)> Public Property DBGeneticCode As String
 
         ''' <summary>
         ''' Number of processors to use [Integer]
@@ -174,7 +174,7 @@ Namespace LocalBLAST.Programs
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-a", [Optional].Types.Integer)> Public Property Processors As String
+        <[Optional]("-a", CLITypes.Integer)> Public Property Processors As String
 
         ''' <summary>
         ''' SeqAlign file [File Out]  Optional
@@ -182,7 +182,7 @@ Namespace LocalBLAST.Programs
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-O", [Optional].Types.String)> Public Property SeqAlign As String
+        <[Optional]("-O", CLITypes.String)> Public Property SeqAlign As String
 
         ''' <summary>
         ''' Believe the query defline [T/F]
@@ -191,7 +191,7 @@ Namespace LocalBLAST.Programs
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-J", [Optional].Types.String)> Public Property QueryDeflineBelieve As String
+        <[Optional]("-J", CLITypes.String)> Public Property QueryDeflineBelieve As String
 
         ''' <summary>
         ''' Matrix [String]
@@ -200,7 +200,7 @@ Namespace LocalBLAST.Programs
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-M", [Optional].Types.String)> Public Property Matrix As String
+        <[Optional]("-M", CLITypes.String)> Public Property Matrix As String
 
         ''' <summary>
         ''' Word size, default if zero (blastn 11, megablast 28, all others 3) [Integer]
@@ -209,7 +209,7 @@ Namespace LocalBLAST.Programs
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-W", [Optional].Types.Integer)> Public Property WordSize As String
+        <[Optional]("-W", CLITypes.Integer)> Public Property WordSize As String
 
         ''' <summary>
         ''' Effective length of the database (use zero for the real size) [Real]
@@ -218,7 +218,7 @@ Namespace LocalBLAST.Programs
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-z", [Optional].Types.Double)> Public Property DBEffectiveLength As String
+        <[Optional]("-z", CLITypes.Double)> Public Property DBEffectiveLength As String
 
         ''' <summary>
         ''' Number of best hits from a region to keep. Off by default.
@@ -228,7 +228,7 @@ Namespace LocalBLAST.Programs
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-K", [Optional].Types.Integer)> Public Property BestHitsKeepsNumber As String
+        <[Optional]("-K", CLITypes.Integer)> Public Property BestHitsKeepsNumber As String
 
         ''' <summary>
         ''' 0 for multiple hit, 1 for single hit (does not apply to blastn) [Integer]
@@ -237,7 +237,7 @@ Namespace LocalBLAST.Programs
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-P", [Optional].Types.Integer)> Public Property Hits As String
+        <[Optional]("-P", CLITypes.Integer)> Public Property Hits As String
 
         ''' <summary>
         ''' Effective length of the search space (use zero for the real size) [Real]
@@ -246,7 +246,7 @@ Namespace LocalBLAST.Programs
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-Y", [Optional].Types.Double)> Public Property SearchSpace As String
+        <[Optional]("-Y", CLITypes.Double)> Public Property SearchSpace As String
 
         ''' <summary>
         ''' Query strands to search against database (for blast[nx], and tblastx)
@@ -256,7 +256,7 @@ Namespace LocalBLAST.Programs
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-S", [Optional].Types.Integer)> Public Property Strand As String
+        <[Optional]("-S", CLITypes.Integer)> Public Property Strand As String
 
         ''' <summary>
         ''' Produce HTML output [T/F]
@@ -265,7 +265,7 @@ Namespace LocalBLAST.Programs
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-T", [Optional].Types.String)> Public Property HTML As String
+        <[Optional]("-T", CLITypes.String)> Public Property HTML As String
 
         ''' <summary>
         ''' Restrict search of database to list of GI's [String]  Optional
@@ -273,7 +273,7 @@ Namespace LocalBLAST.Programs
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-l", [Optional].Types.String)> Public Property RestrictList As String
+        <[Optional]("-l", CLITypes.String)> Public Property RestrictList As String
 
         ''' <summary>
         ''' Use lower case filtering of FASTA sequence [T/F]  Optional
@@ -281,7 +281,7 @@ Namespace LocalBLAST.Programs
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-U", [Optional].Types.String)> Public Property LowerCaseFiltering As String
+        <[Optional]("-U", CLITypes.String)> Public Property LowerCaseFiltering As String
 
         ''' <summary>
         ''' X dropoff value for ungapped extensions in bits (0.0 invokes default behavior)
@@ -291,7 +291,7 @@ Namespace LocalBLAST.Programs
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-y", [Optional].Types.Double)> Public Property UngappedExtensionsXDropOff As String
+        <[Optional]("-y", CLITypes.Double)> Public Property UngappedExtensionsXDropOff As String
 
         ''' <summary>
         ''' X dropoff value for final gapped alignment in bits (0.0 invokes default behavior)
@@ -301,7 +301,7 @@ Namespace LocalBLAST.Programs
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-Z", [Optional].Types.Integer)> Public Property XDropoffValue As String
+        <[Optional]("-Z", CLITypes.Integer)> Public Property XDropoffValue As String
 
         ''' <summary>
         ''' PSI-TBLASTN checkpoint file [File In]  Optional
@@ -309,7 +309,7 @@ Namespace LocalBLAST.Programs
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-R", [Optional].Types.String)> Public Property CheckpointFile As String
+        <[Optional]("-R", CLITypes.String)> Public Property CheckpointFile As String
 
         ''' <summary>
         ''' MegaBlast search [T/F]
@@ -318,7 +318,7 @@ Namespace LocalBLAST.Programs
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-n", [Optional].Types.String)> Public Property MegaBlast As String
+        <[Optional]("-n", CLITypes.String)> Public Property MegaBlast As String
 
         ''' <summary>
         ''' Location on query sequence [String]  Optional
@@ -326,7 +326,7 @@ Namespace LocalBLAST.Programs
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-L", [Optional].Types.String)> Public Property QueryLocation As String
+        <[Optional]("-L", CLITypes.String)> Public Property QueryLocation As String
 
         ''' <summary>
         ''' Multiple Hits window size, default if zero (blastn/megablast 0, all others 40 [Integer]
@@ -335,7 +335,7 @@ Namespace LocalBLAST.Programs
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-A", [Optional].Types.Integer)> Public Property HitsWindowSize As String
+        <[Optional]("-A", CLITypes.Integer)> Public Property HitsWindowSize As String
 
         ''' <summary>
         ''' Frame shift penalty (OOF algorithm for blastx) [Integer]
@@ -344,7 +344,7 @@ Namespace LocalBLAST.Programs
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-w", [Optional].Types.Integer)> Public Property FrameShiftPenalty As String
+        <[Optional]("-w", CLITypes.Integer)> Public Property FrameShiftPenalty As String
 
         ''' <summary>
         ''' Length of the largest intron allowed in a translated nucleotide sequence when linking multiple distinct alignments. (0 invokes default behavior; a negative value disables linking.) [Integer]
@@ -353,7 +353,7 @@ Namespace LocalBLAST.Programs
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-t", [Optional].Types.Integer)> Public Property IntronLength As String
+        <[Optional]("-t", CLITypes.Integer)> Public Property IntronLength As String
 
         ''' <summary>
         ''' Number of concatenated queries, for blastn and tblastn [Integer]  Optional
@@ -362,7 +362,7 @@ Namespace LocalBLAST.Programs
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-B", [Optional].Types.Integer)> Public Property ConcatenatedQueries As String
+        <[Optional]("-B", CLITypes.Integer)> Public Property ConcatenatedQueries As String
 
         ''' <summary>
         ''' Force use of the legacy BLAST engine [T/F]  Optional
@@ -371,7 +371,7 @@ Namespace LocalBLAST.Programs
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-V", [Optional].Types.String)> Public Property ForceLegacy As String
+        <[Optional]("-V", CLITypes.String)> Public Property ForceLegacy As String
 
         ''' <summary>
         ''' Use composition-based score adjustments for blastp or tblastn:
@@ -394,7 +394,7 @@ Namespace LocalBLAST.Programs
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-C", [Optional].Types.String)> Public Property CompositionBasedScoreAdjustments As String
+        <[Optional]("-C", CLITypes.String)> Public Property CompositionBasedScoreAdjustments As String
 
         ''' <summary>
         ''' Compute locally optimal Smith-Waterman alignments (This option is only available for gapped tblastn.) [T/F]
@@ -403,7 +403,7 @@ Namespace LocalBLAST.Programs
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <[Optional]("-s", [Optional].Types.String)> Public Property SmithWatermanAlignments As String
+        <[Optional]("-s", CLITypes.String)> Public Property SmithWatermanAlignments As String
 
         ''' <summary>
         ''' 
