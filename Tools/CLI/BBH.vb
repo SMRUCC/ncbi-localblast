@@ -12,6 +12,7 @@ Imports Microsoft.VisualBasic.Linq
 Imports System.Windows.Forms
 Imports Microsoft.VisualBasic.Language
 Imports Microsoft.VisualBasic.Language.UnixBash
+Imports Microsoft.VisualBasic.Parallel.Linq
 
 Partial Module CLI
 

@@ -9,6 +9,7 @@ Imports Microsoft.VisualBasic.Linq
 Imports Microsoft.VisualBasic.ComponentModel
 Imports Microsoft.VisualBasic.Language.UnixBash
 Imports Microsoft.VisualBasic.Language
+Imports Microsoft.VisualBasic.Parallel.Threads
 
 Namespace LocalBLAST.Application.BatchParallel
 
@@ -174,9 +175,9 @@ Namespace LocalBLAST.Application.BatchParallel
             Call $"     {NameOf(taskList)}    => {taskList.Length}".__DEBUG_ECHO
             Call Console.WriteLine(New String("+", 200))
 
-            Dim fileList As String() = ServicesFolk.BatchTask(taskList,
-                                                              numThreads:=num_threads, ' 启动批量本地blast操作
-                                                              TimeInterval:=10)
+            Dim fileList As String() = BatchTask(taskList,
+                                                 numThreads:=num_threads, ' 启动批量本地blast操作
+                                                 TimeInterval:=10)
             'On Error Resume Next
             Return fileList.ToArray(AddressOf LogNameParser)
         End Function

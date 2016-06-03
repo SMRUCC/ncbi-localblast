@@ -4,7 +4,7 @@ Imports Microsoft.VisualBasic.DocumentFormat.Csv.Extensions
 Imports Microsoft.VisualBasic.Scripting.MetaData
 Imports Microsoft.VisualBasic.Text
 Imports Microsoft.VisualBasic.Text.Similarity
-Imports Microsoft.VisualBasic.Parallel
+Imports Microsoft.VisualBasic.Parallel.Threads
 Imports LANS.SystemsBiology.SequenceModel
 Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput
 Imports Microsoft.VisualBasic.DocumentFormat.Csv

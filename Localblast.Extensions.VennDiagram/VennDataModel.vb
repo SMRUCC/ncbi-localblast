@@ -21,6 +21,7 @@ Imports LANS.SystemsBiology.SequenceModel.FASTA
 Imports LANS.SystemsBiology.Assembly.NCBI.GenBank.CsvExports
 Imports Microsoft.VisualBasic.CommandLine
 Imports Microsoft.VisualBasic.Language
+Imports Microsoft.VisualBasic.Parallel.Threads
 
 Namespace BlastAPI
 
@@ -229,7 +230,7 @@ Namespace BlastAPI
                                                                      EXPORT:=EXPORT,
                                                                      num_threads:=Environment.ProcessorCount / 2,
                                                                      [Overrides]:=[Overrides])
-            Dim LQuery As String() = Parallel.BatchTask(Of String, String)(
+            Dim LQuery As String() = BatchTask(Of String, String)(
                 Subjects.Values,
                 task,
                 numThreads:=numThreads)
