@@ -9,7 +9,12 @@ Namespace LocalBLAST.Application
 
     Public Module MapsAPI
 
-        Public Function Where(full As Boolean, perfect As Boolean, unique As Boolean, Optional identities As Double = 0.9) As Func(Of BlastnMapping, Boolean)
+        Public Function Where(full As Boolean,
+                              perfect As Boolean,
+                              unique As Boolean,
+                              Optional identities As Double = 0.9,
+                              Optional logics As Logics = Logics.OrElse) As Func(Of BlastnMapping, Boolean)
+
             Dim tests As New List(Of Func(Of BlastnMapping, Boolean))
 
             If full Then
@@ -24,7 +29,7 @@ Namespace LocalBLAST.Application
 
             identities *= 100
 
-            Dim preTest As Func(Of BlastnMapping, Boolean) = BuildAll(Of BlastnMapping)(Logics.OrElse, tests.ToArray)
+            Dim preTest As Func(Of BlastnMapping, Boolean) = BuildAll(Of BlastnMapping)(logics, tests.ToArray)
             Dim test As Func(Of BlastnMapping, Boolean) = Function(x) preTest(x) AndAlso (x.Identities >= identities)
 
             Return test
