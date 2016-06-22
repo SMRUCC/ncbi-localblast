@@ -1,8 +1,13 @@
-﻿Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application
+﻿Imports System.Runtime.CompilerServices
+Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application
 Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput
+Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus
+Imports LANS.SystemsBiology.SequenceModel.FASTA
 Imports Microsoft.VisualBasic.CommandLine.Reflection
 Imports Microsoft.VisualBasic.DocumentFormat.Csv
 Imports Microsoft.VisualBasic.DocumentFormat.Csv.DocumentStream.Linq
+Imports Microsoft.VisualBasic.Language
+Imports Microsoft.VisualBasic.Language.UnixBash
 
 Partial Module CLI
 
@@ -43,8 +48,11 @@ Partial Module CLI
                 Return
             End If
 
-            Dim outStream = (From x In lstQuery.AsParallel Where Not x.SubjectHits.IsNullOrEmpty Select __creates(x)).MatrixToList
-
+            Dim outStream As BBH.BestHit() =
+                LinqAPI.Exec(Of BBH.BestHit) <= From x As Query
+                                                In lstQuery.AsParallel
+                                                Where Not x.SubjectHits.IsNullOrEmpty
+                                                Select __creates(x)
 #If DEBUG Then
             If outStream.Count > 0 Then
                 Call Console.Write(".")
@@ -55,23 +63,26 @@ Partial Module CLI
         End Sub
 
         Private Shared Function __creates(query As BlastPlus.Query) As BBH.BestHit()
-            Dim ntHits = (From x As BlastPlus.SubjectHit
-                          In query.SubjectHits
-                          Select DirectCast(x, BlastPlus.BlastnHit)).ToArray
-            Dim outStream = (From x As BlastPlus.BlastnHit
-                             In ntHits.AsParallel
-                             Select New BBH.BestHit With {
-                                 .evalue = x.Score.Expect,
-                                 .Score = x.Score.Score,
-                                 .HitName = x.Name,
-                                 .hit_length = x.Length,
-                                 .identities = x.Score.Identities.Value,
-                                 .length_hit = x.LengthHit,
-                                 .length_hsp = x.SubjectLocation.FragmentSize,
-                                 .length_query = x.LengthQuery,
-                                 .Positive = x.Score.Positives.Value,
-                                 .QueryName = query.QueryName,
-                                 .query_length = query.QueryLength}).ToArray
+            Dim ntHits As IEnumerable(Of BlastnHit) =
+                From x As BlastPlus.SubjectHit
+                In query.SubjectHits
+                Select DirectCast(x, BlastPlus.BlastnHit)
+            Dim outStream As BBH.BestHit() =
+                LinqAPI.Exec(Of BBH.BestHit) <= From x As BlastPlus.BlastnHit
+                                                In ntHits.AsParallel
+                                                Select New BBH.BestHit With {
+                                                    .evalue = x.Score.Expect,
+                                                    .Score = x.Score.Score,
+                                                    .HitName = x.Name,
+                                                    .hit_length = x.Length,
+                                                    .identities = x.Score.Identities.Value,
+                                                    .length_hit = x.LengthHit,
+                                                    .length_hsp = x.SubjectLocation.FragmentSize,
+                                                    .length_query = x.LengthQuery,
+                                                    .Positive = x.Score.Positives.Value,
+                                                    .QueryName = query.QueryName,
+                                                    .query_length = query.QueryLength
+                                                }
             Return outStream
         End Function
 
@@ -130,8 +141,69 @@ Partial Module CLI
     Public Function ExportBlastnMaps(args As CommandLine.CommandLine) As Integer
         Dim [in] As String = args - "/in"
         Dim out As String = args.GetValue("/out", [in].TrimFileExt & ".Csv")
-        Dim blastn = BlastPlus.TryParseBlastnOutput([in])
-        Dim maps = BlastnMapping.Export(blastn)
+        Dim blastn As v228 = BlastPlus.TryParseUltraLarge([in])
+        Dim maps As BlastnMapping() = MapsAPI.Export(blastn)
         Return maps.SaveTo(out)
+    End Function
+
+    <ExportAPI("/Chromosomes.Export",
+               Usage:="/Chromosomes.Export /reads <reads.fasta/DIR> /maps <blastnMappings.Csv/DIR> [/out <outDIR>]")>
+    Public Function ChromosomesBlastnResult(args As CommandLine.CommandLine) As Integer
+        Dim [in] As String = args("/reads")
+        Dim maps As String = args("/maps")
+        Dim out As String = args.GetValue("/out", maps.TrimFileExt & "-" & [in].BaseName & "/")
+        Dim fasta As IEnumerable(Of FastaToken)
+        Dim mappings As IEnumerable(Of BlastnMapping)
+
+        If [in].DirectoryExists Then
+            fasta = [in].__loads()
+        Else
+            fasta = New StreamIterator([in]).ReadStream
+        End If
+
+        If maps.DirectoryExists Then
+            mappings = maps.__loadsMaps
+        Else
+            mappings = maps.LoadCsv(Of BlastnMapping)
+        End If
+
+        Dim chrs = (From x As BlastnMapping In mappings Select x Group x By x.Reference Into Group)
+        Dim hash As Dictionary(Of String, FastaToken()) = (From x As FastaToken
+                                                           In fasta
+                                                           Select x
+                                                           Group x By x.Title Into Group) _
+                                                                .ToDictionary(Function(x) x.Title,
+                                                                              Function(x) x.Group.ToArray)
+        For Each chrom In chrs
+            Dim path As String = out & "/" & chrom.Reference.NormalizePathString & ".fasta"
+            Dim c = LinqAPI.Exec(Of FastaToken) <= From read
+                                                   In (From x As BlastnMapping
+                                                       In chrom.Group
+                                                       Select x  ' 因为可能会有多个位置被比对上，所以在这里还需要再进行一次Group操作
+                                                       Group x By x.ReadQuery Into Count)
+                                                   Where hash.ContainsKey(read.ReadQuery)
+                                                   Select hash(read.ReadQuery)
+            Call New FastaFile(c).Save(path)
+        Next
+
+        Return 0
+    End Function
+
+    <Extension>
+    Private Iterator Function __loadsMaps(DIR As String) As IEnumerable(Of BlastnMapping)
+        For Each file As String In ls - l - r - wildcards("*.Csv") <= DIR
+            For Each map As BlastnMapping In file.LoadCsv(Of BlastnMapping)
+                Yield map
+            Next
+        Next
+    End Function
+
+    <Extension>
+    Private Iterator Function __loads(DIR As String) As IEnumerable(Of FastaToken)
+        For Each file As String In ls - l - r - wildcards("*.fasta", "*.fsa", "*.fa", "*.fna") <= DIR
+            For Each fa As FastaToken In New FastaFile(file)
+                Yield fa
+            Next
+        Next
     End Function
 End Module

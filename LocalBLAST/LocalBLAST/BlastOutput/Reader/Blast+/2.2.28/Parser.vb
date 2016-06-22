@@ -260,6 +260,11 @@ Namespace LocalBLAST.BLASTOutput.BlastPlus
             Return True
         End Function
 
+        ''' <summary>
+        ''' 获取blastn或者blastp的解析器
+        ''' </summary>
+        ''' <param name="path"></param>
+        ''' <returns></returns>
         Private Function __getParser(path As String) As QueryParser
             Dim Parser As QueryParser
 
