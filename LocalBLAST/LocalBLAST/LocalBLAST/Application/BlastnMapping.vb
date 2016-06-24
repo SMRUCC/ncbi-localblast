@@ -12,8 +12,20 @@ Namespace LocalBLAST.Application
     ''' </summary>
     Public Class BlastnMapping : Inherits Contig
 
+        ''' <summary>
+        ''' The name of the reads query
+        ''' </summary>
+        ''' <returns></returns>
         <Column("Reads.Query")> Public Property ReadQuery As String
+        ''' <summary>
+        ''' The name of the reference genome sequence.
+        ''' </summary>
+        ''' <returns></returns>
         Public Property Reference As String
+        ''' <summary>
+        ''' Length of <see cref="ReadQuery"/>
+        ''' </summary>
+        ''' <returns></returns>
         Public Property QueryLength As Integer
         <Column("Score(bits)")> Public Property Score As Integer
         <Column("Score(Raw)")> Public Property RawScore As Integer
