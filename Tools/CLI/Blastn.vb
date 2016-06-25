@@ -8,6 +8,7 @@ Imports Microsoft.VisualBasic.DocumentFormat.Csv
 Imports Microsoft.VisualBasic.DocumentFormat.Csv.DocumentStream.Linq
 Imports Microsoft.VisualBasic.Language
 Imports Microsoft.VisualBasic.Language.UnixBash
+Imports Microsoft.VisualBasic.Linq
 
 Partial Module CLI
 
@@ -120,30 +121,78 @@ Partial Module CLI
 #End Region
     End Class
 
-    <ExportAPI("/blastn.Query", Usage:="/blastn.Query /query <query.fna> /db <db.DIR> [/evalue 1e-5 /out <out.DIR>]")>
+    <ExportAPI("/blastn.Query",
+               Usage:="/blastn.Query /query <query.fna> /db <db.DIR> [/thread /evalue 1e-5 /out <out.DIR>]")>
     Public Function BlastnQuery(args As CommandLine.CommandLine) As Integer
         Dim query As String = args("/query")
         Dim DbDIR As String = args("/db")
         Dim evalue As Double = args.GetValue("/evalue", 0.00001)
         Dim outDIR As String = args.GetValue("/out", query.TrimFileExt & ".Blastn/")
-        Dim localblast = New LocalBLAST.Programs.BLASTPlus(GCModeller.FileSystem.GetLocalBlast)
+        Dim localblast As New LocalBLAST.Programs.BLASTPlus(GCModeller.FileSystem.GetLocalBlast)
+        Dim isThread As Boolean = args.GetBoolean("/thread")
 
         For Each subject As String In FileIO.FileSystem.GetFiles(DbDIR, FileIO.SearchOption.SearchTopLevelOnly, "*.fna", "*.fa", "*.fsa", "*.fasta")
-            Dim out As String = outDIR & "/" & IO.Path.GetFileNameWithoutExtension(subject) & ".txt"
-            Call localblast.FormatDb(subject, localblast.MolTypeNucleotide).Start(True)
+            Dim out As String
+
+            If Not isThread Then
+                out = outDIR & "/" & IO.Path.GetFileNameWithoutExtension(subject) & ".txt"
+                Call localblast.FormatDb(subject, localblast.MolTypeNucleotide).Start(True)
+            Else
+                out = outDIR & "/" & query.BaseName & "-" & IO.Path.GetFileNameWithoutExtension(subject) & ".txt"
+            End If
+
             Call localblast.Blastn(query, subject, out, evalue).Start(True)
         Next
 
         Return 0
     End Function
 
-    <ExportAPI("/Export.blastnMaps", Usage:="/Export.blastnMaps /in <blastn.txt> [/out <out.csv>]")>
+    <ExportAPI("/blastn.Query.All",
+               Usage:="/blastn.Query.All /query <query.fasta.DIR> /db <db.DIR> [/evalue 10 /out <out.DIR>]")>
+    Public Function BlastnQueryAll(args As CommandLine.CommandLine) As Integer
+        Dim [in] As String = args("/query")
+        Dim db As String = args("/db")
+        Dim evalue As String = args.GetValue("/evalue", 10)
+        Dim out As String = args.GetValue("/out", [in].TrimDIR & "-" & db.BaseName & ".blastn.Query.All/")
+        Dim task As Func(Of String, String) =
+            Function(fa) _
+                $"{GetType(CLI).API(NameOf(BlastnQuery))} /query {fa.CliPath} /db {db.CliPath} /evalue {evalue} /thread /out {out.CliPath}"
+        Dim CLI As String() =
+            (ls - l - r - wildcards("*.fna", "*.fa", "*.fsa", "*.fasta") <= [in]).ToArray(task)
+        Dim localblast As New LocalBLAST.Programs.BLASTPlus(GCModeller.FileSystem.GetLocalBlast)
+
+        For Each subject As String In ls - l - r - wildcards("*.fna", "*.fa", "*.fsa", "*.fasta") <= db
+            Call localblast.FormatDb(subject, localblast.MolTypeNucleotide).Start(True)
+        Next
+
+        Return App.SelfFolks(CLI)
+    End Function
+
+    <ExportAPI("/Export.blastnMaps",
+               Usage:="/Export.blastnMaps /in <blastn.txt> [/out <out.csv>]")>
     Public Function ExportBlastnMaps(args As CommandLine.CommandLine) As Integer
         Dim [in] As String = args - "/in"
         Dim out As String = args.GetValue("/out", [in].TrimFileExt & ".Csv")
         Dim blastn As v228 = BlastPlus.TryParseUltraLarge([in])
         Dim maps As BlastnMapping() = MapsAPI.Export(blastn)
         Return maps.SaveTo(out)
+    End Function
+
+    <ExportAPI("/Export.blastnMaps.littles",
+               Usage:="/Export.blastnMaps /in <blastn.txt.DIR> [/out <out.csv.DIR>]")>
+    Public Function ExportBlastnMapsSmall(args As CommandLine.CommandLine) As Integer
+        Dim [in] As String = args - "/in"
+        Dim out As String = args.GetValue("/out", [in].TrimDIR & "-BlastnMaps/")
+
+        For Each file As String In ls - l - r - wildcards("*.txt") <= [in]
+            Dim blastn As v228 = BlastPlus.TryParse([in])
+            Dim maps As BlastnMapping() = MapsAPI.Export(blastn)
+            Dim path As String = out & "/" & file.BaseName & ".Csv"
+
+            Call maps.SaveTo(path)
+        Next
+
+        Return 0
     End Function
 
     <ExportAPI("/Chromosomes.Export",
