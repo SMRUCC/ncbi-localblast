@@ -2,6 +2,7 @@
 Imports Microsoft.VisualBasic.ComponentModel.KeyValuePair
 Imports Microsoft.VisualBasic.Serialization
 Imports Microsoft.VisualBasic.Linq
+Imports Microsoft.VisualBasic.Serialization.JSON
 
 Namespace LocalBLAST.Application.BBH
 

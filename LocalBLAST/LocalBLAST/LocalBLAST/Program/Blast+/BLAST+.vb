@@ -83,6 +83,11 @@ Namespace LocalBLAST.Programs
             Call FileIO.FileSystem.CreateDirectory(DIR)
 
             Dim Argums As String = String.Format(BLAST_PLUS_ARGUMS, Input, TargetDb, e, Output, NumThreads)
+
+            If BlastnOptionalArguments?.WordSize > 0 Then
+                Argums &= " -word_size " & BlastnOptionalArguments.WordSize
+            End If
+
             Dim Cmdl As String = String.Format("{0} {1}", _blastnAssembly, Argums)
             Console.WriteLine("LOCALBLAST+::BLASTN" & vbCrLf & "  ---> {0}", Cmdl)
             MyBase._InternalLastBLASTOutputFile = Output

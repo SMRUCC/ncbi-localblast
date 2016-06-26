@@ -2,6 +2,7 @@
 Imports System.Xml.Serialization
 Imports Microsoft.VisualBasic
 Imports Microsoft.VisualBasic.Serialization
+Imports Microsoft.VisualBasic.Serialization.JSON
 
 Namespace LocalBLAST.BLASTOutput.ComponentModel
 

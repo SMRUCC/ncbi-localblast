@@ -2,6 +2,7 @@
 Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application
 Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput
 Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus
+Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Programs.CLIArgumentsBuilder
 Imports LANS.SystemsBiology.SequenceModel.FASTA
 Imports Microsoft.VisualBasic.CommandLine.Reflection
 Imports Microsoft.VisualBasic.DocumentFormat.Csv
@@ -9,6 +10,7 @@ Imports Microsoft.VisualBasic.DocumentFormat.Csv.DocumentStream.Linq
 Imports Microsoft.VisualBasic.Language
 Imports Microsoft.VisualBasic.Language.UnixBash
 Imports Microsoft.VisualBasic.Linq
+Imports Microsoft.VisualBasic.Parallel.Linq
 
 Partial Module CLI
 
@@ -122,23 +124,27 @@ Partial Module CLI
     End Class
 
     <ExportAPI("/blastn.Query",
-               Usage:="/blastn.Query /query <query.fna> /db <db.DIR> [/thread /evalue 1e-5 /out <out.DIR>]")>
+               Usage:="/blastn.Query /query <query.fna> /db <db.DIR> [/thread /evalue 1e-5 /word_size <-1> /out <out.DIR>]")>
     Public Function BlastnQuery(args As CommandLine.CommandLine) As Integer
         Dim query As String = args("/query")
         Dim DbDIR As String = args("/db")
         Dim evalue As Double = args.GetValue("/evalue", 0.00001)
         Dim outDIR As String = args.GetValue("/out", query.TrimFileExt & ".Blastn/")
-        Dim localblast As New LocalBLAST.Programs.BLASTPlus(GCModeller.FileSystem.GetLocalBlast)
+        Dim localblast As New LocalBLAST.Programs.BLASTPlus(GCModeller.FileSystem.GetLocalBlast) With {
+            .BlastnOptionalArguments = New BlastnOptionalArguments With {
+                .WordSize = args.GetValue("/word_size", -1)
+            }
+        }
         Dim isThread As Boolean = args.GetBoolean("/thread")
 
-        For Each subject As String In FileIO.FileSystem.GetFiles(DbDIR, FileIO.SearchOption.SearchTopLevelOnly, "*.fna", "*.fa", "*.fsa", "*.fasta")
+        For Each subject As String In ls - l - r - wildcards("*.fna", "*.fa", "*.fsa", "*.fasta") <= DbDIR
             Dim out As String
 
             If Not isThread Then
                 out = outDIR & "/" & IO.Path.GetFileNameWithoutExtension(subject) & ".txt"
                 Call localblast.FormatDb(subject, localblast.MolTypeNucleotide).Start(True)
             Else
-                out = outDIR & "/" & query.BaseName & "-" & IO.Path.GetFileNameWithoutExtension(subject) & ".txt"
+                out = outDIR & "/" & query.BaseName & "-" & subject.BaseName & ".txt"
             End If
 
             Call localblast.Blastn(query, subject, out, evalue).Start(True)
@@ -148,24 +154,31 @@ Partial Module CLI
     End Function
 
     <ExportAPI("/blastn.Query.All",
-               Usage:="/blastn.Query.All /query <query.fasta.DIR> /db <db.DIR> [/evalue 10 /out <out.DIR>]")>
+               Usage:="/blastn.Query.All /query <query.fasta.DIR> /db <db.DIR> [/skip-format /evalue 10 /word_size <-1> /out <out.DIR> /parallel]")>
     Public Function BlastnQueryAll(args As CommandLine.CommandLine) As Integer
         Dim [in] As String = args("/query")
         Dim db As String = args("/db")
         Dim evalue As String = args.GetValue("/evalue", 10)
         Dim out As String = args.GetValue("/out", [in].TrimDIR & "-" & db.BaseName & ".blastn.Query.All/")
+        Dim ws As Integer = args.GetValue("/word_size", -1)
         Dim task As Func(Of String, String) =
             Function(fa) _
-                $"{GetType(CLI).API(NameOf(BlastnQuery))} /query {fa.CliPath} /db {db.CliPath} /evalue {evalue} /thread /out {out.CliPath}"
+                $"{GetType(CLI).API(NameOf(BlastnQuery))} /query {fa.CliPath} /db {db.CliPath} /word_size {ws} /evalue {evalue} /thread /out {out.CliPath}"
         Dim CLI As String() =
             (ls - l - r - wildcards("*.fna", "*.fa", "*.fsa", "*.fasta") <= [in]).ToArray(task)
-        Dim localblast As New LocalBLAST.Programs.BLASTPlus(GCModeller.FileSystem.GetLocalBlast)
 
-        For Each subject As String In ls - l - r - wildcards("*.fna", "*.fa", "*.fsa", "*.fasta") <= db
-            Call localblast.FormatDb(subject, localblast.MolTypeNucleotide).Start(True)
-        Next
+        If Not args.GetBoolean("/skip-format") Then
+            Dim localblast As New LocalBLAST.Programs.BLASTPlus(GCModeller.FileSystem.GetLocalBlast)
 
-        Return App.SelfFolks(CLI)
+            For Each subject As String In ls - l - r - wildcards("*.fna", "*.fa", "*.fsa", "*.fasta") <= db
+                Call localblast.FormatDb(subject, localblast.MolTypeNucleotide).Start(True)
+            Next
+        End If
+
+        Dim parallel As Boolean = args.GetBoolean("/parallel")
+        Dim n As Integer = If(parallel, LQuerySchedule.CPU_NUMBER, 0)
+
+        Return App.SelfFolks(CLI, parallel:=n)
     End Function
 
     <ExportAPI("/Export.blastnMaps",

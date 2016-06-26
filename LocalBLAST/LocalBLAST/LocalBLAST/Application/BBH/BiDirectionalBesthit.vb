@@ -2,7 +2,9 @@
 Imports Microsoft.VisualBasic.ComponentModel.Collection.Generic
 Imports Microsoft.VisualBasic.ComponentModel.KeyValuePair
 Imports Microsoft.VisualBasic.DocumentFormat.Csv.StorageProvider.Reflection
+Imports Microsoft.VisualBasic.Language
 Imports Microsoft.VisualBasic.Serialization
+Imports Microsoft.VisualBasic.Serialization.JSON
 
 Namespace LocalBLAST.Application.BBH
 
@@ -141,10 +143,11 @@ Namespace LocalBLAST.Application.BBH
         ''' <returns></returns>
         <Ignored> Public ReadOnly Property BBH_ID As String
             Get
-                Dim Order As String() = (From s As String
-                                         In {Me.QueryName, Me.HitName}
-                                         Select str = s.ToUpper
-                                         Order By str Ascending).ToArray
+                Dim Order As String() =
+                    LinqAPI.Exec(Of String) <= From s As String
+                                               In {Me.QueryName, Me.HitName}
+                                               Select str = s.ToUpper
+                                               Order By str Ascending
                 Return String.Join(BBH_ID_SEPERATOR, Order)
             End Get
         End Property
@@ -195,8 +198,12 @@ Namespace LocalBLAST.Application.BBH
             Return Me.coverage >= coverage AndAlso Me.identities >= identities
         End Function
 
-        Public Shared Function FindByQueryName(QueryName As String, Collection As Generic.IEnumerable(Of BestHit)) As BestHit()
-            Dim LQuery = (From item In Collection Where String.Equals(QueryName, item.QueryName) Select item).ToArray
+        Public Shared Function FindByQueryName(QueryName As String, source As IEnumerable(Of BestHit)) As BestHit()
+            Dim LQuery As BestHit() =
+                LinqAPI.Exec(Of BestHit) <= From bh As BestHit
+                                            In source
+                                            Where String.Equals(QueryName, bh.QueryName)
+                                            Select bh
             Return LQuery
         End Function
 
