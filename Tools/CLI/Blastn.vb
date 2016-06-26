@@ -179,13 +179,13 @@ Partial Module CLI
     End Function
 
     <ExportAPI("/Export.blastnMaps.littles",
-               Usage:="/Export.blastnMaps /in <blastn.txt.DIR> [/out <out.csv.DIR>]")>
+               Usage:="/Export.blastnMaps.littles /in <blastn.txt.DIR> [/out <out.csv.DIR>]")>
     Public Function ExportBlastnMapsSmall(args As CommandLine.CommandLine) As Integer
         Dim [in] As String = args - "/in"
         Dim out As String = args.GetValue("/out", [in].TrimDIR & "-BlastnMaps/")
 
         For Each file As String In ls - l - r - wildcards("*.txt") <= [in]
-            Dim blastn As v228 = BlastPlus.TryParse([in])
+            Dim blastn As v228 = BlastPlus.TryParse(file)
             Dim maps As BlastnMapping() = MapsAPI.Export(blastn)
             Dim path As String = out & "/" & file.BaseName & ".Csv"
 
