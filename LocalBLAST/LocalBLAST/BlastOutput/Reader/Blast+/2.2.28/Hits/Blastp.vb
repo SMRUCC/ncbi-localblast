@@ -2,6 +2,8 @@
 Imports System.Xml.Serialization
 Imports LANS.SystemsBiology.ComponentModel.Loci
 Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.ComponentModel
+Imports Microsoft.VisualBasic.Language
+Imports Microsoft.VisualBasic.Linq
 
 Namespace LocalBLAST.BLASTOutput.BlastPlus
 
@@ -23,13 +25,17 @@ Namespace LocalBLAST.BLASTOutput.BlastPlus
         ''' <returns></returns>
         Public Overridable ReadOnly Property QueryLocation As Location
             Get
-                Return New Location(Hsp.First.Query.Left, Hsp.Last.Query.Right)
+                Dim left As Integer = If(Hsp.IsNullOrEmpty, 0, Hsp.First.Query.Left)
+                Dim right As Integer = If(Hsp.IsNullOrEmpty, 0, Hsp.Last.Query.Right)
+                Return New Location(left, right)
             End Get
         End Property
 
         Public Overridable ReadOnly Property SubjectLocation As Location
             Get
-                Return New Location(Hsp.First.Sbjct.Left, Hsp.Last.Sbjct.Right)
+                Dim left As Integer = If(Hsp.IsNullOrEmpty, 0, Hsp.First.Sbjct.Left)
+                Dim right As Integer = If(Hsp.IsNullOrEmpty, 0, Hsp.Last.Sbjct.Right)
+                Return New Location(left, right)
             End Get
         End Property
 
@@ -39,15 +45,29 @@ Namespace LocalBLAST.BLASTOutput.BlastPlus
         ''' <returns></returns>
         Public ReadOnly Property LengthHit As Integer
             Get
-                Dim LQuery = (From Segment In Hsp Select (From ch As Char In Segment.Query.SequenceData Where ch = "-"c Select 1).Sum).Sum
-                Return Score.Gaps.Denominator - LQuery  ' 减去插入的空格就是比对上的长度了
+                Dim LQuery As IEnumerable(Of Integer) =
+                    LinqAPI.Exec(Of Integer) <= From Segment As HitSegment
+                                                In Hsp
+                                                Select From ch As Char
+                                                       In Segment.Query.SequenceData
+                                                       Where ch = "-"c
+                                                       Select 1
+                Dim value As Integer = LQuery.Sum
+                Return Score.Gaps.Denominator - value  ' 减去插入的空格就是比对上的长度了
             End Get
         End Property
 
         Public ReadOnly Property LengthQuery As Integer
             Get
-                Dim LQuery = (From Segment In Hsp Select (From ch As Char In Segment.Sbjct.SequenceData Where ch = "-"c Select 1).Sum).Sum
-                Return Score.Gaps.Denominator - LQuery
+                Dim LQuery As Integer() =
+                    LinqAPI.Exec(Of Integer) <= From Segment As HitSegment
+                                                In Hsp
+                                                Select From ch As Char
+                                                       In Segment.Sbjct.SequenceData
+                                                       Where ch = "-"c
+                                                       Select 1
+                Dim value As Integer = LQuery.Sum
+                Return Score.Gaps.Denominator - value
             End Get
         End Property
 
@@ -69,9 +89,7 @@ Namespace LocalBLAST.BLASTOutput.BlastPlus
             End If
 
             Dim Tokens = Regex.Split(text, "^>", RegexOptions.Multiline).Skip(1).ToArray
-            Dim LQuery As SubjectHit() = (From s As String
-                                          In Tokens
-                                          Select SubjectHit.TryParse(s)).ToArray
+            Dim LQuery As SubjectHit() = Tokens.ToArray(AddressOf SubjectHit.TryParse)
             Return LQuery
         End Function
 
@@ -80,10 +98,14 @@ Namespace LocalBLAST.BLASTOutput.BlastPlus
         Public Shared Function TryParse(Text As String) As SubjectHit
             Dim name As String = Strings.Split(Text, "Length=").First.TrimA
             Dim Length As Long = CLng(Text.Match("Length=\d+").RegexParseDouble)
-            Dim strHsp As String() = (From Match As Match
-                                      In Regex.Matches(Text, PAIRWISE, RegexOptions.Singleline + RegexOptions.IgnoreCase)
-                                      Select Match.Value).ToArray
-            Dim hit As SubjectHit = New SubjectHit With {
+
+            Dim strHsp As String() =
+                Regex.Matches(Text,
+                              PAIRWISE,
+                              RegexOptions.Singleline +
+                              RegexOptions.IgnoreCase).ToArray
+
+            Dim hit As New SubjectHit With {
                 .Score = Score.TryParse(Of Score)(Text),
                 .Name = name,
                 .Length = Length,
@@ -97,9 +119,10 @@ Namespace LocalBLAST.BLASTOutput.BlastPlus
             Dim Hsp As HitSegment() = New HitSegment(TextLines.Length - 1) {}
 
             For i As Integer = 0 To TextLines.Length - 1
-                Dim buffer As String() = (From strLine As String
-                                          In Strings.Split(TextLines(i), vbLf)
-                                          Select strLine.Replace(vbCr, "")).ToArray
+                Dim buffer As String() =
+                    LinqAPI.Exec(Of String) <= From s As String
+                                               In TextLines(i).lTokens
+                                               Select s.Replace(vbCr, "")
                 Hsp(i) = HitSegment.TryParse(buffer)
             Next
 
