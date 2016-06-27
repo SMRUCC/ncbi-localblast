@@ -43,12 +43,13 @@ Namespace LocalBLAST.Application
         ''' 
         <Extension>
         Public Function CreateObject(Query As Query) As BlastnMapping()
-            Dim LQuery = (From hitMapping As SubjectHit
-                          In Query.SubjectHits
-                          Let blastnHitMapping As BlastnHit =
-                              hitMapping.As(Of BlastnHit)
-                          Select __createObject(Query, blastnHitMapping)).ToArray
-            Call setUnique(LQuery)
+            Dim LQuery As BlastnMapping() =
+                LinqAPI.Exec(Of BlastnMapping) <= From hitMapping As SubjectHit
+                                                  In Query.SubjectHits
+                                                  Let blastnHitMapping As BlastnHit =
+                                                      hitMapping.As(Of BlastnHit)
+                                                  Select __createObject(Query, blastnHitMapping)
+            Call __setUnique(LQuery)
             Return LQuery
         End Function
 
@@ -61,7 +62,7 @@ Namespace LocalBLAST.Application
         ''' </summary>
         ''' <param name="data"></param>
         ''' <returns></returns>
-        Private Function setUnique(ByRef data As BlastnMapping()) As Boolean
+        Private Function __setUnique(ByRef data As BlastnMapping()) As Boolean
             If data.Length = 1 Then
                 data(Scan0).Unique = True
                 Return True
@@ -132,11 +133,11 @@ Namespace LocalBLAST.Application
 
         <Extension>
         Public Function Export(lstQuery As Query()) As BlastnMapping()
-            Dim LQuery = (From query As Query
-                          In lstQuery.AsParallel
-                          Select MapsAPI.CreateObject(query)).ToArray
-            Dim ChunkBuffer As BlastnMapping() = LQuery.MatrixToVector
-            Return ChunkBuffer
+            Dim LQuery As BlastnMapping() =
+                LinqAPI.Exec(Of BlastnMapping) <= From query As Query
+                                                  In lstQuery.AsParallel
+                                                  Select MapsAPI.CreateObject(query)
+            Return LQuery
         End Function
 
         ''' <summary>
@@ -150,9 +151,12 @@ Namespace LocalBLAST.Application
             Dim sw = Stopwatch.StartNew
             Call $"Start of running {NameOf(TrimAssembly)} action...".__DEBUG_ECHO
             Dim LQuery As BlastnMapping() =
-                LQuerySchedule.LQuery(Of BlastnMapping, BlastnMapping)(data,
-                                                                       Function(x) x,
-                                                                       where:=Function(x) x.Unique AndAlso x.PerfectAlignment).ToArray
+                LQuerySchedule.LQuery(Of
+                    BlastnMapping,
+                    BlastnMapping)(data,
+                                   Function(x) x,
+                            where:=Function(x) x.Unique AndAlso
+                            x.PerfectAlignment).ToArray
             Call $"[Job DONE!] .....{sw.ElapsedMilliseconds}ms.".__DEBUG_ECHO
             Return LQuery
         End Function

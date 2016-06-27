@@ -87,6 +87,12 @@ Namespace LocalBLAST.Programs
             If BlastnOptionalArguments?.WordSize > 0 Then
                 Argums &= " -word_size " & BlastnOptionalArguments.WordSize
             End If
+            If BlastnOptionalArguments?.penalty > 0 Then
+                Argums &= $" -penalty {BlastnOptionalArguments.penalty} "
+            End If
+            If BlastnOptionalArguments?.reward > 0 Then
+                Argums &= $" -reward {BlastnOptionalArguments.reward}"
+            End If
 
             Dim Cmdl As String = String.Format("{0} {1}", _blastnAssembly, Argums)
             Console.WriteLine("LOCALBLAST+::BLASTN" & vbCrLf & "  ---> {0}", Cmdl)

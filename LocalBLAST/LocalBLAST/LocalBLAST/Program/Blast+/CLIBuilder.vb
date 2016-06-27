@@ -924,6 +924,9 @@ Namespace LocalBLAST.Programs.CLIArgumentsBuilder
         '   Default = `both'
 #End Region
 
+        Public Property penalty As Double = -1
+        Public Property reward As Double = -1
+
 #Region "*** General search options"
 
         ' -task <String, Permissible values: 'blastn' 'blastn-short' 'dc-megablast'

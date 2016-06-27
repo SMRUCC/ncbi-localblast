@@ -130,9 +130,13 @@ Partial Module CLI
         Dim DbDIR As String = args("/db")
         Dim evalue As Double = args.GetValue("/evalue", 0.00001)
         Dim outDIR As String = args.GetValue("/out", query.TrimFileExt & ".Blastn/")
+        Dim penalty As Integer = args.GetValue("/penalty", -1)
+        Dim reward As Integer = args.GetValue("/reward", -1)
         Dim localblast As New LocalBLAST.Programs.BLASTPlus(GCModeller.FileSystem.GetLocalBlast) With {
             .BlastnOptionalArguments = New BlastnOptionalArguments With {
-                .WordSize = args.GetValue("/word_size", -1)
+                .WordSize = args.GetValue("/word_size", -1),
+                .penalty = penalty,
+                .reward = reward
             }
         }
         Dim isThread As Boolean = args.GetBoolean("/thread")
@@ -154,16 +158,18 @@ Partial Module CLI
     End Function
 
     <ExportAPI("/blastn.Query.All",
-               Usage:="/blastn.Query.All /query <query.fasta.DIR> /db <db.DIR> [/skip-format /evalue 10 /word_size <-1> /out <out.DIR> /parallel]")>
+               Usage:="/blastn.Query.All /query <query.fasta.DIR> /db <db.DIR> [/skip-format /evalue 10 /word_size <-1> /out <out.DIR> /parallel /penalty <penalty> /reward <reward>]")>
     Public Function BlastnQueryAll(args As CommandLine.CommandLine) As Integer
         Dim [in] As String = args("/query")
         Dim db As String = args("/db")
         Dim evalue As String = args.GetValue("/evalue", 10)
         Dim out As String = args.GetValue("/out", [in].TrimDIR & "-" & db.BaseName & ".blastn.Query.All/")
         Dim ws As Integer = args.GetValue("/word_size", -1)
+        Dim penalty As Integer = args.GetValue("/penalty", -1)
+        Dim reward As Integer = args.GetValue("/reward", -1)
         Dim task As Func(Of String, String) =
             Function(fa) _
-                $"{GetType(CLI).API(NameOf(BlastnQuery))} /query {fa.CliPath} /db {db.CliPath} /word_size {ws} /evalue {evalue} /thread /out {out.CliPath}"
+                $"{GetType(CLI).API(NameOf(BlastnQuery))} /query {fa.CliPath} /db {db.CliPath} /word_size {ws} /evalue {evalue} /thread /out {out.CliPath} /penalty {penalty} /reward {reward}"
         Dim CLI As String() =
             (ls - l - r - wildcards("*.fna", "*.fa", "*.fsa", "*.fasta") <= [in]).ToArray(task)
 
