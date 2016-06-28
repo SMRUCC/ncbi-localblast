@@ -2,6 +2,7 @@
 Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.BBH
 Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput
 Imports LANS.SystemsBiology.SequenceModel.FASTA
+Imports Microsoft.VisualBasic.Language
 
 Public Module Extensions
 
@@ -43,10 +44,11 @@ Public Module Extensions
             Return True
         End If
 
-        Dim notNull As BestHit = (From bh As BestHit
-                                  In data.AsParallel
-                                  Where Not bh.Matched
-                                  Select bh).FirstOrDefault
+        Dim notNull As BestHit =
+            LinqAPI.DefaultFirst(Of BestHit) <= From bh As BestHit
+                                                In data.AsParallel
+                                                Where Not bh.Matched
+                                                Select bh
         Return notNull Is Nothing
     End Function
 
