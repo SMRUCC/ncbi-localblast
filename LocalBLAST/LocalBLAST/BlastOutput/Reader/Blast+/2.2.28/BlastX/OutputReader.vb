@@ -66,21 +66,35 @@ Namespace LocalBLAST.BLASTOutput.BlastPlus.BlastX
                                    Select m.Value).ToArray
 
             Dim tmp As New List(Of Components.HitFragment)
+            Dim pNext As Integer = 1   ' InStr函数要求从1开始
 
             For j As Integer = 0 To HSP.Length - 2
                 Dim s As String = HSP(j)
                 Dim pp As Integer = InStr(sec, s)
-                Dim pNext As Integer = InStr(sec, HSP(j + 1))
+                pNext = InStr(pNext, sec, HSP(j + 1))  ' 可能会有相同的头部数据，所以在这里需要使用start参数来避免出现负数值的情况
                 Dim lennn As Integer = pNext - pp
                 Dim s1 As String = Mid(sec, pp, lennn)
                 Dim sss As String = Regex.Split(s1.Replace(s, ""), "^>", RegexOptions.Multiline).First
 
-                tmp += __hspParser(sss, s)
+                Try
+                    tmp += __hspParser(sss, s)   ' Errors needs to fixed
+                Catch ex As Exception
+                    ex = New Exception(sss, ex)
+                    Call ex.PrintException
+                    Call App.LogException(ex)
+                End Try
             Next
 
             Dim pLast As Integer = InStr(sec, HSP.Last)
             Dim last As String = Regex.Split(Mid(sec, pLast), "Lambda\s+K").First.Replace(HSP.Last, "")
-            Call tmp.Add(__hspParser(last, HSP.Last))
+
+            Try
+                Call tmp.Add(__hspParser(last, HSP.Last))
+            Catch ex As Exception
+                ex = New Exception(last, ex)
+                Call ex.PrintException
+                Call App.LogException(ex)
+            End Try
 
             Dim name As String = Strings.Split(sec, " Score =", Compare:=CompareMethod.Binary).First
             Dim len As String = Regex.Match(name, "Length\s*=\s*\d+", RegexOptions.Singleline).Value
@@ -134,13 +148,18 @@ ENTRY_INFO_PARSER:
             QueryLength = Regex.Match(QueryLength, "\d+").Value
             SubjectLength = Regex.Match(SubjectLength, "\d+").Value
 
-            Return New Components.Query With {
-                .Hits = ChunkBuffer.ToArray,
-                .QueryName = QueryName,
-                .QueryLength = Val(QueryLength),
-                .SubjectLength = Val(SubjectLength),
-                .SubjectName = SubjectName
-            }
+            Try
+                Return New Components.Query With {
+           .Hits = ChunkBuffer.ToArray,
+           .QueryName = QueryName,
+           .QueryLength = Val(QueryLength),
+           .SubjectLength = Val(SubjectLength),
+           .SubjectName = SubjectName
+       }
+            Catch ex As Exception
+                Return New Components.Query With {.Hits = ChunkBuffer.ToArray, .QueryName = QueryName,
+                    .QueryLength = Val(QueryLength)}
+            End Try
         End Function
 
         Private Function __parser(ByRef p As Integer, Match As String, Tokens As String()) As String

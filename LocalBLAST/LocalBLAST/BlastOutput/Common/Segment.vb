@@ -1,27 +1,27 @@
 ﻿#Region "Microsoft.VisualBasic::05403d5f15aa71daec11118bc06c2391, ..\localblast\LocalBLAST\LocalBLAST\BlastOutput\Common\Segment.vb"
 
-    ' Author:
-    ' 
-    '       asuka (amethyst.asuka@gcmodeller.org)
-    '       xieguigang (xie.guigang@live.com)
-    ' 
-    ' Copyright (c) 2016 GPL3 Licensed
-    ' 
-    ' 
-    ' GNU GENERAL PUBLIC LICENSE (GPL3)
-    ' 
-    ' This program is free software: you can redistribute it and/or modify
-    ' it under the terms of the GNU General Public License as published by
-    ' the Free Software Foundation, either version 3 of the License, or
-    ' (at your option) any later version.
-    ' 
-    ' This program is distributed in the hope that it will be useful,
-    ' but WITHOUT ANY WARRANTY; without even the implied warranty of
-    ' MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    ' GNU General Public License for more details.
-    ' 
-    ' You should have received a copy of the GNU General Public License
-    ' along with this program. If not, see <http://www.gnu.org/licenses/>.
+' Author:
+' 
+'       asuka (amethyst.asuka@gcmodeller.org)
+'       xieguigang (xie.guigang@live.com)
+' 
+' Copyright (c) 2016 GPL3 Licensed
+' 
+' 
+' GNU GENERAL PUBLIC LICENSE (GPL3)
+' 
+' This program is free software: you can redistribute it and/or modify
+' it under the terms of the GNU General Public License as published by
+' the Free Software Foundation, either version 3 of the License, or
+' (at your option) any later version.
+' 
+' This program is distributed in the hope that it will be useful,
+' but WITHOUT ANY WARRANTY; without even the implied warranty of
+' MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+' GNU General Public License for more details.
+' 
+' You should have received a copy of the GNU General Public License
+' along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #End Region
 
@@ -31,6 +31,7 @@ Imports System.Xml.Serialization
 Imports LANS.SystemsBiology.SequenceModel
 Imports LANS.SystemsBiology.ComponentModel.Loci
 Imports LANS.SystemsBiology.ComponentModel.Loci.Abstract
+Imports Microsoft.VisualBasic.Scripting
 
 Namespace LocalBLAST.BLASTOutput.ComponentModel
 
@@ -103,9 +104,19 @@ Namespace LocalBLAST.BLASTOutput.ComponentModel
         Public Shared Function TryParse(Text As String) As Segment
             Dim Numbers = Regex.Matches(Text, "\d+")
             Dim Tokens As String() = Text.Split
-            Dim Segment As Segment = New Segment With {
-                .Left = Numbers(0).Value.RegexParseDouble,
-                .Right = Numbers(1).Value.RegexParseDouble}
+            Dim Segment As Segment
+
+            Try
+                Segment = New Segment With {
+                    .Left = Numbers(0).Value.RegexParseDouble,
+                    .Right = Numbers(1).Value.RegexParseDouble
+                }
+            Catch ex As Exception
+                ex = New Exception(Text, ex)
+                ex = New Exception("Parser expects type: " & Actives.Active(GetType(Segment)), ex)
+
+                Throw ex
+            End Try
 
             For i As Integer = Tokens.Count - 1 To 1 Step -1
                 If Not Tokens(i).IsNullOrEmpty AndAlso Tokens(i).RegexParseDouble = 0.0R Then

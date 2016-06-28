@@ -77,7 +77,9 @@ Namespace LocalBLAST.BLASTOutput.BlastPlus.BlastX.Components
 
         Public ReadOnly Property SubjectLength As Integer
             Get
-                Return Math.Abs(Hsp.Last.Sbjct.Right - Hsp.First.Sbjct.Left)
+                Dim left As Integer = If(Hsp.IsNullOrEmpty OrElse Hsp.First Is Nothing, 0, Hsp.First.Sbjct.Left)
+                Dim right As Integer = If(Hsp.IsNullOrEmpty OrElse Hsp.Last Is Nothing, 0, Hsp.Last.Sbjct.Right)
+                Return Math.Abs(right - left)
             End Get
         End Property
 
@@ -101,7 +103,10 @@ Namespace LocalBLAST.BLASTOutput.BlastPlus.BlastX.Components
 
         Public ReadOnly Property QueryLoci As Location
             Get
-                Return New Location(Hsp.First.Query.Left, Hsp.Last.Query.Right)
+                Dim left As Integer = If(Hsp.IsNullOrEmpty OrElse Hsp.First Is Nothing, 0, Hsp.First.Query.Left)
+                Dim right As Integer = If(Hsp.IsNullOrEmpty OrElse Hsp.Last Is Nothing, 0, Hsp.Last.Query.Right)
+
+                Return New Location(left, right)
             End Get
         End Property
 
