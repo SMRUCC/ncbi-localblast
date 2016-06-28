@@ -1,17 +1,21 @@
-﻿Imports System.Text.RegularExpressions
+﻿Imports System.Runtime.CompilerServices
+Imports System.Text.RegularExpressions
+Imports LANS.SystemsBiology.Assembly.Expasy.AnnotationsTool
+Imports LANS.SystemsBiology.Assembly.Expasy.Database
+Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.BBH
+Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.RpsBLAST
+Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput
+Imports LANS.SystemsBiology.SequenceModel
 Imports Microsoft.VisualBasic.CommandLine.Reflection
+Imports Microsoft.VisualBasic.DocumentFormat.Csv
 Imports Microsoft.VisualBasic.DocumentFormat.Csv.Extensions
+Imports Microsoft.VisualBasic.Language
+Imports Microsoft.VisualBasic.Language.UnixBash
+Imports Microsoft.VisualBasic.Linq
+Imports Microsoft.VisualBasic.Parallel.Threads
 Imports Microsoft.VisualBasic.Scripting.MetaData
 Imports Microsoft.VisualBasic.Text
 Imports Microsoft.VisualBasic.Text.Similarity
-Imports Microsoft.VisualBasic.Parallel.Threads
-Imports LANS.SystemsBiology.SequenceModel
-Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput
-Imports Microsoft.VisualBasic.DocumentFormat.Csv
-Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.BBH
-Imports LANS.SystemsBiology.Assembly.Expasy.Database
-Imports LANS.SystemsBiology.Assembly.Expasy.AnnotationsTool
-Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.RpsBLAST
 
 ''' <summary>
 ''' ShoalShell API interface for ncbi localblast operations.
@@ -21,9 +25,9 @@ Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.RpsBLAST
 Public Module NCBILocalBlast
 
     ''' <summary>
-    ''' 进行快速的字符串匹配
+    ''' 进行快速的字符串模糊匹配来查看比对的结果输出是否是完整的数据，这个函数只是适用于小文本文件
     ''' </summary>
-    ''' <param name="query"></param>
+    ''' <param name="query">通过对每一条序列的标题进行比对</param>
     ''' <param name="BlastOUTPUT"></param>
     ''' <returns></returns>
     ''' <remarks></remarks>
@@ -32,27 +36,41 @@ Public Module NCBILocalBlast
             Return False
         End If
 
-        Dim Queries = (From strLine As String In IO.File.ReadAllLines(BlastOUTPUT)
-                       Let Entry As String = Regex.Match(strLine, "Query\s*=\s*.+").Value
-                       Where Not String.IsNullOrEmpty(Entry)
-                       Select Regex.Replace(Entry, "Query\s*=\s*", "").Trim).ToArray
+        Dim Queries As String() =
+            LinqAPI.Exec(Of String) <= From strLine As String
+                                       In IO.File.ReadAllLines(BlastOUTPUT)
+                                       Let Entry As String =
+                                           Regex.Match(strLine, "Query\s*=\s*.+").Value
+                                       Where Not String.IsNullOrEmpty(Entry)
+                                       Select Regex.Replace(Entry, "Query\s*=\s*", "").Trim
+
         If Queries.Length <> query.NumberOfFasta Then
             Return False
         End If
-        Dim CompareLQuery = (From fa As FASTA.FastaToken
-                             In query
-                             Let InternalIntegrity As Boolean = __integrity(fa, Queries)
-                             Where Not InternalIntegrity
-                             Select InternalIntegrity).ToArray
-        Return CompareLQuery.IsNullOrEmpty
+
+        Dim CompareLQuery As Boolean =
+            LinqAPI.DefaultFirst(Of Boolean)(False) <=
+                From fa As FASTA.FastaToken
+                In query
+                Let InternalIntegrity As Boolean = __integrity(fa, Queries)
+                Where Not InternalIntegrity
+                Select True
+        Return Not CompareLQuery
     End Function
 
+    ''' <summary>
+    ''' 返回True表示是完整的
+    ''' </summary>
+    ''' <param name="Fasta"></param>
+    ''' <param name="Queries"></param>
+    ''' <returns></returns>
     Private Function __integrity(Fasta As FASTA.FastaToken, Queries As String()) As Boolean
-        Dim Title As String = Fasta.Title
-        Dim GetLQuery = (From Query As String
-                         In Queries
-                         Where FuzzyMatchString.Equals(Title, Query)
-                         Select Query).FirstOrDefault
+        Dim title As String = Fasta.Title
+        Dim GetLQuery As String =
+            LinqAPI.DefaultFirst(Of String) <= From Query As String
+                                               In Queries
+                                               Where FuzzyMatchString.Equals(title, Query)
+                                               Select Query
         Return Not String.IsNullOrEmpty(GetLQuery)
     End Function
 
@@ -117,13 +135,13 @@ Public Module NCBILocalBlast
             End If
             Return True
         ElseIf FileIO.FileSystem.DirectoryExists(genomeRes) Then
-            Dim FastaSource As String() = FileIO.FileSystem.GetFiles(genomeRes, FileIO.SearchOption.SearchAllSubDirectories, "*.fa", "*.fsa", "*.fasta").ToArray
+            Dim FastaSource As IEnumerable(Of String) = ls - l - r - wildcards("*.fa", "*.fsa", "*.fasta") <= genomeRes
             Call FileIO.FileSystem.CreateDirectory(Output)
             Return Blastn(Handle,
                           NT,
                           GenomeSource:=FastaSource,
                           EValue:=EValue,
-                          OutputDir:=Output,
+                          outDIR:=Output,
                           reversed:=reversed,
                           numThreads:=numThreads,
                           TimeInterval:=TimeInterval)
@@ -138,7 +156,7 @@ Public Module NCBILocalBlast
     ''' <param name="handle"></param>
     ''' <param name="nt"></param>
     ''' <param name="GenomeSource">The fasta sequence data file path collection.(Fasta序列文件的路径的集合)</param>
-    ''' <param name="OutputDir"></param>
+    ''' <param name="outDIR"></param>
     ''' <param name="evalue"></param>
     ''' <param name="reversed">假若这个参数为真，则<paramref name="nt"/>参数所指向的fasta序列则会作为参考库</param>
     ''' <returns></returns>
@@ -147,7 +165,7 @@ Public Module NCBILocalBlast
     Public Function Blastn(<Parameter("LocalBlast.Handle")> Handle As LocalBLAST.InteropService.InteropService,
                            nt As String,
                            <Parameter("Source.Genomes")> GenomeSource As IEnumerable(Of String),
-                           <Parameter("Dir.Output")> OutputDir As String,
+                           <Parameter("Dir.Output")> outDIR As String,
                            <Parameter("E-Value")> Optional EValue As String = "1e-5",
                            <Parameter("Reversed", "If this parameter is TRUE then the nt fasta will be using as the subject reference database.")>
                            Optional reversed As Boolean = False,
@@ -158,16 +176,32 @@ Public Module NCBILocalBlast
 
         Call $"{NameOf(GenomeSource)}:={GenomeSource.Count}".__DEBUG_ECHO
 
-        Dim taskArray As Func(Of Boolean)() = (From Subject As String
-                                               In GenomeSource
-                                               Let task As Func(Of Boolean) = Function() __blastn(OutputDir, nt, Subject, EValue, reversed, Handle)
-                                               Select task).ToArray
+        Dim taskArray As Func(Of Boolean)() =
+            LinqAPI.Exec(Of Func(Of Boolean)) <=
+                From Subject As String
+                In GenomeSource
+                Let task As Func(Of Boolean) =
+                    Function() __blastn(
+                    outDIR,
+                    nt,
+                    Subject,
+                    EValue,
+                    reversed,
+                    Handle)
+                Select task
+
         Call BatchTask(Of Boolean)(taskArray, numThreads, TimeInterval)
 
         Return True
     End Function
 
-    Private Function __blastn(outputDIR As String, nt As String, subject As String, evalue As String, reversed As Boolean, handle As LocalBLAST.InteropService.InteropService) As Boolean
+    Private Function __blastn(outputDIR As String,
+                              nt As String,
+                              subject As String,
+                              evalue As String,
+                              reversed As Boolean,
+                              handle As LocalBLAST.InteropService.InteropService) As Boolean
+
         Dim OutLog As String = outputDIR & "/" & IO.Path.GetFileNameWithoutExtension(subject) & ".txt"
 
         If reversed Then
@@ -204,21 +238,35 @@ Public Module NCBILocalBlast
             Call handle.TryInvoke("blastx", nt, proteins, evalue, output).Start(WaitForExit:=True)
             Return True
         ElseIf FileIO.FileSystem.DirectoryExists(proteins) Then
-            Dim FastaSource As String() = FileIO.FileSystem.GetFiles(proteins, FileIO.SearchOption.SearchAllSubDirectories, "*.fa", "*.fsa", "*.fasta").ToArray
+            Dim FastaSource As IEnumerable(Of String) =
+                ls - l - r - wildcards("*.fa", "*.fsa", "*.fasta") <= proteins
             Call FileIO.FileSystem.CreateDirectory(output)
             Return BlastX(handle, nt, proteins:=FastaSource, evalue:=evalue, output:=output)
         Else
-            Throw New Exception(String.Format("The value of the blastx protein source ""{0}"" is not valid!", proteins))
+            Dim msg As String =
+                $"The value of the blastx protein source ""{proteins.ToFileURL}"" Is Not valid!"
+            Throw New Exception(msg)
         End If
     End Function
 
-    <ExportAPI("blastx")>
-    Public Function BlastX(handle As LocalBLAST.InteropService.InteropService, nt As String, proteins As IEnumerable(Of String), output As String, Optional evalue As String = "1e-5") As Boolean
-        Dim LQuery = (From subject As String In proteins.AsParallel Select __blastX(output, subject, handle, nt, evalue)).ToArray
+    <Extension> <ExportAPI("blastx")>
+    Public Function BlastX(handle As LocalBLAST.InteropService.InteropService,
+                           nt As String,
+                           proteins As IEnumerable(Of String),
+                           output As String,
+                           Optional evalue As String = "1e-5") As Boolean
+
+        Dim LQuery As Boolean() =
+            LinqAPI.Exec(Of Boolean) <= From subject As String
+                                        In proteins.AsParallel
+                                        Select __blastX(output, subject, handle, nt, evalue)
         Return Not LQuery.IsNullOrEmpty
     End Function
 
-    Private Function __blastX(output As String, subject As String, handle As LocalBLAST.InteropService.InteropService, nt As String, evalue As String) As Boolean
+    Private Function __blastX(output As String,
+                              subject As String,
+                              handle As LocalBLAST.InteropService.InteropService, nt As String, evalue As String) As Boolean
+
         Dim OutLog As String = output & "/" & IO.Path.GetFileNameWithoutExtension(subject) & ".txt"
 
         Call handle.FormatDb(subject, handle.MolTypeProtein).Start(WaitForExit:=True)
@@ -235,7 +283,7 @@ Public Module NCBILocalBlast
     ''' </param>
     ''' <returns></returns>
     ''' <remarks>目前blast日志分析模块仅仅能够支持2.2.28版本的blast日志的解析</remarks>
-    <ExportAPI("localblast.session.handles.new()", Info:="If the <para>blastbin</para> is not specific, then the program will search for the blast bin automatically.")>
+    <ExportAPI("localblast.session.handles.New()", Info:="If the <para>blastbin</para> Is Not specific, then the program will search For the blast bin automatically.")>
     Public Function CreateSession(Optional blastbin As String = "") As NCBI.Extensions.LocalBLAST.InteropService.InteropService
         If Not String.IsNullOrEmpty(blastbin) AndAlso
             FileIO.FileSystem.DirectoryExists(blastbin) AndAlso
@@ -296,7 +344,7 @@ Public Module NCBILocalBlast
     ''' <returns></returns>
     ''' <remarks></remarks>
     <ExportAPI("Read.Ultra_large_blast_output",
-               Info:="chunk_size parameter is recommended using 100 when the file size is below 2GB and using 768 when the file size is large than 20GB")>
+               Info:="chunk_size parameter Is recommended Using 100 When the file size Is below 2GB And Using 768 When the file size Is large than 20GB")>
     Public Function LoadUltraLargeSizeBlastOutput(path As String, Optional chunk_size As Integer = 768) As BlastPlus.v228
         Return NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus.Parser.TryParseUltraLarge(path, CHUNK_SIZE:=chunk_size * 1024 * 1024)
     End Function
