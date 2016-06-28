@@ -1,4 +1,4 @@
-﻿#Region "b122072b4b0f05b95a492311c874bf77, ..\LocalBLAST\LocalBLAST\BlastOutput\Common\Score.vb"
+﻿#Region "Microsoft.VisualBasic::b122072b4b0f05b95a492311c874bf77, ..\localblast\LocalBLAST\LocalBLAST\BlastOutput\Common\Score.vb"
 
     ' Author:
     ' 

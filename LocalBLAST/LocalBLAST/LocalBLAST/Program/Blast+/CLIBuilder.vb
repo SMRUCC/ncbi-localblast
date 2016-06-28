@@ -1,4 +1,4 @@
-﻿#Region "6fd26ecf7ffb5ce2aac51286dd584913, ..\LocalBLAST\LocalBLAST\LocalBLAST\Program\Blast+\CLIBuilder.vb"
+﻿#Region "Microsoft.VisualBasic::6fd26ecf7ffb5ce2aac51286dd584913, ..\localblast\LocalBLAST\LocalBLAST\LocalBLAST\Program\Blast+\CLIBuilder.vb"
 
     ' Author:
     ' 

@@ -1,4 +1,4 @@
-﻿#Region "2344118cb3825f7d493b81457ebb926d, ..\LocalBLAST\LocalBLAST\LocalBLAST\Application\Paralog.vb"
+﻿#Region "Microsoft.VisualBasic::2344118cb3825f7d493b81457ebb926d, ..\localblast\LocalBLAST\LocalBLAST\LocalBLAST\Application\Paralog.vb"
 
     ' Author:
     ' 

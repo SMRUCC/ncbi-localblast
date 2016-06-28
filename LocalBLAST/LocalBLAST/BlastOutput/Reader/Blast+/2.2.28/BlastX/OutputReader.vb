@@ -1,4 +1,4 @@
-﻿#Region "ba442cf2b45b2844ecbc429d3add7ab8, ..\LocalBLAST\LocalBLAST\BlastOutput\Reader\Blast+\2.2.28\BlastX\OutputReader.vb"
+﻿#Region "Microsoft.VisualBasic::7eb89b3d96572eaf31ab95f5786f30a1, ..\localblast\LocalBLAST\LocalBLAST\BlastOutput\Reader\Blast+\2.2.28\BlastX\OutputReader.vb"
 
     ' Author:
     ' 
@@ -181,4 +181,3 @@ ENTRY_INFO_PARSER:
         End Function
     End Module
 End Namespace
-

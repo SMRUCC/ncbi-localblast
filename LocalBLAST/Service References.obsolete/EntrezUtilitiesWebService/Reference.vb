@@ -1,4 +1,4 @@
-﻿#Region "d8f7b37feac305c1429c38342e6be38c, ..\LocalBLAST\Service References.obsolete\EntrezUtilitiesWebService\Reference.vb"
+﻿#Region "Microsoft.VisualBasic::e3d50898572c059b0f48e149c7ba7df8, ..\localblast\LocalBLAST\Service References.obsolete\EntrezUtilitiesWebService\Reference.vb"
 
     ' Author:
     ' 
@@ -4090,4 +4090,3 @@ Namespace EntrezUtilitiesWebService
         End Function
     End Class
 End Namespace
-

@@ -1,4 +1,4 @@
-﻿#Region "6f7f05a95353f627335f4787e90e139f, ..\LocalBLAST\LocalBLAST\LocalBLAST\Application\COG\ClassifyCOGs.vb"
+﻿#Region "Microsoft.VisualBasic::6f7f05a95353f627335f4787e90e139f, ..\localblast\LocalBLAST\LocalBLAST\LocalBLAST\Application\COG\ClassifyCOGs.vb"
 
     ' Author:
     ' 

@@ -1,4 +1,4 @@
-﻿#Region "ea52479d60c212e329f3643567c9911d, ..\LocalBLAST\LocalBLAST\LocalBLAST\Application\COG\Whog\Category.vb"
+﻿#Region "Microsoft.VisualBasic::ea52479d60c212e329f3643567c9911d, ..\localblast\LocalBLAST\LocalBLAST\LocalBLAST\Application\COG\Whog\Category.vb"
 
     ' Author:
     ' 

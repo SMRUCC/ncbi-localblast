@@ -1,4 +1,4 @@
-﻿#Region "1ec8f8321cdb0e57d819dbb3ec25322c, ..\LocalBLAST\NCBILocalBlast.vb"
+﻿#Region "Microsoft.VisualBasic::3b7fe1610cfff58ef91b652b1e933bc3, ..\localblast\LocalBLAST\NCBILocalBlast.vb"
 
     ' Author:
     ' 
@@ -467,4 +467,3 @@ Public Module NCBILocalBlast
         Return ClassifyCOGs.Get_MyvaCOG_Classify(blast_output, textEngine, Whog_Xml)
     End Function
 End Module
-

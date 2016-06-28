@@ -1,4 +1,4 @@
-﻿#Region "5bb3ead5744f60e26cc0b578b934d858, ..\LocalBLAST\Extensions.vb"
+﻿#Region "Microsoft.VisualBasic::616613e890ddc5f60565ec3e68eb8b91, ..\localblast\LocalBLAST\Extensions.vb"
 
     ' Author:
     ' 
@@ -126,4 +126,3 @@ Public Module Extensions
         Return Blastbin.GetLastLogFile
     End Function
 End Module
-

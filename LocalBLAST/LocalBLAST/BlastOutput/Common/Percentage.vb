@@ -1,4 +1,4 @@
-﻿#Region "573382d5d45676f8114c523bf0e5a4d9, ..\LocalBLAST\LocalBLAST\BlastOutput\Common\Percentage.vb"
+﻿#Region "Microsoft.VisualBasic::573382d5d45676f8114c523bf0e5a4d9, ..\localblast\LocalBLAST\LocalBLAST\BlastOutput\Common\Percentage.vb"
 
     ' Author:
     ' 

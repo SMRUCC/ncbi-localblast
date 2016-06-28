@@ -1,4 +1,4 @@
-﻿#Region "08b0feac97b2abfa51ba7a806099cead, ..\LocalBLAST\LocalBLAST\BlastOutput\Reader\Blast+\2.2.26\Query.vb"
+﻿#Region "Microsoft.VisualBasic::08b0feac97b2abfa51ba7a806099cead, ..\localblast\LocalBLAST\LocalBLAST\BlastOutput\Reader\Blast+\2.2.26\Query.vb"
 
     ' Author:
     ' 

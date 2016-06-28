@@ -1,4 +1,4 @@
-﻿#Region "20282f6d5c5f73709fdf9c46581c75db, ..\LocalBLAST\LocalBLAST\BlastOutput\Reader\Standard\Hit.vb"
+﻿#Region "Microsoft.VisualBasic::20282f6d5c5f73709fdf9c46581c75db, ..\localblast\LocalBLAST\LocalBLAST\BlastOutput\Reader\Standard\Hit.vb"
 
     ' Author:
     ' 

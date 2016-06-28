@@ -1,4 +1,4 @@
-﻿#Region "05403d5f15aa71daec11118bc06c2391, ..\LocalBLAST\LocalBLAST\BlastOutput\Common\Segment.vb"
+﻿#Region "Microsoft.VisualBasic::05403d5f15aa71daec11118bc06c2391, ..\localblast\LocalBLAST\LocalBLAST\BlastOutput\Common\Segment.vb"
 
     ' Author:
     ' 
