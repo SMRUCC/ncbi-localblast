@@ -194,9 +194,12 @@ Namespace Analysis
                            Where Not String.IsNullOrEmpty(hit.HitName)
                            Select hit
                            Group By hit.tag Into Group).ToArray
-            Dim Id As String() = (From hit In Grouped
-                                  Where hit.Group.Count >= p * (Grouped.Count - 1)
-                                  Select hit.tag).ToArray
+            Dim Id As String() =
+                LinqAPI.Exec(Of String) <= From hit In Grouped
+                                           Where hit.Group.Count >= p * (Grouped.Length - 1)
+                                           Select hit.tag
+            Dim setValue = New SetValue(Of HitCollection)() _
+                .GetSet(NameOf(HitCollection.Hits))
             Dim hits As HitCollection() =
                 LinqAPI.Exec(Of HitCollection) <= From hit As HitCollection
                                                   In Me.hits
@@ -204,7 +207,7 @@ Namespace Analysis
                                                                          In hit.Hits
                                                                          Where Array.IndexOf(Id, x.tag) > -1
                                                                          Select x).ToArray
-                                                  Select hit.InvokeSet(NameOf(hit.Hits), __hits)
+                                                  Select setValue(hit, __hits)
             Me.hits = hits
 
             Return Me
