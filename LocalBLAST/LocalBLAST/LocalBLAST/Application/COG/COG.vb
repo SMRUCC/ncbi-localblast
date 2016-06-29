@@ -1,27 +1,27 @@
 ﻿#Region "Microsoft.VisualBasic::34c8c716e55c9ee4df0d997f0f666e80, ..\localblast\LocalBLAST\LocalBLAST\LocalBLAST\Application\COG\COG.vb"
 
-    ' Author:
-    ' 
-    '       asuka (amethyst.asuka@gcmodeller.org)
-    '       xieguigang (xie.guigang@live.com)
-    ' 
-    ' Copyright (c) 2016 GPL3 Licensed
-    ' 
-    ' 
-    ' GNU GENERAL PUBLIC LICENSE (GPL3)
-    ' 
-    ' This program is free software: you can redistribute it and/or modify
-    ' it under the terms of the GNU General Public License as published by
-    ' the Free Software Foundation, either version 3 of the License, or
-    ' (at your option) any later version.
-    ' 
-    ' This program is distributed in the hope that it will be useful,
-    ' but WITHOUT ANY WARRANTY; without even the implied warranty of
-    ' MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    ' GNU General Public License for more details.
-    ' 
-    ' You should have received a copy of the GNU General Public License
-    ' along with this program. If not, see <http://www.gnu.org/licenses/>.
+' Author:
+' 
+'       asuka (amethyst.asuka@gcmodeller.org)
+'       xieguigang (xie.guigang@live.com)
+' 
+' Copyright (c) 2016 GPL3 Licensed
+' 
+' 
+' GNU GENERAL PUBLIC LICENSE (GPL3)
+' 
+' This program is free software: you can redistribute it and/or modify
+' it under the terms of the GNU General Public License as published by
+' the Free Software Foundation, either version 3 of the License, or
+' (at your option) any later version.
+' 
+' This program is distributed in the hope that it will be useful,
+' but WITHOUT ANY WARRANTY; without even the implied warranty of
+' MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+' GNU General Public License for more details.
+' 
+' You should have received a copy of the GNU General Public License
+' along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #End Region
 
@@ -29,6 +29,7 @@ Imports LANS.SystemsBiology.Assembly.NCBI.GenBank.TabularFormat.ComponentModels
 Imports LANS.SystemsBiology.ComponentModel
 Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.BBH
 Imports Microsoft.VisualBasic.ComponentModel.Collection.Generic
+Imports Microsoft.VisualBasic.DocumentFormat.Csv
 Imports Microsoft.VisualBasic.DocumentFormat.Csv.StorageProvider.Reflection
 Imports Microsoft.VisualBasic.Linq.Extensions
 
@@ -74,10 +75,10 @@ Namespace LocalBLAST.Application.RpsBLAST
         End Function
 
         Public Shared Function LoadDoc(path As String) As MGACOG()
-            Return DocumentFormat.Csv.DataImports.Imports(Of MGACOG)(path, vbTab)
+            Return DataImports.Imports(Of MGACOG)(path, vbTab)
         End Function
 
-        Public Shared Function ToMyvaCOG(source As Generic.IEnumerable(Of MGACOG)) As MyvaCOG()
+        Public Shared Function ToMyvaCOG(source As IEnumerable(Of MGACOG)) As MyvaCOG()
             Return source.ToArray(Function(x) x.ToMyvaCOG)
         End Function
     End Class
@@ -123,6 +124,5 @@ Namespace LocalBLAST.Application.RpsBLAST
                 .QueryLength = besthit.query_length
             }
         End Function
-
     End Class
 End Namespace

@@ -1,27 +1,27 @@
 ﻿#Region "Microsoft.VisualBasic::239a8459b45f8b0a96b6706fe63beb15, ..\localblast\LocalBLAST\LocalBLAST\LocalBLAST\Application\BBH\BiDirectionalBesthit.vb"
 
-    ' Author:
-    ' 
-    '       asuka (amethyst.asuka@gcmodeller.org)
-    '       xieguigang (xie.guigang@live.com)
-    ' 
-    ' Copyright (c) 2016 GPL3 Licensed
-    ' 
-    ' 
-    ' GNU GENERAL PUBLIC LICENSE (GPL3)
-    ' 
-    ' This program is free software: you can redistribute it and/or modify
-    ' it under the terms of the GNU General Public License as published by
-    ' the Free Software Foundation, either version 3 of the License, or
-    ' (at your option) any later version.
-    ' 
-    ' This program is distributed in the hope that it will be useful,
-    ' but WITHOUT ANY WARRANTY; without even the implied warranty of
-    ' MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    ' GNU General Public License for more details.
-    ' 
-    ' You should have received a copy of the GNU General Public License
-    ' along with this program. If not, see <http://www.gnu.org/licenses/>.
+' Author:
+' 
+'       asuka (amethyst.asuka@gcmodeller.org)
+'       xieguigang (xie.guigang@live.com)
+' 
+' Copyright (c) 2016 GPL3 Licensed
+' 
+' 
+' GNU GENERAL PUBLIC LICENSE (GPL3)
+' 
+' This program is free software: you can redistribute it and/or modify
+' it under the terms of the GNU General Public License as published by
+' the Free Software Foundation, either version 3 of the License, or
+' (at your option) any later version.
+' 
+' This program is distributed in the hope that it will be useful,
+' but WITHOUT ANY WARRANTY; without even the implied warranty of
+' MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+' GNU General Public License for more details.
+' 
+' You should have received a copy of the GNU General Public License
+' along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #End Region
 
@@ -30,6 +30,7 @@ Imports Microsoft.VisualBasic.ComponentModel.Collection.Generic
 Imports Microsoft.VisualBasic.ComponentModel.KeyValuePair
 Imports Microsoft.VisualBasic.DocumentFormat.Csv.StorageProvider.Reflection
 Imports Microsoft.VisualBasic.Language
+Imports Microsoft.VisualBasic.Linq
 Imports Microsoft.VisualBasic.Serialization
 Imports Microsoft.VisualBasic.Serialization.JSON
 
@@ -100,9 +101,12 @@ Namespace LocalBLAST.Application.BBH
         Public Delegate Function GetDescriptionHandle(locusId As String) As String
 
         Public Shared Function MatchDescription(data As BiDirectionalBesthit(), sourceDescription As GetDescriptionHandle) As BiDirectionalBesthit()
-            Dim LQuery = (From ItemObject As BiDirectionalBesthit In data.AsParallel
-                          Let desc As String = sourceDescription(locusId:=ItemObject.QueryName)
-                          Select ItemObject.InvokeSet(NameOf(ItemObject.Description), desc)).ToArray
+            Dim invokeSetValue = New SetValue(Of BiDirectionalBesthit)().GetSet(NameOf(BiDirectionalBesthit.Description))
+            Dim LQuery As BiDirectionalBesthit() =
+                LinqAPI.Exec(Of BiDirectionalBesthit) <= From x As BiDirectionalBesthit
+                                                         In data.AsParallel
+                                                         Let desc As String = sourceDescription(locusId:=x.QueryName)
+                                                         Select invokeSetValue(x, desc)
             Return LQuery
         End Function
     End Class
@@ -240,15 +244,19 @@ Namespace LocalBLAST.Application.BBH
             End If
 
             If Not TrimSelfAligned Then
-                Dim LQuery = (From hit As T In data.AsParallel
-                              Where Not String.Equals(hit.HitName, IBlastOutput.HITS_NOT_FOUND)
-                              Select hit).FirstOrDefault
+                Dim LQuery As T =
+                    LinqAPI.DefaultFirst(Of T) <= From hit As T
+                                                  In data.AsParallel
+                                                  Where Not String.Equals(hit.HitName, IBlastOutput.HITS_NOT_FOUND)
+                                                  Select hit
                 Return LQuery Is Nothing
             Else
-                Dim LQuery = (From item As T In data.AsParallel
-                              Where Not String.IsNullOrEmpty(item.QueryName) AndAlso
-                              String.Equals(item.HitName, item.QueryName)
-                              Select item).FirstOrDefault
+                Dim LQuery As T =
+                    LinqAPI.DefaultFirst(Of T) <= From x As T
+                                                  In data.AsParallel
+                                                  Where Not String.IsNullOrEmpty(x.QueryName) AndAlso
+                                                      String.Equals(x.HitName, x.QueryName)
+                                                  Select x
                 Return LQuery Is Nothing
             End If
         End Function

@@ -56,8 +56,10 @@ Namespace LocalBLAST.Application
 
             identities *= 100
 
-            Dim preTest As Func(Of BlastnMapping, Boolean) = BuildAll(Of BlastnMapping)(logics, tests.ToArray)
-            Dim test As Func(Of BlastnMapping, Boolean) = Function(x) preTest(x) AndAlso (x.Identities >= identities)
+            Dim preTest As Func(Of BlastnMapping, Boolean) =
+                BuildAll(Of BlastnMapping)(logics, tests.ToArray)
+            Dim test As Func(Of BlastnMapping, Boolean) =
+                Function(x) preTest(x) AndAlso (x.Identities >= identities)
 
             Return test
         End Function

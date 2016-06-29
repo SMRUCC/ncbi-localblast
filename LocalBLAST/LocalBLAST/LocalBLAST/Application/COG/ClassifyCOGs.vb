@@ -62,7 +62,6 @@ Namespace LocalBLAST.Application.RpsBLAST
         End Sub
 
         Public Overloads Function Get_COGClassify(QueryGrepMethod As TextGrepMethod, Optional DescriptionGrepMethod As TextGrepMethod = Nothing) As DocumentStream.File
-
             Return ClassifyCOGs.Get_COGClassify(_RpsBLAST.LastBLASTOutputFilePath, QueryGrepMethod, DescriptionGrepMethod)
         End Function
 
@@ -92,7 +91,7 @@ Namespace LocalBLAST.Application.RpsBLAST
 
                 Return File
             Else
-                Return New Microsoft.VisualBasic.DocumentFormat.Csv.DocumentStream.File
+                Return New DocumentStream.File
             End If
         End Function
 
