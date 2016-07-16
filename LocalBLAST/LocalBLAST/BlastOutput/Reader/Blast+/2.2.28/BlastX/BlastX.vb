@@ -1,4 +1,4 @@
-﻿#Region "Microsoft.VisualBasic::59a88d034732da42a74770cbb186d8c0, ..\localblast\LocalBLAST\LocalBLAST\BlastOutput\Reader\Blast+\2.2.28\BlastX\BlastX.vb"
+﻿#Region "Microsoft.VisualBasic::2fb69fc2e80913878232268c164d8017, ..\interops\localblast\LocalBLAST\LocalBLAST\BlastOutput\Reader\Blast+\2.2.28\BlastX\BlastX.vb"
 
     ' Author:
     ' 
@@ -25,12 +25,12 @@
 
 #End Region
 
-Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application
-Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.Views
-Imports Microsoft.VisualBasic.Text
+Imports System.Text
 Imports Microsoft.VisualBasic
 Imports Microsoft.VisualBasic.Linq
-Imports System.Text
+Imports Microsoft.VisualBasic.Text
+Imports SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.Application
+Imports SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.BLASTOutput.Views
 
 Namespace LocalBLAST.BLASTOutput.BlastPlus.BlastX
 

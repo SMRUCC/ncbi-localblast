@@ -1,4 +1,4 @@
-﻿#Region "Microsoft.VisualBasic::f3c5d9b7e97b831ad6b8a79a8e44ebed, ..\localblast\LocalBLAST\LocalBLAST\BlastOutput\Reader\Blast+\2.2.28\Query.vb"
+﻿#Region "Microsoft.VisualBasic::2e8e57754cea930e5615100c047be1ac, ..\interops\localblast\LocalBLAST\LocalBLAST\BlastOutput\Reader\Blast+\2.2.28\Query.vb"
 
     ' Author:
     ' 
@@ -25,12 +25,12 @@
 
 #End Region
 
-Imports System.Text.RegularExpressions
 Imports System.Text
+Imports System.Text.RegularExpressions
 Imports System.Xml.Serialization
 Imports Microsoft.VisualBasic.Extensions
-Imports LANS.SystemsBiology.ComponentModel.Loci
-Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.ComponentModel
+Imports SMRUCC.genomics.ComponentModel.Loci
+Imports SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.BLASTOutput.ComponentModel
 
 Namespace LocalBLAST.BLASTOutput.BlastPlus
 

@@ -1,4 +1,4 @@
-﻿#Region "Microsoft.VisualBasic::812ea3f092009bf056c5d858684e87be, ..\localblast\LocalBLAST\LocalBLAST\LocalBLAST\InteropService\InteropService.vb"
+﻿#Region "Microsoft.VisualBasic::4f26190d912d3c525dce230ffe387e49, ..\interops\localblast\LocalBLAST\LocalBLAST\LocalBLAST\InteropService\InteropService.vb"
 
     ' Author:
     ' 
@@ -25,6 +25,8 @@
 
 #End Region
 
+Imports Microsoft.VisualBasic.CommandLine
+Imports SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.BLASTOutput
 Imports File = System.String
 
 Namespace LocalBLAST.InteropService
@@ -204,7 +206,7 @@ Namespace LocalBLAST.InteropService
         ''' </summary>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        Public MustOverride Function GetLastLogFile() As NCBI.Extensions.LocalBLAST.BLASTOutput.IBlastOutput
+        Public MustOverride Function GetLastLogFile() As IBlastOutput
 
         ''' <summary>
         ''' Get the last blast operation output log file path.(获取上一次BLAST操作的输出文件的文件名)
@@ -220,7 +222,7 @@ Namespace LocalBLAST.InteropService
 
 #Region "LocalBLAST"
 
-        Public Delegate Function LocalBLAST(InputQuery As File, TargetSubjectDb As String, Output As File, e As String) As Microsoft.VisualBasic.CommandLine.IORedirectFile
+        Public Delegate Function ILocalBLAST(InputQuery As File, TargetSubjectDb As String, Output As File, e As String) As IORedirectFile
 
         ''' <summary>
         ''' Generate the command line arguments of the program blastp.(生成blastp程序的命令行参数)
@@ -231,7 +233,7 @@ Namespace LocalBLAST.InteropService
         ''' <param name="e">The E-value</param>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        Public MustOverride Function Blastp(InputQuery As File, TargetSubjectDb As String, Output As File, Optional e As String = "10") As Microsoft.VisualBasic.CommandLine.IORedirectFile
+        Public MustOverride Function Blastp(InputQuery As File, TargetSubjectDb As String, Output As File, Optional e As String = "10") As IORedirectFile
 
         ''' <summary>
         ''' Generate the command line arguments of the program blastn.(生成blastn程序的命令行参数)
@@ -242,7 +244,7 @@ Namespace LocalBLAST.InteropService
         ''' <param name="e">The E-value</param>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        Public MustOverride Function Blastn(Input As File, TargetDb As String, Output As File, Optional e As String = "10") As Microsoft.VisualBasic.CommandLine.IORedirectFile
+        Public MustOverride Function Blastn(Input As File, TargetDb As String, Output As File, Optional e As String = "10") As IORedirectFile
 
         ''' <summary>
         ''' Format theta target fasta sequence database for the blast search.
@@ -251,7 +253,7 @@ Namespace LocalBLAST.InteropService
         ''' <param name="dbType">Database type for the target sequence database(目标序列数据库的分子类型)</param>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        Public MustOverride Function FormatDb(Db As String, dbType As String) As Microsoft.VisualBasic.CommandLine.IORedirectFile
+        Public MustOverride Function FormatDb(Db As String, dbType As String) As IORedirectFile
 #End Region
 
         ''' <summary>
@@ -264,11 +266,11 @@ Namespace LocalBLAST.InteropService
         ''' <param name="Output"></param>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        Public Function TryInvoke(Program As String, Query As String, Subject As String, Evalue As String, Output As String) As Microsoft.VisualBasic.CommandLine.IORedirectFile
+        Public Function TryInvoke(Program As String, Query As String, Subject As String, Evalue As String, Output As String) As IORedirectFile
             Dim argvs As String = String.Format("-query ""{0}"" -subject ""{1}"" -evalue {2} -out ""{3}""", Query, Subject, Evalue, Output)
             Program = _innerBLASTBinDIR & "/" & Program
 
-            Return New Microsoft.VisualBasic.CommandLine.IORedirectFile(Program, argvs)
+            Return New IORedirectFile(Program, argvs)
         End Function
     End Class
 End Namespace

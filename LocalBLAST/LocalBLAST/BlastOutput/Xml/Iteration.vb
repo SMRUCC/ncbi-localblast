@@ -1,4 +1,4 @@
-﻿#Region "Microsoft.VisualBasic::5de605e4124515686612f1333341a1a8, ..\localblast\LocalBLAST\LocalBLAST\BlastOutput\Xml\Iteration.vb"
+﻿#Region "Microsoft.VisualBasic::87a1ee1ae2aff03f8ab1aefa62e485bf, ..\interops\localblast\LocalBLAST\LocalBLAST\BlastOutput\Xml\Iteration.vb"
 
     ' Author:
     ' 
@@ -26,10 +26,10 @@
 #End Region
 
 Imports System.Xml.Serialization
-Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.IBlastOutput
-Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.XmlFile.Hits
-Imports Microsoft.VisualBasic.Text
 Imports Microsoft.VisualBasic.Extensions
+Imports Microsoft.VisualBasic.Text
+Imports SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.BLASTOutput.IBlastOutput
+Imports SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.BLASTOutput.XmlFile.Hits
 
 Namespace LocalBLAST.BLASTOutput.XmlFile
 

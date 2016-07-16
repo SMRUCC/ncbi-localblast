@@ -1,4 +1,4 @@
-﻿#Region "Microsoft.VisualBasic::6f7f05a95353f627335f4787e90e139f, ..\localblast\LocalBLAST\LocalBLAST\LocalBLAST\Application\COG\ClassifyCOGs.vb"
+﻿#Region "Microsoft.VisualBasic::424dda1b4880dd4f287702541ec5d891, ..\interops\localblast\LocalBLAST\LocalBLAST\LocalBLAST\Application\COG\ClassifyCOGs.vb"
 
     ' Author:
     ' 
@@ -25,11 +25,10 @@
 
 #End Region
 
-Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.BBH
-Imports Microsoft.VisualBasic.DocumentFormat.Csv.StorageProvider.Reflection
-Imports Microsoft.VisualBasic.DocumentFormat.Csv.Extensions
-Imports Microsoft.VisualBasic.Text
 Imports Microsoft.VisualBasic.DocumentFormat.Csv
+Imports Microsoft.VisualBasic.DocumentFormat.Csv.Extensions
+Imports Microsoft.VisualBasic.DocumentFormat.Csv.StorageProvider.Reflection
+Imports Microsoft.VisualBasic.Text
 
 Namespace LocalBLAST.Application.RpsBLAST
 
@@ -62,6 +61,7 @@ Namespace LocalBLAST.Application.RpsBLAST
         End Sub
 
         Public Overloads Function Get_COGClassify(QueryGrepMethod As TextGrepMethod, Optional DescriptionGrepMethod As TextGrepMethod = Nothing) As DocumentStream.File
+
             Return ClassifyCOGs.Get_COGClassify(_RpsBLAST.LastBLASTOutputFilePath, QueryGrepMethod, DescriptionGrepMethod)
         End Function
 
@@ -91,7 +91,7 @@ Namespace LocalBLAST.Application.RpsBLAST
 
                 Return File
             Else
-                Return New DocumentStream.File
+                Return New Microsoft.VisualBasic.DocumentFormat.Csv.DocumentStream.File
             End If
         End Function
 

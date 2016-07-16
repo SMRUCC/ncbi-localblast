@@ -1,4 +1,4 @@
-﻿#Region "Microsoft.VisualBasic::c977d7efdd953abdbfe1e30331aa3ba7, ..\localblast\LocalBLAST\Analysis\Models\Besthit.vb"
+﻿#Region "Microsoft.VisualBasic::80353ae60b2efc906749f259d0ffe490, ..\interops\localblast\LocalBLAST\Analysis\Models\Besthit.vb"
 
     ' Author:
     ' 
@@ -29,7 +29,7 @@ Imports System.Xml.Serialization
 Imports Microsoft.VisualBasic.DocumentFormat.Csv
 Imports Microsoft.VisualBasic
 Imports Microsoft.VisualBasic.Language
-Imports LANS.SystemsBiology.Assembly.NCBI.GenBank
+Imports SMRUCC.genomics.Assembly.NCBI.GenBank
 Imports Microsoft.VisualBasic.Linq
 
 Namespace Analysis
@@ -194,12 +194,10 @@ Namespace Analysis
                            Where Not String.IsNullOrEmpty(hit.HitName)
                            Select hit
                            Group By hit.tag Into Group).ToArray
-            Dim Id As String() =
-                LinqAPI.Exec(Of String) <= From hit In Grouped
-                                           Where hit.Group.Count >= p * (Grouped.Length - 1)
-                                           Select hit.tag
-            Dim setValue = New SetValue(Of HitCollection)() _
-                .GetSet(NameOf(HitCollection.Hits))
+            Dim Id As String() = (From hit In Grouped
+                                  Where hit.Group.Count >= p * (Grouped.Count - 1)
+                                  Select hit.tag).ToArray
+            Dim setValue = New SetValue(Of HitCollection) <= NameOf(HitCollection.Hits)
             Dim hits As HitCollection() =
                 LinqAPI.Exec(Of HitCollection) <= From hit As HitCollection
                                                   In Me.hits

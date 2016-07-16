@@ -1,4 +1,4 @@
-﻿#Region "Microsoft.VisualBasic::1311c9475945c7a722687a45d4ce6a75, ..\localblast\LocalBLAST\LocalBLAST\LocalBLAST\Application\BBH\BBHParser.vb"
+﻿#Region "Microsoft.VisualBasic::3c0d2a3ee112705732f53dbc56bfb5bc, ..\interops\localblast\LocalBLAST\LocalBLAST\LocalBLAST\Application\BBH\BBHParser.vb"
 
     ' Author:
     ' 
@@ -30,11 +30,11 @@ Imports Microsoft.VisualBasic.DocumentFormat.Csv.Extensions
 Imports Microsoft.VisualBasic.Scripting.MetaData
 Imports Microsoft.VisualBasic.CommandLine.Reflection
 Imports Microsoft.VisualBasic
-Imports LANS.SystemsBiology.Assembly.Expasy.Database
-Imports LANS.SystemsBiology.Assembly
+Imports SMRUCC.genomics.Assembly.Expasy.Database
+Imports SMRUCC.genomics.Assembly
 Imports Microsoft.VisualBasic.DocumentFormat.Csv
 Imports Microsoft.VisualBasic.Linq
-Imports LANS.SystemsBiology.Assembly.Expasy.AnnotationsTool
+Imports SMRUCC.genomics.Assembly.Expasy.AnnotationsTool
 Imports System.Runtime.CompilerServices
 Imports Microsoft.VisualBasic.Language
 

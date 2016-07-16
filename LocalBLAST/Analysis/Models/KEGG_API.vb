@@ -1,4 +1,4 @@
-﻿#Region "Microsoft.VisualBasic::515e993deace564c262a8adb624a2d85, ..\localblast\LocalBLAST\Analysis\Models\KEGG_API.vb"
+﻿#Region "Microsoft.VisualBasic::7ce0309e9b24c5d47fc9572a4cc6422a, ..\interops\localblast\LocalBLAST\Analysis\Models\KEGG_API.vb"
 
     ' Author:
     ' 
@@ -26,7 +26,7 @@
 #End Region
 
 Imports System.Runtime.CompilerServices
-Imports LANS.SystemsBiology.Assembly.KEGG.DBGET.bGetObject
+Imports SMRUCC.genomics.Assembly.KEGG.DBGET.bGetObject
 Imports Microsoft.VisualBasic.Language
 
 Namespace Analysis

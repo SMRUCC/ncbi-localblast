@@ -1,4 +1,4 @@
-﻿#Region "Microsoft.VisualBasic::c0092a134fde989e22c192fbc067113c, ..\localblast\LocalBLAST\LocalBLAST\BlastOutput\Reader\Blast+\2.2.28\Hits\Blastn.vb"
+﻿#Region "Microsoft.VisualBasic::15c0cde2fefaa3e31e5d3dfb52f4bd04, ..\interops\localblast\LocalBLAST\LocalBLAST\BlastOutput\Reader\Blast+\2.2.28\Hits\Blastn.vb"
 
     ' Author:
     ' 
@@ -26,7 +26,7 @@
 #End Region
 
 Imports System.Text.RegularExpressions
-Imports LANS.SystemsBiology.ComponentModel.Loci
+Imports SMRUCC.genomics.ComponentModel.Loci
 
 Namespace LocalBLAST.BLASTOutput.BlastPlus
 
@@ -58,13 +58,13 @@ Namespace LocalBLAST.BLASTOutput.BlastPlus
 
         Public Overrides ReadOnly Property QueryLocation As Location
             Get
-                Return New LANS.SystemsBiology.ComponentModel.Loci.NucleotideLocation(MyBase.QueryLocation, _queryStrand)
+                Return New SMRUCC.genomics.ComponentModel.Loci.NucleotideLocation(MyBase.QueryLocation, _queryStrand)
             End Get
         End Property
 
         Public Overrides ReadOnly Property SubjectLocation As Location
             Get
-                Return New LANS.SystemsBiology.ComponentModel.Loci.NucleotideLocation(MyBase.SubjectLocation, _referenceStrand)
+                Return New SMRUCC.genomics.ComponentModel.Loci.NucleotideLocation(MyBase.SubjectLocation, _referenceStrand)
             End Get
         End Property
 

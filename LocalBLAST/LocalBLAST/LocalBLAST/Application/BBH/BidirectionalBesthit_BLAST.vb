@@ -1,27 +1,27 @@
-﻿#Region "Microsoft.VisualBasic::a8e96f20a6cc4c16d1eb38eb4e45e1bd, ..\localblast\LocalBLAST\LocalBLAST\LocalBLAST\Application\BBH\BidirectionalBesthit_BLAST.vb"
+﻿#Region "Microsoft.VisualBasic::c6674676a438f9661c5fcf9d4c7e226e, ..\interops\localblast\LocalBLAST\LocalBLAST\LocalBLAST\Application\BBH\BidirectionalBesthit_BLAST.vb"
 
-' Author:
-' 
-'       asuka (amethyst.asuka@gcmodeller.org)
-'       xieguigang (xie.guigang@live.com)
-' 
-' Copyright (c) 2016 GPL3 Licensed
-' 
-' 
-' GNU GENERAL PUBLIC LICENSE (GPL3)
-' 
-' This program is free software: you can redistribute it and/or modify
-' it under the terms of the GNU General Public License as published by
-' the Free Software Foundation, either version 3 of the License, or
-' (at your option) any later version.
-' 
-' This program is distributed in the hope that it will be useful,
-' but WITHOUT ANY WARRANTY; without even the implied warranty of
-' MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-' GNU General Public License for more details.
-' 
-' You should have received a copy of the GNU General Public License
-' along with this program. If not, see <http://www.gnu.org/licenses/>.
+    ' Author:
+    ' 
+    '       asuka (amethyst.asuka@gcmodeller.org)
+    '       xieguigang (xie.guigang@live.com)
+    ' 
+    ' Copyright (c) 2016 GPL3 Licensed
+    ' 
+    ' 
+    ' GNU GENERAL PUBLIC LICENSE (GPL3)
+    ' 
+    ' This program is free software: you can redistribute it and/or modify
+    ' it under the terms of the GNU General Public License as published by
+    ' the Free Software Foundation, either version 3 of the License, or
+    ' (at your option) any later version.
+    ' 
+    ' This program is distributed in the hope that it will be useful,
+    ' but WITHOUT ANY WARRANTY; without even the implied warranty of
+    ' MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    ' GNU General Public License for more details.
+    ' 
+    ' You should have received a copy of the GNU General Public License
+    ' along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #End Region
 
@@ -31,8 +31,7 @@ Imports Microsoft.VisualBasic.DocumentFormat.Csv.StorageProvider.Reflection
 Imports Microsoft.VisualBasic.DocumentFormat.Csv.Extensions
 Imports Microsoft.VisualBasic.Text
 Imports Microsoft.VisualBasic.DocumentFormat.Csv
-Imports LANS.SystemsBiology.SequenceModel.FASTA
-Imports Microsoft.VisualBasic.Language
+Imports SMRUCC.genomics.SequenceModel.FASTA
 
 Namespace LocalBLAST.Application.BBH
 
@@ -42,21 +41,27 @@ Namespace LocalBLAST.Application.BBH
     ''' <remarks></remarks>
     Public NotInheritable Class BidirectionalBesthit_BLAST
 
-        Public ReadOnly Property WorkDIR As String
-
         ''' <summary>
         ''' 本地BLAST的中间服务
         ''' </summary>
         ''' <remarks></remarks>
-        Public ReadOnly Property LocalBLASTService As LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.InteropService.InteropService
+        Protected Friend _LocalBLASTService As LocalBLAST.InteropService.InteropService
+        Protected Friend _WorkDir As String
 
-        ''' <summary>
-        ''' 
-        ''' </summary>
-        ''' <param name="LocalBLAST"></param>
-        ''' <param name="work">The work space directory path</param>
-        Sub New(LocalBLAST As LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.InteropService.InteropService, work As String)
-            Me._WorkDIR = work
+        Public ReadOnly Property WorkDir As String
+            Get
+                Return _WorkDir
+            End Get
+        End Property
+
+        Public ReadOnly Property LocalBLASTServices As LocalBLAST.InteropService.InteropService
+            Get
+                Return Me._LocalBLASTService
+            End Get
+        End Property
+
+        Sub New(LocalBLAST As LocalBLAST.InteropService.InteropService, WorkDir As String)
+            Me._WorkDir = WorkDir
             Me._LocalBLASTService = LocalBLAST
         End Sub
 
@@ -78,7 +83,7 @@ Namespace LocalBLAST.Application.BBH
             Call _LocalBLASTService.FormatDb(Query, _LocalBLASTService.MolTypeProtein).Start(WaitForExit:=True)
             Call _LocalBLASTService.FormatDb(Subject, _LocalBLASTService.MolTypeProtein).Start(WaitForExit:=True)
 
-            Dim WorkDir As String = Me._WorkDIR & "/" & IO.Path.GetFileNameWithoutExtension(Subject) & "/"
+            Dim WorkDir As String = Me._WorkDir & "/" & IO.Path.GetFileNameWithoutExtension(Subject) & "/"
 
             Call FileIO.FileSystem.CreateDirectory(WorkDir)
 
@@ -92,7 +97,7 @@ Namespace LocalBLAST.Application.BBH
             Call Log.Grep(QueryGrepMethod, Nothing) '由于在MetaCyc数据库之中的FASTA文件的标题格式都是一样的，故而在这里就都使用一样的方法来解析名称了
             Dim Log_QvS As Microsoft.VisualBasic.DocumentFormat.Csv.DocumentStream.File = If(ExportAll, Log.ExportAllBestHist, Log.ExportBestHit).ToCsvDoc
 
-            Call Trim(LANS.SystemsBiology.SequenceModel.FASTA.FastaFile.Read(Subject), Log_QvS, HitsGrepMethod)
+            Call Trim(SMRUCC.genomics.SequenceModel.FASTA.FastaFile.Read(Subject), Log_QvS, HitsGrepMethod)
             Call Log_QvS.Save(String.Format("{0}\{1}_vs_{2}.csv", WorkDir, IO.Path.GetFileNameWithoutExtension(Query), IO.Path.GetFileNameWithoutExtension(Subject)), False)
 
 #If DEBUG Then
@@ -104,10 +109,10 @@ Namespace LocalBLAST.Application.BBH
             Log = _LocalBLASTService.GetLastLogFile
             Call Log.Grep(HitsGrepMethod, Nothing)
             Dim Log_SvQ = If(ExportAll, Log.ExportAllBestHist, Log.ExportBestHit)
-            Call Trim(LANS.SystemsBiology.SequenceModel.FASTA.FastaFile.Read(Query), Log_SvQ.ToCsvDoc, QueryGrepMethod)
+            Call Trim(SMRUCC.genomics.SequenceModel.FASTA.FastaFile.Read(Query), Log_SvQ.ToCsvDoc, QueryGrepMethod)
             Call Log_SvQ.SaveTo(String.Format("{0}\{1}_vs_{2}.csv", WorkDir, IO.Path.GetFileNameWithoutExtension(Subject), IO.Path.GetFileNameWithoutExtension(Query)), False)
 
-            Call printf("END_OF_BIDIRECTION_BLAST():: start to build up the best mathced protein pair.")
+            Call Printf("END_OF_BIDIRECTION_BLAST():: start to build up the best mathced protein pair.")
 
             Dim result = If(ExportAll, GetDirreBhAll2(Log_SvQ.ToCsvDoc, Log_QvS), BBHTop(Log_SvQ.ToCsvDoc, Log_QvS)) '????顺序反了？
             Return result
@@ -133,7 +138,7 @@ Namespace LocalBLAST.Application.BBH
         ''' <returns></returns>
         ''' <remarks></remarks>
         Public Function Paralogs(Fasta As String, GrepMethod As TextGrepMethod) As BBH.BestHit()
-            Dim Output As String = Me._WorkDIR & "/" & IO.Path.GetFileNameWithoutExtension(Fasta) & "_paralogs.txt"
+            Dim Output As String = Me._WorkDir & "/" & IO.Path.GetFileNameWithoutExtension(Fasta) & "_paralogs.txt"
 
             Call Me._LocalBLASTService.FormatDb(Fasta, dbType:=_LocalBLASTService.MolTypeProtein).Start(WaitForExit:=True)
             Call Me._LocalBLASTService.Blastp(Fasta, Fasta, Output).Start(WaitForExit:=True)
@@ -142,14 +147,9 @@ Namespace LocalBLAST.Application.BBH
 
             Call Log.Grep(AddressOf GrepMethod.Invoke, AddressOf GrepMethod.Invoke)
 
-            Dim bh As BestHit() = Log.ExportAllBestHist ' 符合最佳条件，但是不是自身的记录都是旁系同源
-            bh = LinqAPI.Exec(Of BestHit) <= From besthit As BestHit
-                                             In bh.AsParallel
-                                             Where Not String.Equals(
-                                                 besthit.QueryName,
-                                                 besthit.HitName,
-                                                 StringComparison.OrdinalIgnoreCase)
-                                             Select besthit
+            Dim bh = Log.ExportAllBestHist '符合最佳条件，但是不是自身的记录都是旁系同源
+            bh = (From besthit In bh.AsParallel Where Not String.Equals(besthit.QueryName, besthit.HitName, StringComparison.OrdinalIgnoreCase) Select besthit).ToArray
+
             Return bh
         End Function
     End Class

@@ -1,4 +1,4 @@
-﻿#Region "Microsoft.VisualBasic::714b8c4a3d0795fdb0759b8bcb1553c4, ..\localblast\LocalBLAST\LocalBLAST\LocalBLAST\Program\LocalBLAST.vb"
+﻿#Region "Microsoft.VisualBasic::49f16f28fb91c5e6b90981157ae4d30e, ..\interops\localblast\LocalBLAST\LocalBLAST\LocalBLAST\Program\LocalBLAST.vb"
 
     ' Author:
     ' 
@@ -443,8 +443,8 @@ Namespace LocalBLAST.Programs
             FormatDbAssembly = (BlastBin & "/formatdb.exe").CliPath
         End Sub
 
-        Public Shared Widening Operator CType(BLASTBin As String) As LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Programs.LocalBLAST
-            Return New LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Programs.LocalBLAST(BLASTBin)
+        Public Shared Widening Operator CType(BLASTBin As String) As LocalBLAST
+            Return New LocalBLAST(BLASTBin)
         End Operator
 
 #Region "LocalBLAST"

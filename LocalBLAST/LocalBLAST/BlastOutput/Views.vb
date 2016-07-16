@@ -1,4 +1,4 @@
-﻿#Region "Microsoft.VisualBasic::39b7206c58644ce7bbeee3d8c03a798d, ..\localblast\LocalBLAST\LocalBLAST\BlastOutput\Views.vb"
+﻿#Region "Microsoft.VisualBasic::058685beff8af9da2abb45091eccf606, ..\interops\localblast\LocalBLAST\LocalBLAST\BlastOutput\Views.vb"
 
     ' Author:
     ' 
@@ -26,7 +26,7 @@
 #End Region
 
 Imports System.Xml.Serialization
-Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.BBH
+Imports SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.Application.BBH
 Imports Microsoft.VisualBasic.ComponentModel.Collection.Generic
 Imports Microsoft.VisualBasic.DocumentFormat.Csv
 Imports Microsoft.VisualBasic.Language

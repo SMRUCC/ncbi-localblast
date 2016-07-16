@@ -1,4 +1,4 @@
-﻿#Region "Microsoft.VisualBasic::bad9d6d24c63bae7b4a55a19a85f3c98, ..\localblast\LocalBLAST\Web\ParserAPI.vb"
+﻿#Region "Microsoft.VisualBasic::364ae502db9c5f39a238dcb78dc847ce, ..\interops\localblast\LocalBLAST\Web\ParserAPI.vb"
 
     ' Author:
     ' 
@@ -26,8 +26,8 @@
 #End Region
 
 Imports System.Runtime.CompilerServices
-Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus
-Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus.BlastX
+Imports SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus
+Imports SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus.BlastX
 Imports Microsoft.VisualBasic.Language
 Imports Microsoft.VisualBasic.Linq
 Imports Microsoft.VisualBasic.Language.UnixBash
@@ -92,15 +92,14 @@ Namespace NCBIBlastResult
 
         Public Function CreateFromBlastn(sourceDIR As String) As AlignmentTable
             Dim Files = (From path As String
-                         In ls - l - r - wildcards("*.txt") <= sourceDIR
-                         Let XOutput As v228 =
-                             Parser.LoadBlastOutput(path)
+                         In FileIO.FileSystem.GetFiles(sourceDIR, FileIO.SearchOption.SearchAllSubDirectories, "*.txt")
+                         Let XOutput As v228 = Parser.LoadBlastOutput(path)
                          Where Not XOutput Is Nothing AndAlso
                              Not XOutput.Queries.IsNullOrEmpty
                          Select ID = path.BaseName,
                              XOutput).ToArray
             Dim LQuery As HitRecord() = (From file In Files Select __createFromBlastn(file.ID, file.XOutput)).MatrixToVector
-            Dim Tab As New AlignmentTable With {
+            Dim Tab As AlignmentTable = New AlignmentTable With {
                 .Hits = LQuery,
                 .Query = (From file In Files
                           Let Q As Query() =
@@ -130,21 +129,20 @@ Namespace NCBIBlastResult
             Return Tab
         End Function
 
-        <Extension> Private Function __hits(id As String, out As v228_BlastX) As IEnumerable(Of HitRecord)
-            Return LinqAPI.Exec(Of HitRecord) <=
-                From Query As BlastX.Components.Query
-                In out.Queries
-                Select From hsp As BlastX.Components.HitFragment
-                       In Query.Hits
-                       Let row As HitRecord = New HitRecord With {
-                           .Identity = hsp.Score.Identities.Value,
-                           .DebugTag = Query.SubjectName,
-                           .SubjectIDs = id,
-                           .BitScore = hsp.Score.RawScore,
-                           .QueryStart = hsp.Hsp.First.Query.Left,
-                           .QueryEnd = hsp.Hsp.Last.Query.Right
-                       }
-                       Select row
+        <Extension> Private Iterator Function __hits(id As String, out As v228_BlastX) As IEnumerable(Of HitRecord)
+            Yield (From Query As BlastX.Components.Query
+                   In out.Queries
+                   Select (From hsp As BlastX.Components.HitFragment
+                           In Query.Hits
+                           Let row As HitRecord = New HitRecord With {
+                               .Identity = hsp.Score.Identities.Value,
+                               .DebugTag = Query.SubjectName,
+                               .SubjectIDs = id,
+                               .BitScore = hsp.Score.RawScore,
+                               .QueryStart = hsp.Hsp.First.Query.Left,
+                               .QueryEnd = hsp.Hsp.Last.Query.Right
+                           }
+                           Select row).ToArray)
         End Function
     End Module
 End Namespace

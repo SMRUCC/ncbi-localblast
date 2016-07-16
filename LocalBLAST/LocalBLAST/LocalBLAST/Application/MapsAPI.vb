@@ -1,4 +1,4 @@
-﻿#Region "Microsoft.VisualBasic::8730107d4d895837ddfee57ac6dff4b4, ..\localblast\LocalBLAST\LocalBLAST\LocalBLAST\Application\MapsAPI.vb"
+﻿#Region "Microsoft.VisualBasic::af5a6f9b8b99de130323ec0ba0c7c7a3, ..\interops\localblast\LocalBLAST\LocalBLAST\LocalBLAST\Application\MapsAPI.vb"
 
     ' Author:
     ' 
@@ -26,7 +26,7 @@
 #End Region
 
 Imports System.Runtime.CompilerServices
-Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus
+Imports SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus
 Imports Microsoft.VisualBasic
 Imports Microsoft.VisualBasic.Language
 Imports Microsoft.VisualBasic.Parallel.Linq
@@ -56,10 +56,8 @@ Namespace LocalBLAST.Application
 
             identities *= 100
 
-            Dim preTest As Func(Of BlastnMapping, Boolean) =
-                BuildAll(Of BlastnMapping)(logics, tests.ToArray)
-            Dim test As Func(Of BlastnMapping, Boolean) =
-                Function(x) preTest(x) AndAlso (x.Identities >= identities)
+            Dim preTest As Func(Of BlastnMapping, Boolean) = BuildAll(Of BlastnMapping)(logics, tests.ToArray)
+            Dim test As Func(Of BlastnMapping, Boolean) = Function(x) preTest(x) AndAlso (x.Identities >= identities)
 
             Return test
         End Function

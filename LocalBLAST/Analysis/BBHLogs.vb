@@ -1,4 +1,4 @@
-﻿#Region "Microsoft.VisualBasic::4b6d74800b0e87bb33b5eaf107385b08, ..\localblast\LocalBLAST\Analysis\BBHLogs.vb"
+﻿#Region "Microsoft.VisualBasic::2d84cdc25e1537ce131e1da13bc68e0f, ..\interops\localblast\LocalBLAST\Analysis\BBHLogs.vb"
 
     ' Author:
     ' 
@@ -26,23 +26,23 @@
 #End Region
 
 Imports System.Runtime.CompilerServices
+Imports Microsoft.VisualBasic
 Imports Microsoft.VisualBasic.CommandLine.Reflection
 Imports Microsoft.VisualBasic.DocumentFormat.Csv
-Imports Microsoft.VisualBasic.Scripting.MetaData
-Imports Microsoft.VisualBasic.Linq.Extensions
-Imports Microsoft.VisualBasic.Text
-Imports Microsoft.VisualBasic.Parallel.Tasks
-Imports Microsoft.VisualBasic
-Imports Entry = System.Collections.Generic.KeyValuePair(Of
-    LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.BatchParallel.AlignEntry,
-    LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.BatchParallel.AlignEntry)
-Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.BatchParallel
-Imports LANS.SystemsBiology.Assembly.NCBI.GenBank.CsvExports
-Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput
-Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.BBH
-Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application
 Imports Microsoft.VisualBasic.Language
 Imports Microsoft.VisualBasic.Language.UnixBash
+Imports Microsoft.VisualBasic.Linq.Extensions
+Imports Microsoft.VisualBasic.Parallel.Tasks
+Imports Microsoft.VisualBasic.Scripting.MetaData
+Imports Microsoft.VisualBasic.Text
+Imports SMRUCC.genomics.Assembly.NCBI.GenBank.CsvExports
+Imports SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.Application
+Imports SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.Application.BatchParallel
+Imports SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.Application.BBH
+Imports SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.BLASTOutput
+Imports Entry = System.Collections.Generic.KeyValuePair(Of
+    SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.Application.BatchParallel.AlignEntry,
+    SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.Application.BatchParallel.AlignEntry)
 
 Namespace Analysis
 
@@ -240,7 +240,7 @@ RETURN_VALUE:
             For Each File In LogDataChunk
                 Dim besthitsData As BBH.BestHit() = File.logData.ExportBestHit
 
-                'If Not LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.BBH.BestHit.IsNullOrEmpty(besthitsData, TrimSelfAligned:=True) Then
+                'If Not SMRUCC.genomics.NCBI.Extensions.LocalBLAST.Application.BBH.BestHit.IsNullOrEmpty(besthitsData, TrimSelfAligned:=True) Then
                 Dim Path As String = EXPORT & "/" & IO.Path.GetFileNameWithoutExtension(File.path.FilePath) & ".besthit.csv"
                 File.path.FilePath = Path
                 Call besthitsData.SaveTo(Path, False, System.Text.Encoding.ASCII)

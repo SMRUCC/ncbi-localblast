@@ -1,4 +1,4 @@
-﻿#Region "Microsoft.VisualBasic::616613e890ddc5f60565ec3e68eb8b91, ..\localblast\LocalBLAST\Extensions.vb"
+﻿#Region "Microsoft.VisualBasic::0a850d610e5711d5096af43c36194422, ..\interops\localblast\LocalBLAST\Extensions.vb"
 
     ' Author:
     ' 
@@ -26,10 +26,9 @@
 #End Region
 
 Imports System.Runtime.CompilerServices
-Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.BBH
-Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput
-Imports LANS.SystemsBiology.SequenceModel.FASTA
-Imports Microsoft.VisualBasic.Language
+Imports SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.Application.BBH
+Imports SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.BLASTOutput
+Imports SMRUCC.genomics.SequenceModel.FASTA
 
 Public Module Extensions
 
@@ -71,11 +70,10 @@ Public Module Extensions
             Return True
         End If
 
-        Dim notNull As BestHit =
-            LinqAPI.DefaultFirst(Of BestHit) <= From bh As BestHit
-                                                In data.AsParallel
-                                                Where Not bh.Matched
-                                                Select bh
+        Dim notNull As BestHit = (From bh As BestHit
+                                  In data.AsParallel
+                                  Where Not bh.Matched
+                                  Select bh).FirstOrDefault
         Return notNull Is Nothing
     End Function
 
@@ -126,3 +124,4 @@ Public Module Extensions
         Return Blastbin.GetLastLogFile
     End Function
 End Module
+

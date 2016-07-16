@@ -1,4 +1,4 @@
-﻿#Region "Microsoft.VisualBasic::19f53ce767d772f86fcebd6ca21ddad5, ..\localblast\Tools\Program.vb"
+﻿#Region "Microsoft.VisualBasic::19f53ce767d772f86fcebd6ca21ddad5, ..\interops\localblast\Tools\Program.vb"
 
     ' Author:
     ' 

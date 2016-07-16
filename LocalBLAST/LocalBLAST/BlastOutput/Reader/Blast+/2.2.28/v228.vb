@@ -1,4 +1,4 @@
-﻿#Region "Microsoft.VisualBasic::9401e8c53427acf95d08c24a36326651, ..\localblast\LocalBLAST\LocalBLAST\BlastOutput\Reader\Blast+\2.2.28\v228.vb"
+﻿#Region "Microsoft.VisualBasic::a8d5ddff9d484be1ff486b5b0d803443, ..\interops\localblast\LocalBLAST\LocalBLAST\BlastOutput\Reader\Blast+\2.2.28\v228.vb"
 
     ' Author:
     ' 
@@ -29,14 +29,14 @@ Imports System.Text
 Imports System.Text.RegularExpressions
 Imports System.Xml.Serialization
 Imports Microsoft.VisualBasic.Extensions
+Imports Microsoft.VisualBasic.Language
 Imports Microsoft.VisualBasic.Terminal.Utility
 Imports Microsoft.VisualBasic.Text
-Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.Views
 Imports Microsoft.VisualBasic.Text.Similarity
-Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.BBH
-Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.ComponentModel
-Imports LANS.SystemsBiology.SequenceModel
-Imports Microsoft.VisualBasic.Language
+Imports SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.Application.BBH
+Imports SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.BLASTOutput.ComponentModel
+Imports SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.BLASTOutput.Views
+Imports SMRUCC.genomics.SequenceModel
 
 Namespace LocalBLAST.BLASTOutput.BlastPlus
 

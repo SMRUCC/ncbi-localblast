@@ -1,4 +1,4 @@
-﻿#Region "Microsoft.VisualBasic::6dec973714c63b5da8162d8afeff9e2f, ..\localblast\LocalBLAST\Web\SBH_Tabular.vb"
+﻿#Region "Microsoft.VisualBasic::a09b14167787852e1b1f0150cd40555a, ..\interops\localblast\LocalBLAST\Web\SBH_Tabular.vb"
 
     ' Author:
     ' 
@@ -25,14 +25,14 @@
 
 #End Region
 
-Imports Microsoft.VisualBasic.DocumentFormat.Csv.StorageProvider.Reflection
-Imports LANS.SystemsBiology.Assembly.NCBI.GenBank.CsvExports
-Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.BBH
 Imports Microsoft.VisualBasic.CommandLine.Reflection
 Imports Microsoft.VisualBasic.DocumentFormat.Csv.Extensions
-Imports Microsoft.VisualBasic.Scripting.MetaData
-Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.BatchParallel
+Imports Microsoft.VisualBasic.DocumentFormat.Csv.StorageProvider.Reflection
 Imports Microsoft.VisualBasic.Language
+Imports Microsoft.VisualBasic.Scripting.MetaData
+Imports SMRUCC.genomics.Assembly.NCBI.GenBank.CsvExports
+Imports SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.Application.BatchParallel
+Imports SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.Application.BBH
 
 Namespace NCBIBlastResult
 

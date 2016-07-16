@@ -1,4 +1,4 @@
-﻿#Region "Microsoft.VisualBasic::3636ba1a7cafef73ea623de197cdfec9, ..\localblast\LocalBLAST\LocalBLAST\BlastOutput\Xml\BireHits.vb"
+﻿#Region "Microsoft.VisualBasic::1c44a0b2c22d3f58dfc3609605bd76ff, ..\interops\localblast\LocalBLAST\LocalBLAST\BlastOutput\Xml\BireHits.vb"
 
     ' Author:
     ' 
@@ -28,7 +28,6 @@
 Imports System.Xml.Serialization
 Imports Microsoft.VisualBasic.Extensions
 Imports Microsoft.VisualBasic.Text
-Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.IBlastOutput
 
 Namespace LocalBLAST.BLASTOutput.XmlFile.Hits
 

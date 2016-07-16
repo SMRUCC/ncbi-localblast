@@ -1,4 +1,4 @@
-﻿#Region "Microsoft.VisualBasic::f369bbe98f78bca53b42f1ee5ab00b38, ..\localblast\LocalBLAST\LocalBLAST\LocalBLAST\InteropService\Operation.vb"
+﻿#Region "Microsoft.VisualBasic::b10c5631ebdab16e7222cb2d567e964c, ..\interops\localblast\LocalBLAST\LocalBLAST\LocalBLAST\InteropService\Operation.vb"
 
     ' Author:
     ' 
@@ -25,6 +25,8 @@
 
 #End Region
 
+Imports Microsoft.VisualBasic.CommandLine
+
 Namespace LocalBLAST.InteropService
 
     ''' <summary>
@@ -39,7 +41,7 @@ Namespace LocalBLAST.InteropService
             Call MyBase.New(BlastBin)
         End Sub
 
-        Public Overrides Function Blastp(InputQuery As String, TargetSubjectDb As String, Output As String, Optional e As String = "10") As CommandLine.IORedirectFile
+        Public Overrides Function Blastp(InputQuery As String, TargetSubjectDb As String, Output As String, Optional e As String = "10") As IORedirectFile
             Dim Cmdl = DirectCast(ProgramProfile.GetCommand("blastp"), Executable.Executable_BLAST).CreateCommand(InputQuery, TargetSubjectDb, e, Output)
             MyBase._InternalLastBLASTOutputFile = Output
             Return Cmdl
@@ -48,13 +50,13 @@ Namespace LocalBLAST.InteropService
         Public Overrides Function GetLastLogFile() As BLASTOutput.IBlastOutput
             Select Case ProgramProfile.Name.ToLower
                 Case "localblast"
-                    Return LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.Standard.BLASTOutput.TryParse(_InternalLastBLASTOutputFile)
+                    Return BLASTOutput.Standard.BLASTOutput.TryParse(_InternalLastBLASTOutputFile)
                 Case "blast+"
-                    Return LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus.Parser.TryParse(_InternalLastBLASTOutputFile)
+                    Return BLASTOutput.BlastPlus.Parser.TryParse(_InternalLastBLASTOutputFile)
                 Case "rpsblast"
-                    Return LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus.Parser.TryParse(_InternalLastBLASTOutputFile)
+                    Return BLASTOutput.BlastPlus.Parser.TryParse(_InternalLastBLASTOutputFile)
                 Case Else
-                    Return LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.XmlFile.BlastOutput.LoadFromFile(_InternalLastBLASTOutputFile)
+                    Return BLASTOutput.XmlFile.BlastOutput.LoadFromFile(_InternalLastBLASTOutputFile)
             End Select
         End Function
 
@@ -66,12 +68,13 @@ Namespace LocalBLAST.InteropService
         ''' <returns></returns>
         ''' <remarks></remarks>
         Public Shared Function CreateObject(BlastBin As String, TypeId As String) As Operation
-            Dim LQuery = (From profileItem As LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.InteropService.ProgramProfiles In LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.InteropService.ProgramProfiles.DefaultProfiles
+            Dim LQuery = (From profileItem As ProgramProfiles
+                          In ProgramProfiles.DefaultProfiles
                           Where String.Equals(profileItem.Name, TypeId, StringComparison.OrdinalIgnoreCase)
                           Select profileItem).ToArray
             If LQuery.IsNullOrEmpty Then
                 Return New Operation(BlastBin) With {
-                    .ProgramProfile = NCBI.Extensions.LocalBLAST.InteropService.ProgramProfiles.LocalBLAST
+                    .ProgramProfile = ProgramProfiles.LocalBLAST
                 }
             Else
                 Return New Operation(BlastBin) With {
@@ -95,13 +98,13 @@ Namespace LocalBLAST.InteropService
             }
         End Function
 
-        Public Overloads Overrides Function Blastn(Input As String, TargetDb As String, Output As String, Optional e As String = "10") As CommandLine.IORedirectFile
+        Public Overloads Overrides Function Blastn(Input As String, TargetDb As String, Output As String, Optional e As String = "10") As IORedirectFile
             Dim Cmdl = DirectCast(ProgramProfile.GetCommand("blastn"), Executable.Executable_BLAST).CreateCommand(Input, TargetDb, e, Output)
             MyBase._InternalLastBLASTOutputFile = Output
             Return Cmdl
         End Function
 
-        Public Overloads Overrides Function FormatDb(Db As String, dbType As String) As CommandLine.IORedirectFile
+        Public Overloads Overrides Function FormatDb(Db As String, dbType As String) As IORedirectFile
             Dim Cmdl = DirectCast(ProgramProfile.GetCommand("builddb"), Executable.Executable_BuildDB).CreateCommand(Db, dbType)
             Return Cmdl
         End Function

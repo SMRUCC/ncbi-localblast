@@ -1,4 +1,4 @@
-﻿#Region "Microsoft.VisualBasic::0f39953d8f49704d2d40fdbca2b8dfed, ..\localblast\LocalBLAST\LocalBLAST\BlastOutput\Reader\Blast+\2.2.28\BlastX\Components.vb"
+﻿#Region "Microsoft.VisualBasic::d3dc985a740c4ec11855aecf50eb8f31, ..\interops\localblast\LocalBLAST\LocalBLAST\BlastOutput\Reader\Blast+\2.2.28\BlastX\Components.vb"
 
     ' Author:
     ' 
@@ -25,7 +25,7 @@
 
 #End Region
 
-Imports LANS.SystemsBiology.ComponentModel.Loci
+Imports SMRUCC.genomics.ComponentModel.Loci
 
 Namespace LocalBLAST.BLASTOutput.BlastPlus.BlastX.Components
 
@@ -77,9 +77,7 @@ Namespace LocalBLAST.BLASTOutput.BlastPlus.BlastX.Components
 
         Public ReadOnly Property SubjectLength As Integer
             Get
-                Dim left As Integer = If(Hsp.IsNullOrEmpty OrElse Hsp.First Is Nothing, 0, Hsp.First.Sbjct.Left)
-                Dim right As Integer = If(Hsp.IsNullOrEmpty OrElse Hsp.Last Is Nothing, 0, Hsp.Last.Sbjct.Right)
-                Return Math.Abs(right - left)
+                Return Math.Abs(Hsp.Last.Sbjct.Right - Hsp.First.Sbjct.Left)
             End Get
         End Property
 
@@ -103,10 +101,7 @@ Namespace LocalBLAST.BLASTOutput.BlastPlus.BlastX.Components
 
         Public ReadOnly Property QueryLoci As Location
             Get
-                Dim left As Integer = If(Hsp.IsNullOrEmpty OrElse Hsp.First Is Nothing, 0, Hsp.First.Query.Left)
-                Dim right As Integer = If(Hsp.IsNullOrEmpty OrElse Hsp.Last Is Nothing, 0, Hsp.Last.Query.Right)
-
-                Return New Location(left, right)
+                Return New Location(Hsp.First.Query.Left, Hsp.Last.Query.Right)
             End Get
         End Property
 

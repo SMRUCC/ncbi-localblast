@@ -1,4 +1,4 @@
-﻿#Region "Microsoft.VisualBasic::f5673bc0b96d37cacc21bf894d76f922, ..\localblast\LocalBLAST\Analysis\LocalBLAST.vb"
+﻿#Region "Microsoft.VisualBasic::8002b52cfb14b76c0dd37520d21bdf36, ..\interops\localblast\LocalBLAST\Analysis\LocalBLAST.vb"
 
     ' Author:
     ' 
@@ -27,8 +27,8 @@
 
 Imports Microsoft.VisualBasic.ComponentModel
 Imports Microsoft.VisualBasic
-Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.InteropService
-Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.BatchParallel
+Imports SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.InteropService
+Imports SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.Application.BatchParallel
 
 Namespace Analysis
 

@@ -1,4 +1,4 @@
-﻿#Region "Microsoft.VisualBasic::db0b1b161211394b279543d5b84280a6, ..\localblast\LocalBLAST\Web\MetaAPI.vb"
+﻿#Region "Microsoft.VisualBasic::8690de877cb53dccf23851e9de3935d0, ..\interops\localblast\LocalBLAST\Web\MetaAPI.vb"
 
     ' Author:
     ' 
@@ -26,9 +26,9 @@
 #End Region
 
 Imports System.Runtime.CompilerServices
-Imports LANS.SystemsBiology.Assembly.NCBI.GenBank.TabularFormat
-Imports LANS.SystemsBiology.Assembly.NCBI.GenBank.TabularFormat.ComponentModels
-Imports LANS.SystemsBiology.ContextModel
+Imports SMRUCC.genomics.Assembly.NCBI.GenBank.TabularFormat
+Imports SMRUCC.genomics.Assembly.NCBI.GenBank.TabularFormat.ComponentModels
+Imports SMRUCC.genomics.ContextModel
 Imports Microsoft.VisualBasic.DocumentFormat.Csv
 Imports Microsoft.VisualBasic.Language
 Imports Microsoft.VisualBasic.Language.UnixBash

@@ -1,4 +1,4 @@
-﻿#Region "Microsoft.VisualBasic::86e1563e6b6cefacfafd466d945b4842, ..\localblast\LocalBLAST\LocalBLAST\LocalBLAST\Application\BatchParallel\AlignEntry.vb"
+﻿#Region "Microsoft.VisualBasic::ebeeb099f0537fdd4eb2efe876418fc5, ..\interops\localblast\LocalBLAST\LocalBLAST\LocalBLAST\Application\BatchParallel\AlignEntry.vb"
 
     ' Author:
     ' 
@@ -25,7 +25,7 @@
 
 #End Region
 
-Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.Application.BBH
+Imports SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.Application.BBH
 Imports Microsoft.VisualBasic.Language
 
 Namespace LocalBLAST.Application.BatchParallel

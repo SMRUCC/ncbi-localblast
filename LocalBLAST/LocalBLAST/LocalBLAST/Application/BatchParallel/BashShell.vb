@@ -1,4 +1,4 @@
-﻿#Region "Microsoft.VisualBasic::b6a9115f65b73c35a470e694071a6e3d, ..\localblast\LocalBLAST\LocalBLAST\LocalBLAST\Application\BatchParallel\BashShell.vb"
+﻿#Region "Microsoft.VisualBasic::b6a9115f65b73c35a470e694071a6e3d, ..\interops\localblast\LocalBLAST\LocalBLAST\LocalBLAST\Application\BatchParallel\BashShell.vb"
 
     ' Author:
     ' 

@@ -1,4 +1,4 @@
-﻿#Region "Microsoft.VisualBasic::b91809c49d3884273c65c998dff5d5e3, ..\localblast\LocalBLAST\Extension.vb"
+﻿#Region "Microsoft.VisualBasic::5ffbe68dfedf15ebdf1c3c959744afed, ..\interops\localblast\LocalBLAST\Extension.vb"
 
     ' Author:
     ' 
@@ -28,3 +28,4 @@
 Public Class Extension
 
 End Class
+

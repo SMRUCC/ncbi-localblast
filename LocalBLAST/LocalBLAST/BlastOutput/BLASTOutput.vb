@@ -1,4 +1,4 @@
-﻿#Region "Microsoft.VisualBasic::bb2d9df7bd0cb9c18461d11a45572e77, ..\localblast\LocalBLAST\LocalBLAST\BlastOutput\BLASTOutput.vb"
+﻿#Region "Microsoft.VisualBasic::1402387ec237a37f284c6e9e383a37ec, ..\interops\localblast\LocalBLAST\LocalBLAST\BlastOutput\BLASTOutput.vb"
 
     ' Author:
     ' 
@@ -27,11 +27,11 @@
 
 Imports System.Web.Script.Serialization
 Imports System.Xml.Serialization
-Imports LANS.SystemsBiology.NCBI.Extensions.LocalBLAST.BLASTOutput.Views
-Imports LANS.SystemsBiology.SequenceModel.FASTA
 Imports Microsoft.VisualBasic.ComponentModel
 Imports Microsoft.VisualBasic.DocumentFormat.Csv.Extensions
 Imports Microsoft.VisualBasic.Text
+Imports SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.BLASTOutput.Views
+Imports SMRUCC.genomics.SequenceModel.FASTA
 
 Namespace LocalBLAST.BLASTOutput
 
