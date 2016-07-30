@@ -26,6 +26,7 @@
 #End Region
 
 Imports Microsoft.VisualBasic
+Imports Microsoft.VisualBasic.CommandLine
 Imports Microsoft.VisualBasic.CommandLine.Reflection
 Imports Microsoft.VisualBasic.DocumentFormat.Csv
 Imports Microsoft.VisualBasic.DocumentFormat.Csv.DocumentStream
@@ -37,7 +38,7 @@ Imports SMRUCC.genomics.SequenceModel.FASTA
 Partial Module CLI
 
     <ExportAPI("--Export.Fasta", Usage:="--Export.Fasta /hits <query-hits.csv> /query <query.fasta> /subject <subject.fasta>")>
-    Public Function ExportFasta(args As CommandLine.CommandLine) As Integer
+    Public Function ExportFasta(args As CommandLine) As Integer
         Dim hist = args("/hits").LoadCsv(Of BBH.BestHit)
         Dim query = New FastaFile(args("/query")).ToDictionary(Function(x) x.Title.Split.First)
         Dim subject = New FastaFile(args("/subject")).ToDictionary(Function(x) x.Title.Split.First)
@@ -45,15 +46,15 @@ Partial Module CLI
         Dim GetFasta = (From id As String In AllLocus Where query.ContainsKey(id) Select query(id)).ToList
         Call GetFasta.Add((From id As String In AllLocus Where subject.ContainsKey(id) Select subject(id)).ToArray)
 
-        Dim out As String = args("/hits").TrimFileExt & ".fasta"
+        Dim out As String = args("/hits").TrimSuffix & ".fasta"
         Return New FastaFile(GetFasta).Save(out).CLICode
     End Function
 
     <ExportAPI("/Identities.Matrix", Usage:="/Identities.Matrix /hit <sbh/bbh.csv> [/out <out.csv> /cut 0.65]")>
-    Public Function IdentitiesMAT(args As CommandLine.CommandLine) As Integer
+    Public Function IdentitiesMAT(args As CommandLine) As Integer
         Dim hit As String = args("/hit")
         Dim cut As Double = args.GetValue("/cut", 0.65)
-        Dim out As String = args.GetValue("/out", hit.TrimFileExt & $"_cut={cut}.csv")
+        Dim out As String = args.GetValue("/out", hit.TrimSuffix & $"_cut={cut}.csv")
         Dim hits = hit.LoadCsv(Of BBH.BBHIndex)
         Dim Grep As TextGrepMethod = TextGrepScriptEngine.Compile("tokens ' ' first").Method
         For Each x As BBH.BBHIndex In hits
