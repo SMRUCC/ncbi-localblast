@@ -1,9 +1,10 @@
-﻿#Region "Microsoft.VisualBasic::cb7aee4bf2108fa3a3abdb96e226c2a9, ..\interops\localblast\Tools\CLI\VennDiagram\LogFile.vb"
+﻿#Region "Microsoft.VisualBasic::87e45b0f70bdc988b80b31f1d05b3b04, ..\interops\localblast\CLI_tools\CLI\VennDiagram\LogFile.vb"
 
 ' Author:
 ' 
 '       asuka (amethyst.asuka@gcmodeller.org)
 '       xieguigang (xie.guigang@live.com)
+'       xie (genetics@smrucc.org)
 ' 
 ' Copyright (c) 2016 GPL3 Licensed
 ' 
@@ -35,6 +36,7 @@ Imports SMRUCC.genomics.Analysis.localblast.VennDiagram.BlastAPI
 Imports SMRUCC.genomics.Interops.NCBI.Extensions.Analysis
 Imports SMRUCC.genomics.Interops
 Imports Microsoft.VisualBasic.CommandLine
+Imports SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.BLASTOutput
 
 Partial Module CLI
 
@@ -46,10 +48,10 @@ Partial Module CLI
     <ExportAPI("logs_analysis", Info:="Parsing the xml format blast log into a csv data file that use for venn diagram drawing.",
         Usage:="logs_analysis -d <xml_logs_directory> -export <export_csv_file>",
         Example:="logs_analysis -d ~/xml_logs -export ~/Desktop/result.csv")>
-    <ParameterInfo("-d",
+    <Argument("-d",
         Description:="The data directory which contains the xml format blast log file, those xml format log file were generated from the 'venn -> blast' command.",
         Example:="~/xml_logs")>
-    <ParameterInfo("-export",
+    <Argument("-export",
         Description:="The save file path for the venn diagram drawing data csv file.",
         Example:="~/Documents/8004_venn.csv")>
     Public Function bLogAnalysis(args As CommandLine) As Integer
@@ -57,20 +59,20 @@ Partial Module CLI
         Dim LogsDir As String = args("-d")
 
         Dim ListFile = LogsPair.GetXmlFileName(LogsDir).LoadXml(Of LogsPair)()
-        Dim ListCsv = New List(Of DocumentStream.File())  '每一个文件对中的File1位主要的文件
+        Dim ListCsv = New List(Of IO.File())  '每一个文件对中的File1位主要的文件
         For Each List In ListFile.Logs
             Dim Query = From Pair In List
-                        Select LogAnalysis.TakeBestHits(SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.BLASTOutput.Standard.BLASTOutput.Load(Pair.File1),
-                            SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.BLASTOutput.Standard.BLASTOutput.Load(Pair.File2)) '获取BestHit
+                        Select LogAnalysis.TakeBestHits(Legacy.BLASTOutput.Load(Pair.Query),
+                            Legacy.BLASTOutput.Load(Pair.Target)) '获取BestHit
             Call ListCsv.Add(Query.ToArray)
         Next
-        Dim LastFile = SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.BLASTOutput.Standard.BLASTOutput.Load(ListFile.Logs.Last.Last.File2)
-        Call ListCsv.Add(New DocumentStream.File() {(From Query In LastFile.Queries.AsParallel Select Query.QueryName).ToArray})
+        Dim LastFile = Legacy.BLASTOutput.Load(ListFile.Logs.Last.Last.Target)
+        Call ListCsv.Add(New IO.File() {(From Query In LastFile.Queries.AsParallel Select Query.QueryName).ToArray})
 
-        Dim MergeResult = (From List In ListCsv Select LogAnalysis.Merge(dataset:=List)).ToList
+        Dim MergeResult = (From List In ListCsv Select LogAnalysis.Merge(dataset:=List)).AsList
         Dim Csv = CLI.__mergeFile(MergeResult)  '合并文件，获取最终绘制文氏图所需要的数据文件
 
-        Return Csv.Save(Path:=CsvFile).CLICode
+        Return Csv.Save(path:=CsvFile).CLICode
     End Function
 
     ''' <summary>
@@ -84,7 +86,7 @@ Partial Module CLI
                                  "You can also done this id parsing job using other tools.",
         Usage:="grep -i <xml_log_file> -q <script_statements> -h <script_statements>",
         Example:="grep -i C:\Users\WORKGROUP\Desktop\blast_xml_logs\1__8004_ecoli_prot.log.xml -q ""tokens | 4"" -h ""'tokens | 2';'tokens ' ' 0'""")>
-    <ParameterInfo("-q", False,
+    <Argument("-q", False,
         Description:="The parsing script for parsing the gene_id from the blast log file, this switch value is consist of sevral operation " &
                      "tokens, and each token is separate by the ';' character and the token unit in each script token should seperate by " &
                      "the ' character.\n" &
@@ -97,7 +99,7 @@ Partial Module CLI
                      "   usage:   match <regular_expression>\n" &
                      "   Example: match .+[-]\d{5}",
         Example:="'tokens | 5';'match .+[-].+'")>
-    <ParameterInfo("-h",
+    <Argument("-h",
         Description:="The parsing script for parsing the gene_id from the blast log file, this switch value is consist of sevral operation " &
                      "tokens, and each token is separate by the ';' character and the token unit in each script token should seperate by " &
                      "the ' character.\n" &
@@ -119,8 +121,7 @@ Partial Module CLI
             Return -1
         End If
 
-        Using File As SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.BLASTOutput.Standard.BLASTOutput =
-            SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.BLASTOutput.Standard.BLASTOutput.Load(XmlFile) 'Depose 操作的时候会自动保存
+        Using File As Legacy.BLASTOutput = Legacy.BLASTOutput.Load(XmlFile) 'Depose 操作的时候会自动保存
             Call File.Grep(Query:=AddressOf GrepScriptQuery.Grep, Hits:=AddressOf GrepScriptHit.Grep)
         End Using
 

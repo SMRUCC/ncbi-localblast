@@ -1,9 +1,10 @@
-﻿#Region "Microsoft.VisualBasic::058685beff8af9da2abb45091eccf606, ..\interops\localblast\LocalBLAST\LocalBLAST\BlastOutput\Views.vb"
+﻿#Region "Microsoft.VisualBasic::4231e72b1fc8e9cbe56d46e01fb59336, ..\interops\localblast\LocalBLAST\LocalBLAST\BlastOutput\Views.vb"
 
     ' Author:
     ' 
     '       asuka (amethyst.asuka@gcmodeller.org)
     '       xieguigang (xie.guigang@live.com)
+    '       xie (genetics@smrucc.org)
     ' 
     ' Copyright (c) 2016 GPL3 Licensed
     ' 
@@ -122,8 +123,8 @@ Namespace LocalBLAST.BLASTOutput.Views
         End Function
     End Class
 
-    Public Structure Query : Implements sIdEnumerable
-        <XmlAttribute> Public Property Id As String Implements sIdEnumerable.Identifier
+    Public Structure Query : Implements INamedValue
+        <XmlAttribute> Public Property Id As String Implements INamedValue.Key
         <XmlElement> Public Property Hits As BestHit()
 
         Public Overrides Function ToString() As String

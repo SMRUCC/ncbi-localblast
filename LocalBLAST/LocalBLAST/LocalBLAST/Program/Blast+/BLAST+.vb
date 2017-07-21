@@ -4,6 +4,7 @@
     ' 
     '       asuka (amethyst.asuka@gcmodeller.org)
     '       xieguigang (xie.guigang@live.com)
+    '       xie (genetics@smrucc.org)
     ' 
     ' Copyright (c) 2016 GPL3 Licensed
     ' 
@@ -31,7 +32,9 @@ Imports Microsoft.VisualBasic.CommandLine
 Namespace LocalBLAST.Programs
 
     ''' <summary>
-    ''' 请注意：当目标FASTA序列文件的文件路径中的空格字符过多的时候，BLAST+程序组将不能够很好的工作，故而当程序出错的时候，请检查文件路径是否存在此问题
+    ''' The ``&lt;space>`` char can not exists in the input fasta file path, or blast+ program will run into an error.
+    ''' (请注意：当目标FASTA序列文件的文件路径中的空格字符过多的时候，BLAST+程序组将不能够很好的工作，故而当程序出错的时候，
+    ''' 请检查文件路径是否存在此问题)
     ''' </summary>
     ''' <remarks></remarks>
     Public Class BLASTPlus : Inherits InteropService.InteropService
@@ -60,12 +63,16 @@ Namespace LocalBLAST.Programs
         Dim _makeBlastDbAsm As String
         Dim _blastpAssembly, _blastnAssembly As String
 
-        Sub New(BlastBin As String)
-            Call MyBase.New(BlastBin)
+        ''' <summary>
+        ''' 
+        ''' </summary>
+        ''' <param name="bin">The ``bin`` directory for the NCBI blast+ suite.</param>
+        Sub New(bin As String)
+            Call MyBase.New(bin)
 
-            Me._makeBlastDbAsm = String.Format("{0}\makeblastdb.exe", BlastBin).CliPath
-            Me._blastpAssembly = String.Format("{0}\blastp.exe", BlastBin).CliPath
-            Me._blastnAssembly = String.Format("{0}\blastn.exe", BlastBin).CliPath
+            _makeBlastDbAsm = String.Format("{0}\makeblastdb.exe", bin).CLIPath
+            _blastpAssembly = String.Format("{0}\blastp.exe", bin).CLIPath
+            _blastnAssembly = String.Format("{0}\blastn.exe", bin).CLIPath
         End Sub
 
         Const MAKE_BLAST_DB_PROT As String = "-dbtype prot -in ""{0}"""

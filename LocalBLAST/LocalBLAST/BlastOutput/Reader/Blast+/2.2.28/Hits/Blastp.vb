@@ -1,9 +1,10 @@
-﻿#Region "Microsoft.VisualBasic::63c1bee3a648388407b32b4ccbd36bf6, ..\interops\localblast\LocalBLAST\LocalBLAST\BlastOutput\Reader\Blast+\2.2.28\Hits\Blastp.vb"
+﻿#Region "Microsoft.VisualBasic::012ae178c8978b02e82ebfd831984ed8, ..\interops\localblast\LocalBLAST\LocalBLAST\BlastOutput\Reader\Blast+\2.2.28\Hits\Blastp.vb"
 
     ' Author:
     ' 
     '       asuka (amethyst.asuka@gcmodeller.org)
     '       xieguigang (xie.guigang@live.com)
+    '       xie (genetics@smrucc.org)
     ' 
     ' Copyright (c) 2016 GPL3 Licensed
     ' 
@@ -29,6 +30,7 @@ Imports System.Text.RegularExpressions
 Imports System.Xml.Serialization
 Imports Microsoft.VisualBasic.Language
 Imports Microsoft.VisualBasic.Linq
+Imports Microsoft.VisualBasic.Scripting.Runtime
 Imports SMRUCC.genomics.ComponentModel.Loci
 Imports SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.BLASTOutput.ComponentModel
 
@@ -120,22 +122,19 @@ Namespace LocalBLAST.BLASTOutput.BlastPlus
             Return LQuery
         End Function
 
-        Protected Const PAIRWISE As String = "Query\s+\d+\s+.+?\s+\d+.+?Sbjct\s+\d+\s+.+?\s+\d+"
+        Protected Const PAIRWISE$ = "Query\s+\d+\s+.+?\s+\d+.+?Sbjct\s+\d+\s+.+?\s+\d+"
 
-        Public Shared Function TryParse(Text As String) As SubjectHit
-            Dim name As String = Strings.Split(Text, "Length=").First.TrimA
-            Dim Length As Long = CLng(Text.Match("Length=\d+").RegexParseDouble)
+        Public Shared Function TryParse(text As String) As SubjectHit
+            Dim name As String = Strings.Split(text, "Length=").First.TrimNewLine
+            Dim l As Long = CLng(text.Match("Length=\d+").RegexParseDouble)
 
-            Dim strHsp As String() =
-                Regex.Matches(Text,
-                              PAIRWISE,
-                              RegexOptions.Singleline +
-                              RegexOptions.IgnoreCase).ToArray
+            Dim strHsp$() = Regex.Matches(
+                text, PAIRWISE, RegexICSng).ToArray
 
             Dim hit As New SubjectHit With {
-                .Score = Score.TryParse(Of Score)(Text),
+                .Score = Score.TryParse(Of Score)(text),
                 .Name = name,
-                .Length = Length,
+                .Length = l,
                 .Hsp = ParseHitSegments(strHsp)
             }
 

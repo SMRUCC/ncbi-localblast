@@ -1,9 +1,10 @@
-﻿#Region "Microsoft.VisualBasic::b588a969f6f8839e6a90be83716ae46c, ..\interops\localblast\Tools\CLI\gbTools.vb"
+﻿#Region "Microsoft.VisualBasic::d8f3f80e68ef2c0c98c3a269854d44a4, ..\interops\localblast\CLI_tools\CLI\gbTools.vb"
 
 ' Author:
 ' 
 '       asuka (amethyst.asuka@gcmodeller.org)
 '       xieguigang (xie.guigang@live.com)
+'       xie (genetics@smrucc.org)
 ' 
 ' Copyright (c) 2016 GPL3 Licensed
 ' 
@@ -34,19 +35,23 @@ Imports Microsoft.VisualBasic.ComponentModel.DataSourceModel
 Imports Microsoft.VisualBasic.Data.csv
 Imports Microsoft.VisualBasic.Language
 Imports Microsoft.VisualBasic.Language.UnixBash
+Imports Microsoft.VisualBasic.Language.UnixBash.FileSystem
 Imports Microsoft.VisualBasic.Linq
 Imports Microsoft.VisualBasic.Serialization.JSON
 Imports Microsoft.VisualBasic.Terminal
+Imports Microsoft.VisualBasic.Text
 Imports SMRUCC.genomics.Assembly.NCBI.GenBank
 Imports SMRUCC.genomics.Assembly.NCBI.GenBank.GBFF.Keywords.FEATURES
 Imports SMRUCC.genomics.Assembly.NCBI.GenBank.TabularFormat
 Imports SMRUCC.genomics.Assembly.NCBI.GenBank.TabularFormat.ComponentModels
+Imports SMRUCC.genomics.Assembly.NCBI.GenBank.TabularFormat.GFF
 Imports SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.BLASTOutput
 Imports SMRUCC.genomics.SequenceModel.FASTA
 
 Partial Module CLI
 
     <ExportAPI("/Print", Usage:="/Print /in <inDIR> [/ext <ext> /out <out.Csv>]")>
+    <Group(CLIGrouping.GenbankTools)>
     Public Function Print(args As CommandLine) As Integer
         Dim ext As String = args.GetValue("/ext", "*.*")
         Dim inDIR As String = args - "/in"
@@ -58,11 +63,15 @@ Partial Module CLI
                                                       In files
                                                       Let name As String = file.BaseName
                                                       Let genome As String = file.ParentDirName
-                                                      Select New NamedValue(Of String)(genome, name)
+                                                      Select New NamedValue(Of String) With {
+                                                          .Name = genome,
+                                                          .Value = name
+                                                      }
         Return content.SaveTo(out).CLICode
     End Function
 
     <ExportAPI("/Export.gpff", Usage:="/Export.gpff /in <genome.gpff> /gff <genome.gff> [/out <out.PTT>]")>
+    <Group(CLIGrouping.GenbankTools)>
     Public Function EXPORTgpff(args As CommandLine) As Integer
         Dim [in] As String = args("/in")
         Dim out As String = args.GetValue("/out", [in].TrimSuffix & ".PTT")
@@ -74,8 +83,8 @@ Partial Module CLI
         VBDebugger.Mute = True
 
         Dim gpff As IEnumerable(Of GBFF.File) = GBFF.File.LoadDatabase([in])
-        Dim gff As GFF = TabularFormat.GFF.LoadDocument(gffFile)
-        Dim CDSHash = (From x As TabularFormat.Feature
+        Dim gff As GFFTable = GFFTable.LoadDocument(gffFile)
+        Dim CDSHash = (From x As GFF.Feature
                        In gff.GetsAllFeatures(FeatureKeys.Features.CDS)
                        Select x
                        Group x By x.ProteinId Into Group) _
@@ -93,6 +102,7 @@ Partial Module CLI
     End Function
 
     <ExportAPI("/Export.gpffs", Usage:="/Export.gpffs [/in <inDIR>]")>
+    <Group(CLIGrouping.GenbankTools)>
     Public Function EXPORTgpffs(args As CommandLine) As Integer
         Dim inDIR As String = args.GetValue("/in", App.CurrentDirectory)
         Dim gpffs As IEnumerable(Of String) = ls - l - r - wildcards("*.gpff") <= inDIR
@@ -127,6 +137,7 @@ Partial Module CLI
     End Function
 
     <ExportAPI("/Copy.PTT", Usage:="/Copy.PTT /in <inDIR> [/out <outDIR>]")>
+    <Group(CLIGrouping.GenbankTools)>
     Public Function CopyPTT(args As CommandLine) As Integer
         Dim inDIR As String = args("/in")
         Dim EXPORT As String = args.GetValue("/out", inDIR & "-Copy/")
@@ -136,13 +147,36 @@ Partial Module CLI
             Dim title As String = file.ReadFirstLine
             title = Regex.Replace(title, " [-] \d+\s\.\.\s\d+", "", RegexICSng).Trim
             Dim out As String = EXPORT & $"/{title.NormalizePathString(False)}.PTT"
-            file.ReadAllText.SaveTo(out, Encodings.ASCII.GetEncodings)
+            file.ReadAllText.SaveTo(out, Encodings.ASCII.CodePage)
+        Next
+
+        Return 0
+    End Function
+
+    <ExportAPI("/Copy.Fasta",
+               Info:="Copy target type files from different sub directory into a directory.",
+               Usage:="/Copy.Fasta /imports <DIR> [/type <faa,fna,ffn,fasta,...., default:=faa> /out <DIR>]")>
+    Public Function CopyFasta(args As CommandLine) As Integer
+        Dim in$ = args <= "/imports"
+        Dim type$ = args.GetValue("/type", "faa")
+        Dim out As String = args.GetValue("/out", [in].TrimDIR & "." & type)
+
+        type = "*." & type
+
+        For Each DIR As String In ls - l - lsDIR <= [in]
+            Dim dName$ = DIR.BaseName
+
+            For Each file$ In ls - l - r - type <= DIR$
+                Dim path$ = out & "/" & dName & "_" & file.FileName
+                Call file.ReadAllText.SaveTo(path)
+            Next
         Next
 
         Return 0
     End Function
 
     <ExportAPI("/Merge.faa", Usage:="/Merge.faa /in <DIR> /out <out.fasta>")>
+    <Group(CLIGrouping.GenbankTools)>
     Public Function MergeFaa(args As CommandLine) As Integer
         Dim inDIR As String = args - "/in"
         Dim out As String = args.GetValue("/out", inDIR & "/faa.fasta")
@@ -156,6 +190,7 @@ Partial Module CLI
     End Function
 
     <ExportAPI("/Export.BlastX", Usage:="/Export.BlastX /in <blastx.txt> [/out <out.csv>]")>
+    <Group(CLIGrouping.GenbankTools)>
     Public Function ExportBlastX(args As CommandLine) As Integer
         Dim [in] As String = args - "/in"
         Dim out As String = args.GetValue("/out", [in].TrimSuffix & ".blastx.csv")
@@ -167,8 +202,9 @@ Partial Module CLI
     <ExportAPI("/Export.gb",
                Info:="Export the *.fna, *.faa, *.ptt file from the gbk file.",
                Usage:="/Export.gb /gb <genbank.gb/DIR> [/out <outDIR> /simple /batch]")>
-    <ParameterInfo("/simple", True, AcceptTypes:={GetType(Boolean)},
+    <Argument("/simple", True, AcceptTypes:={GetType(Boolean)},
                    Description:="Fasta sequence short title, which is just only contains locus_tag")>
+    <Group(CLIGrouping.GenbankTools)>
     Public Function ExportPTTDb(args As CommandLine) As Integer
         Dim gb As String = args("/gb")
         Dim batch As Boolean = args.GetBoolean("/batch")
@@ -199,7 +235,7 @@ Partial Module CLI
         Dim PTT As TabularFormat.PTT = gb.GbffToORF_PTT
         Dim Faa As New FastaFile(If(simple, gb.ExportProteins_Short, gb.ExportProteins))
         Dim Fna As FastaToken = gb.Origin.ToFasta
-        Dim GFF As TabularFormat.GFF = gb.ToGff
+        Dim GFF As GFFTable = gb.ToGff
         Dim name As String = gb.Source.SpeciesName  ' 
         Dim ffn As FastaFile = gb.ExportGeneNtFasta
 
@@ -213,10 +249,26 @@ Partial Module CLI
         Call ffn.Save(out & $"/{name}.ffn")
     End Sub
 
+    <ExportAPI("/Export.gb.genes",
+               Usage:="/Export.gb.genes /gb <genbank.gb> [/geneName /out <out.fasta>]")>
+    <Argument("/geneName", True, CLITypes.Boolean,
+              AcceptTypes:={GetType(Boolean)},
+              Description:="If this parameter is specific as True, then this function will try using geneName as the fasta sequence title, or using locus_tag value as default.")>
+    <Group(CLIGrouping.GenbankTools)>
+    Public Function ExportGenesFasta(args As CommandLine) As Integer
+        Dim gb$ = args <= "/gb"
+        Dim geneName As Boolean = args.GetBoolean("/geneName")
+        Dim out As String = args.GetValue("/out", gb.TrimSuffix & ".genes.fasta")
+        Dim genbank As GBFF.File = GBFF.File.Load(gb)
+        Dim ffn As FastaFile = genbank.ExportGeneNtFasta(geneName)
+        Return ffn.Save(out, Encoding.ASCII).CLICode
+    End Function
+
     <ExportAPI("/add.locus_tag",
                Info:="Add locus_tag qualifier into the feature slot.",
                Usage:="/add.locus_tag /gb <gb.gbk> /prefix <prefix> [/add.gene /out <out.gb>]")>
-    <ParameterInfo("/add.gene", True, Description:="Add gene features?")>
+    <Argument("/add.gene", True, Description:="Add gene features?")>
+    <Group(CLIGrouping.GenbankTools)>
     Public Function AddLocusTag(args As CommandLine) As Integer
         Dim gbFile As String = args("/gb")
         Dim prefix As String = args("/prefix")
@@ -231,11 +283,11 @@ Partial Module CLI
                           x
                       Group By uid Into Group).ToArray
 
-        Dim idx As Integer = 1
+        Dim idx As int = 1
 
         For Each geneX In LQuery
             Dim locusId As String =
-                $"{prefix}_{STDIO.ZeroFill(idx.MoveNext, 4)}"
+                $"{prefix}_{STDIO.ZeroFill(++idx, 4)}"
 
             For Each feature In geneX.Group
                 feature.x.SetValue(FeatureQualifiers.locus_tag, locusId)
@@ -252,6 +304,7 @@ Partial Module CLI
     End Function
 
     <ExportAPI("/add.names", Usage:="/add.names /anno <anno.csv> /gb <genbank.gbk> [/out <out.gbk> /tag <overrides_name>]")>
+    <Group(CLIGrouping.GenbankTools)>
     Public Function AddNames(args As CommandLine) As Integer
         Dim inFile As String = args("/anno")
         Dim gbFile As String = args("/gb")
@@ -267,7 +320,7 @@ Partial Module CLI
             Next
         Next
 
-        Return gb.Save(out, Encodings.ASCII.GetEncodings).CLICode
+        Return gb.Save(out, Encodings.ASCII.CodePage).CLICode
     End Function
 End Module
 

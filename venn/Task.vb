@@ -1,8 +1,36 @@
-﻿Imports System.Runtime.CompilerServices
+﻿#Region "Microsoft.VisualBasic::f0a8617f6d807fdf96b4a7f59d4f5f1a, ..\interops\localblast\venn\Task.vb"
+
+    ' Author:
+    ' 
+    '       asuka (amethyst.asuka@gcmodeller.org)
+    '       xieguigang (xie.guigang@live.com)
+    '       xie (genetics@smrucc.org)
+    ' 
+    ' Copyright (c) 2016 GPL3 Licensed
+    ' 
+    ' 
+    ' GNU GENERAL PUBLIC LICENSE (GPL3)
+    ' 
+    ' This program is free software: you can redistribute it and/or modify
+    ' it under the terms of the GNU General Public License as published by
+    ' the Free Software Foundation, either version 3 of the License, or
+    ' (at your option) any later version.
+    ' 
+    ' This program is distributed in the hope that it will be useful,
+    ' but WITHOUT ANY WARRANTY; without even the implied warranty of
+    ' MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    ' GNU General Public License for more details.
+    ' 
+    ' You should have received a copy of the GNU General Public License
+    ' along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+#End Region
+
+Imports System.Runtime.CompilerServices
 Imports Microsoft.VisualBasic
 Imports Microsoft.VisualBasic.CommandLine
 Imports Microsoft.VisualBasic.CommandLine.Reflection
-Imports Microsoft.VisualBasic.ComponentModel
+Imports Microsoft.VisualBasic.ComponentModel.Algorithm.base
 Imports Microsoft.VisualBasic.Data.csv
 Imports Microsoft.VisualBasic.Data.csv.Extensions
 Imports Microsoft.VisualBasic.Language
@@ -36,7 +64,7 @@ Namespace BlastAPI
 
         <ExportAPI("Blast_Plus.Handle.Creates", Info:="Creates the blastp+ program handle automaticaly from the environment variable.")>
         Public Function CreateHandle() As BLASTPlus
-            Return New BLASTPlus(GCModeller.FileSystem.GetLocalBlast)
+            Return New BLASTPlus(GCModeller.FileSystem.GetLocalblast)
         End Function
 
         <ExportAPI("Blast_Plus.Session.New()")>
@@ -51,7 +79,7 @@ Namespace BlastAPI
                                        <Parameter("Invoke.Blastp",
                                                   "If using this parameter and specific FALSE value, then the function will " &
                                                   "create the blastn handle or create the blastp handle as default.")>
-                                       Optional Blastp As Boolean = True) As INVOKE_BLAST_HANDLE
+                                       Optional Blastp As Boolean = True) As BlastInvoker
 
             If Blastp Then
                 Return BuildBLASTP_InvokeHandle(SessionHandle)
@@ -61,7 +89,7 @@ Namespace BlastAPI
         End Function
 
         <ExportAPI("BlastpHandle.From.Blastbin", Info:="Creates the blastp invoke handle from the installed location of the blast program group.")>
-        Public Function InvokeCreateBlastpHandle(<Parameter("Blast.Bin", "The program group of the local blast program group.")> DIR As String) As INVOKE_BLAST_HANDLE
+        Public Function InvokeCreateBlastpHandle(<Parameter("Blast.Bin", "The program group of the local blast program group.")> DIR As String) As BlastInvoker
             Return BuildBLASTP_InvokeHandle(New BLASTPlus(DIR))
         End Function
 #End Region
@@ -90,7 +118,7 @@ Namespace BlastAPI
             End If
 
             Call FileIO.FileSystem.CreateDirectory(EXPORT)
-            Call Handle.FormatDb(Subject, Handle.MolTypeProtein).Start(WaitForExit:=True)
+            Call Handle.FormatDb(Subject, Handle.MolTypeProtein).Start(waitForExit:=True)
 
             Dim tasks As IORedirectFile() =
             LinqAPI.Exec(Of IORedirectFile) <= From Path As PathEntry
@@ -103,7 +131,7 @@ Namespace BlastAPI
                                                    e:=Evalue,
                                                    Output:=log)
                                                Select invoke
-            Dim runTask As Func(Of IORedirectFile, Integer) = Function(x) x.Start(WaitForExit:=True)
+            Dim runTask As Func(Of IORedirectFile, Integer) = Function(x) x.Start(waitForExit:=True)
 
             If Parallel Then
                 Call BatchTask(tasks, runTask, numThreads)
@@ -120,105 +148,110 @@ Namespace BlastAPI
         ''' Query -> {Subjects}
         ''' </summary>
         ''' <param name="Handle"></param>
-        ''' <param name="Query"></param>
-        ''' <param name="Subject"></param>
+        ''' <param name="query"></param>
+        ''' <param name="subject"></param>
         ''' <param name="EXPORT"></param>
         ''' <param name="Evalue"></param>
-        ''' <param name="[Overrides]"></param>
+        ''' <param name="[overrides]"></param>
         ''' <returns></returns>
         <ExportAPI("Blastp.Invoke_Batch")>
-        Public Function BatchBlastp(<Parameter("Handle.Blastp", "This handle value is the blastp handle, not blastn handle.")> Handle As INVOKE_BLAST_HANDLE,
-                                <Parameter("Path.Query", "The file path value of the query protein fasta data.")> Query As String,
-                                <Parameter("Dir.Subject", "The data directory which contains the subject protein fasta data.")> Subject As String,
-                                <Parameter("Dir.Export", "The data directory for export the blastp data between the query and subject.")> EXPORT As String,
-                                <Parameter("E-Value", "The blastp except value.")> Optional Evalue As String = "1e-3",
-                                <Parameter("Exists.Overriding", "Overrides the exists blastp result if the file length is not ZERO length.")>
-                                Optional [Overrides] As Boolean = False,
-                                Optional numThreads As Integer = -1) As String()
+        Public Function BatchBlastp(<Parameter("blastp", "This handle value is the blastp handle, not blastn handle.")> Handle As BlastInvoker,
+                                    <Parameter("FASTA.query", "The file path value of the query protein fasta data.")> query$,
+                                    <Parameter("DIR.subject", "The data directory which contains the subject protein fasta data.")> subject$,
+                                    <Parameter("DIR.EXPORT", "The data directory for export the blastp data between the query and subject.")> EXPORT$,
+                                    <Parameter("E-value", "The blastp except value.")>
+                                    Optional Evalue$ = "1e-3",
+                                    <Parameter("exists.overrides", "Overrides the exists blastp result if the file length is not ZERO length.")>
+                                    Optional [overrides] As Boolean = False,
+                                    Optional numThreads% = -1) As String()
 
-            Dim Subjects As Dictionary(Of String, String) =
-            Subject.LoadSourceEntryList({"*.fasta", "*.fsa", "*.txt", "*.faa"})
+            Dim subjects As Dictionary(Of String, String) =
+                subject.LoadSourceEntryList({"*.fasta", "*.fsa", "*.txt", "*.faa"})
 
-            If Not FileIO.FileSystem.FileExists(Query) Then
-                Dim msg As String = String.Format(QueryNotFound, Query.ToFileURL)
+            If Not query.FileExists Then
+                Dim msg As String = String.Format(QueryNotFound, query.ToFileURL)
                 Throw New Exception(msg)
+            Else
+                Call EXPORT.MkDIR
             End If
 
-            Call FileIO.FileSystem.CreateDirectory(EXPORT)
-
-            Dim task As Func(Of String, String) = Function(x) Handle(Query,
-                                                                 subject:=x,
-                                                                 evalue:=Evalue,
-                                                                 EXPORT:=EXPORT,
-                                                                 num_threads:=Environment.ProcessorCount / 2,
-                                                                 [overrides]:=[Overrides])
+            Dim task As Func(Of String, String) =
+                Function(x) Handle(query,
+                                   subject:=x,
+                                   evalue:=Evalue,
+                                   EXPORT:=EXPORT,
+                                   num_threads:=Environment.ProcessorCount / 2,
+                                   [overrides]:=[overrides])
             Dim LQuery As String() = BatchTask(Of String, String)(
-            Subjects.Values,
-            task,
-            numThreads:=numThreads)
+                subjects.Values,
+                task,
+                numThreads:=numThreads)
             Return LQuery
         End Function
 
-        <ExportAPI("BBH.Start()", Info:="Only perfermence the bbh analysis for the query protein fasta, the subject source parameter is the fasta data dir path of the subject proteins.")>
-        Public Function BBH(<Parameter("Handle.Blastp", "This handle value is the blastp handle, not blastn handle.")> Handle As INVOKE_BLAST_HANDLE,
-                        <Parameter("Path.Query", "The file path value of the query protein fasta data.")> Query As String,
-                        <Parameter("DIR.Subject", "The data directory which contains the subject protein fasta data.")> Subject As String,
-                        <Parameter("DIR.Export", "The data directory for export the blastp data between the query and subject.")> EXPORT As String,
-                        <Parameter("E-Value", "The blastp except value.")> Optional Evalue As String = "1e-3",
-                        <Parameter("Exists.Overriding", "Overrides the exists blastp result if the file length is not ZERO length.")>
-                        Optional [Overrides] As Boolean = False) As AlignEntry()
+        <ExportAPI("BBH.Start()",
+                   Info:="Only perfermence the bbh analysis for the query protein fasta, the subject source parameter is the fasta data dir path of the subject proteins.")>
+        Public Function BBH(<Parameter("Handle.Blastp", "This handle value is the blastp handle, not blastn handle.")> handle As BlastInvoker,
+                            <Parameter("Path.Query", "The file path value of the query protein fasta data.")> query As String,
+                            <Parameter("DIR.Subject", "The data directory which contains the subject protein fasta data.")> subject As String,
+                            <Parameter("DIR.Export", "The data directory for export the blastp data between the query and subject.")> EXPORT As String,
+                            <Parameter("E-Value", "The blastp except value.")>
+                            Optional Evalue As String = "1e-3",
+                            <Parameter("Exists.Overriding", "Overrides the exists blastp result if the file length is not ZERO length.")>
+                            Optional [overrides] As Boolean = False) As AlignEntry()
 
-            If Not FileIO.FileSystem.FileExists(Query) Then
-                Throw New Exception($"Could not found the query protein fasta file ""{Query.ToFileURL}""!")
+            If Not query.FileExists Then
+                Throw New Exception($"Could not found the query protein fasta file ""{query.ToFileURL}""!")
+            Else
+                Call EXPORT.MkDIR
             End If
 
-            Dim Subjects = Subject.LoadSourceEntryList({"*.fasta", "*.fsa", "*.txt"})
+            Dim run As Func(Of PathEntry, String()) =
+                Function(path) __bbh(path, query, Evalue, EXPORT, handle, [overrides])
+            Dim subjects As Dictionary(Of String, String) =
+                subject.LoadSourceEntryList({"*.fasta", "*.fsa", "*.txt"})
+            Dim LQuery As IEnumerable(Of String) = subjects _
+                .AsParallel _
+                .Select(run) _
+                .IteratesALL
 
-            Call FileIO.FileSystem.CreateDirectory(EXPORT)
-
-            Dim LQuery As IEnumerable(Of String) = (From Path As PathEntry
-                                                In Subjects.AsParallel
-                                                    Select __bbh(Path, Query, Evalue, EXPORT, Handle, [Overrides])).MatrixAsIterator
             Return LQuery.ToArray(AddressOf LogNameParser)
         End Function
 
         ''' <summary>
         ''' query -> hits;   hits -> query
         ''' </summary>
-        ''' <param name="Path"></param>
-        ''' <param name="Query"></param>
+        ''' <param name="path"></param>
+        ''' <param name="query"></param>
         ''' <param name="Evalue"></param>
         ''' <param name="EXPORT"></param>
-        ''' <param name="Handle"></param>
-        ''' <param name="[Overrides]"></param>
+        ''' <param name="handle"></param>
+        ''' <param name="[overrides]"></param>
         ''' <returns></returns>
-        Private Function __bbh(Path As PathEntry,
-                           Query As String,
-                           Evalue As String,
-                           EXPORT As String,
-                           Handle As INVOKE_BLAST_HANDLE,
-                           [Overrides] As Boolean) As String()
-            Dim Files As List(Of String) = New List(Of String) +
-            Handle(Query, Path.Value, 1, Evalue, EXPORT, [Overrides]) +
-            Handle(Path.Value, Query, 1, Evalue, EXPORT, [Overrides])
-            Return Files.ToArray
+        Private Function __bbh(path As PathEntry, query$, Evalue$, EXPORT$, handle As BlastInvoker, [overrides] As Boolean) As String()
+            Dim files As List(Of String) =
+                New List(Of String) +
+                    handle(query, path.Value, 1, Evalue, EXPORT, [overrides]) +
+                    handle(path.Value, query, 1, Evalue, EXPORT, [overrides])
+
+            Return files.ToArray
         End Function
 
         <ExportAPI("Integrity.Checks")>
-        Public Function CheckIntegrity(<Parameter("Blastp.Handle")> Handle As INVOKE_BLAST_HANDLE,
+        Public Function CheckIntegrity(<Parameter("Blastp.Handle")> Handle As BlastInvoker,
                                    <Parameter("Dir.Source.Input", "The data directory which contains the protein sequence fasta files.")> Input As String,
                                    <Parameter("Dir.Blastp.Export", "The data directory for export the blastp result.")> EXPORT As String,
                                    <Parameter("E-value")> Optional Evalue As String = "1e-3") _
                                 As <FunctionReturns("The file log path which is not integrity.")> String()
 
             Dim Files As IEnumerable(Of String) = ls - l - r - wildcards("*.fasta", "*.fsa", "*.fa") <= Input
-            Dim ComboList = Comb(Of String).CreateCompleteObjectPairs(Files).MatrixAsIterator
+            Dim ComboList = Comb(Of String).CreateCompleteObjectPairs(Files).IteratesALL
 
             Call FileIO.FileSystem.CreateDirectory(EXPORT)
 
-            Dim LQuery As String() = (From paired As KeyValuePair(Of String, String)
-                                  In ComboList.AsParallel
-                                      Let PathLog As String = BuildFileName(paired.Key, paired.Value, EXPORT)
+            Dim LQuery As String() = (From paired As Tuple(Of String, String)
+                                      In ComboList.AsParallel
+                                      Let PathLog As String = BuildFileName(paired.Item1, paired.Item2, EXPORT)
                                       Let InternalInvoke = paired.__invokeInner(PathLog, Handle, Evalue, EXPORT)
                                       Where Not String.IsNullOrEmpty(InternalInvoke)
                                       Select InternalInvoke).ToArray
@@ -226,17 +259,21 @@ Namespace BlastAPI
         End Function
 
         <Extension>
-        Private Function __invokeInner(paired As KeyValuePair(Of String, String),
+        Private Function __invokeInner(paired As Tuple(Of String, String),
                                PathLog As String,
-                               Handle As INVOKE_BLAST_HANDLE,
+                               Handle As BlastInvoker,
                                Evalue As String,
                                EXPORT As String) As String
-            If NCBILocalBlast.FastCheckIntegrityProvider(FastaFile.Read(paired.Key), PathLog) Then
+            If NCBILocalBlast.FastCheckIntegrityProvider(FastaFile.Read(paired.Item1), PathLog) Then
                 Call Console.Write(".")
                 Return ""
             Else
                 Call VBDebugger.Warning($"File ""{PathLog.ToFileURL}"" is incorrect!")
-                Return Handle(query:=paired.Key, subject:=paired.Value, evalue:=Evalue, EXPORT:=EXPORT, num_threads:=Environment.ProcessorCount / 2, [overrides]:=True)
+                Return Handle(query:=paired.Item1, subject:=paired.Item2,
+                              evalue:=Evalue,
+                              EXPORT:=EXPORT,
+                              num_threads:=Environment.ProcessorCount / 2,
+                              [overrides]:=True)
             End If
         End Function
 
@@ -252,7 +289,7 @@ Namespace BlastAPI
         ''' <returns></returns>
         ''' <remarks></remarks>
         <ExportAPI("_Start_Task()", Info:="Completely combination of the blastp search result for creating the venn diagram data model.")>
-        Public Function StartTask(<Parameter("Blastp.Handle")> Handle As INVOKE_BLAST_HANDLE,
+        Public Function StartTask(<Parameter("Blastp.Handle")> Handle As BlastInvoker,
                               <Parameter("Dir.Source.Input", "The data directory which contains the protein sequence fasta files.")> Input As String,
                               <Parameter("Dir.Blastp.Export", "The data directory for export the blastp result.")> EXPORT As String,
                               <Parameter("E-value")> Optional Evalue As String = "1e-3",

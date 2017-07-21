@@ -4,6 +4,7 @@
     ' 
     '       asuka (amethyst.asuka@gcmodeller.org)
     '       xieguigang (xie.guigang@live.com)
+    '       xie (genetics@smrucc.org)
     ' 
     ' Copyright (c) 2016 GPL3 Licensed
     ' 
@@ -26,15 +27,26 @@
 #End Region
 
 Imports System.Runtime.CompilerServices
-Imports SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus
-Imports Microsoft.VisualBasic
 Imports Microsoft.VisualBasic.Language
+Imports Microsoft.VisualBasic.Linq
 Imports Microsoft.VisualBasic.Parallel.Linq
-Imports Microsoft.VisualBasic.Scripting
+Imports Microsoft.VisualBasic.Scripting.Runtime
+Imports SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.BLASTOutput.BlastPlus
 
 Namespace LocalBLAST.Application
 
     Public Module MapsAPI
+
+        ''' <summary>
+        ''' ```vbnet
+        ''' Math.Abs(map.QueryRight - map.QueryLeft) / map.QueryLength
+        ''' ```
+        ''' </summary>
+        ''' <param name="map"></param>
+        ''' <returns></returns>
+        <Extension> Public Function GetCoverage(map As BlastnMapping) As Double
+            Return Math.Abs(map.QueryRight - map.QueryLeft) / map.QueryLength
+        End Function
 
         Public Function Where(full As Boolean,
                               perfect As Boolean,
@@ -73,8 +85,7 @@ Namespace LocalBLAST.Application
             Dim LQuery As BlastnMapping() =
                 LinqAPI.Exec(Of BlastnMapping) <= From hitMapping As SubjectHit
                                                   In Query.SubjectHits
-                                                  Let blastnHitMapping As BlastnHit =
-                                                      hitMapping.As(Of BlastnHit)
+                                                  Let blastnHitMapping As BlastnHit = DirectCast(hitMapping, BlastnHit)
                                                   Select __createObject(Query, blastnHitMapping)
             Call __setUnique(LQuery)
             Return LQuery
@@ -151,19 +162,52 @@ Namespace LocalBLAST.Application
         ''' 从blastn日志文件之中导出fastq对基因组的比对的结果
         ''' </summary>
         ''' <param name="blastnMapping"></param>
+        ''' <param name="best">前提是query里面的hit的原有的顺序没有被破坏掉</param>
         ''' <returns></returns>
-        ''' 
         <Extension>
-        Public Function Export(blastnMapping As v228) As BlastnMapping()
-            Return Export(blastnMapping.Queries)
+        Public Function Export(blastnMapping As v228,
+                               Optional best As Boolean = False,
+                               Optional track$ = Nothing,
+                               Optional parallel As Boolean = True) As BlastnMapping()
+
+            Dim out As BlastnMapping()
+
+            If Not best Then
+                out = blastnMapping.Queries.Export
+            Else
+                out = Export(
+                    blastnMapping _
+                    .Queries _
+                    .Select(Function(query) As Query
+                                Dim copy As New Query(query)
+
+                                If copy.SubjectHits.IsNullOrEmpty Then
+                                    copy.SubjectHits = {}
+                                Else
+                                    copy.SubjectHits = {
+                                    copy.SubjectHits.First
+                                }
+                                End If
+
+                                Return copy
+                            End Function), parallel)
+            End If
+
+            If Not String.IsNullOrEmpty(track) Then
+                For Each x As BlastnMapping In out
+                    x.Extensions = New Dictionary(Of String, String)
+                    x.Extensions.Add(NameOf(track), track)
+                Next
+            End If
+
+            Return out
         End Function
 
         <Extension>
-        Public Function Export(lstQuery As Query()) As BlastnMapping()
-            Dim LQuery As BlastnMapping() =
-                LinqAPI.Exec(Of BlastnMapping) <= From query As Query
-                                                  In lstQuery.AsParallel
-                                                  Select MapsAPI.CreateObject(query)
+        Public Function Export(lstQuery As IEnumerable(Of Query), Optional parallel As Boolean = True) As BlastnMapping()
+            Dim LQuery As BlastnMapping() = lstQuery _
+                .ToArray(AddressOf MapsAPI.CreateObject, parallel) _
+                .ToVector
             Return LQuery
         End Function
 

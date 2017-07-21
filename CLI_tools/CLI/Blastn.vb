@@ -1,9 +1,10 @@
-﻿#Region "Microsoft.VisualBasic::96cd50d387a90a51d058aa3ffca1dadd, ..\interops\localblast\Tools\CLI\Blastn.vb"
+﻿#Region "Microsoft.VisualBasic::d3dc3ee0a0651fa8b2c62c1802cdadb5, ..\interops\localblast\CLI_tools\CLI\Blastn.vb"
 
 ' Author:
 ' 
 '       asuka (amethyst.asuka@gcmodeller.org)
 '       xieguigang (xie.guigang@live.com)
+'       xie (genetics@smrucc.org)
 ' 
 ' Copyright (c) 2016 GPL3 Licensed
 ' 
@@ -25,15 +26,23 @@
 
 #End Region
 
+Imports System.IO
 Imports System.Runtime.CompilerServices
+Imports System.Text.RegularExpressions
+Imports Microsoft.VisualBasic
 Imports Microsoft.VisualBasic.CommandLine
 Imports Microsoft.VisualBasic.CommandLine.Reflection
+Imports Microsoft.VisualBasic.ComponentModel.Collection
 Imports Microsoft.VisualBasic.Data.csv
-Imports Microsoft.VisualBasic.Data.csv.DocumentStream.Linq
+Imports Microsoft.VisualBasic.Data.csv.IO.Linq
 Imports Microsoft.VisualBasic.Language
 Imports Microsoft.VisualBasic.Language.UnixBash
 Imports Microsoft.VisualBasic.Linq
 Imports Microsoft.VisualBasic.Parallel.Linq
+Imports Microsoft.VisualBasic.Serialization.JSON
+Imports Microsoft.VisualBasic.Text
+Imports SMRUCC.genomics.Assembly.NCBI
+Imports SMRUCC.genomics.Assembly.NCBI.Taxonomy
 Imports SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST
 Imports SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.Application
 Imports SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.Application.BBH
@@ -45,6 +54,7 @@ Imports SMRUCC.genomics.SequenceModel.FASTA
 Partial Module CLI
 
     <ExportAPI("/Export.Blastn", Usage:="/Export.Blastn /in <in.txt> [/out <out.csv>]")>
+    <Group(CLIGrouping.BlastnTools)>
     Public Function ExportBlastn(args As CommandLine) As Integer
         Dim inFile As String = args("/in")
         Dim out As String = args.GetValue("/out", inFile.TrimSuffix & ".Csv")
@@ -153,8 +163,17 @@ Partial Module CLI
 #End Region
     End Class
 
+    ''' <summary>
+    ''' 这个函数是单线程执行的
+    ''' </summary>
+    ''' <param name="args"></param>
+    ''' <returns></returns>
     <ExportAPI("/blastn.Query",
-               Usage:="/blastn.Query /query <query.fna> /db <db.DIR> [/thread /evalue 1e-5 /word_size <-1> /out <out.DIR>]")>
+               Info:="Using target fasta sequence query against all of the fasta sequence in target direcotry. This function is single thread.",
+               Usage:="/blastn.Query /query <query.fna/faa> /db <db.DIR> [/thread /evalue 1e-5 /word_size <-1> /out <out.DIR>]")>
+    <Argument("/thread", True, CLITypes.Boolean,
+              Description:="Is this CLI api running in one of the processor in thread mode for a caller API ``/blastn.Query.All``")>
+    <Group(CLIGrouping.BlastnTools)>
     Public Function BlastnQuery(args As CommandLine) As Integer
         Dim query As String = args("/query")
         Dim DbDIR As String = args("/db")
@@ -162,7 +181,7 @@ Partial Module CLI
         Dim outDIR As String = args.GetValue("/out", query.TrimSuffix & ".Blastn/")
         Dim penalty As Integer = args.GetValue("/penalty", -1)
         Dim reward As Integer = args.GetValue("/reward", -1)
-        Dim localblast As New Programs.BLASTPlus(GCModeller.FileSystem.GetLocalBlast) With {
+        Dim localblast As New Programs.BLASTPlus(GCModeller.FileSystem.GetLocalblast) With {
             .BlastnOptionalArguments = New BlastnOptionalArguments With {
                 .WordSize = args.GetValue("/word_size", -1),
                 .penalty = penalty,
@@ -171,11 +190,11 @@ Partial Module CLI
         }
         Dim isThread As Boolean = args.GetBoolean("/thread")
 
-        For Each subject As String In ls - l - r - wildcards("*.fna", "*.fa", "*.fsa", "*.fasta") <= DbDIR
+        For Each subject As String In ls - l - r - {"*.fna", "*.fa", "*.fsa", "*.fasta", "*.ffn"} <= DbDIR
             Dim out As String
 
             If Not isThread Then
-                out = outDIR & "/" & IO.Path.GetFileNameWithoutExtension(subject) & ".txt"
+                out = outDIR & "/" & basename(subject) & ".txt"
                 Call localblast.FormatDb(subject, localblast.MolTypeNucleotide).Start(True)
             Else
                 out = outDIR & "/" & query.BaseName & "-" & subject.BaseName & ".txt"
@@ -188,25 +207,27 @@ Partial Module CLI
     End Function
 
     <ExportAPI("/blastn.Query.All",
+               Info:="Using the fasta sequence in a directory query against all of the sequence in another directory.",
                Usage:="/blastn.Query.All /query <query.fasta.DIR> /db <db.DIR> [/skip-format /evalue 10 /word_size <-1> /out <out.DIR> /parallel /penalty <penalty> /reward <reward>]")>
+    <Group(CLIGrouping.BlastnTools)>
     Public Function BlastnQueryAll(args As CommandLine) As Integer
         Dim [in] As String = args("/query")
         Dim db As String = args("/db")
-        Dim evalue As String = args.GetValue("/evalue", 10)
+        Dim evalue As String = args.GetValue("/evalue", 10.0R)
         Dim out As String = args.GetValue("/out", [in].TrimDIR & "-" & db.BaseName & ".blastn.Query.All/")
         Dim ws As Integer = args.GetValue("/word_size", -1)
         Dim penalty As Integer = args.GetValue("/penalty", -1)
         Dim reward As Integer = args.GetValue("/reward", -1)
         Dim task As Func(Of String, String) =
             Function(fa) _
-                $"{GetType(CLI).API(NameOf(BlastnQuery))} /query {fa.CliPath} /db {db.CliPath} /word_size {ws} /evalue {evalue} /thread /out {out.CliPath} /penalty {penalty} /reward {reward}"
+                $"{GetType(CLI).API(NameOf(BlastnQuery))} /query {fa.CLIPath} /db {db.CLIPath} /word_size {ws} /evalue {evalue} /thread /out {out.CLIPath} /penalty {penalty} /reward {reward}"
         Dim CLI As String() =
-            (ls - l - r - wildcards("*.fna", "*.fa", "*.fsa", "*.fasta") <= [in]).ToArray(task)
+            (ls - l - r - {"*.fna", "*.fa", "*.fsa", "*.fasta", "*.ffn"} <= [in]).ToArray(task)
 
         If Not args.GetBoolean("/skip-format") Then
-            Dim localblast As New Programs.BLASTPlus(GCModeller.FileSystem.GetLocalBlast)
+            Dim localblast As New Programs.BLASTPlus(GCModeller.FileSystem.GetLocalblast)
 
-            For Each subject As String In ls - l - r - wildcards("*.fna", "*.fa", "*.fsa", "*.fasta") <= db
+            For Each subject As String In ls - l - r - {"*.fna", "*.fa", "*.fsa", "*.fasta", "*.ffn"} <= db
                 Call localblast.FormatDb(subject, localblast.MolTypeNucleotide).Start(True)
             Next
         End If
@@ -218,31 +239,86 @@ Partial Module CLI
     End Function
 
     <ExportAPI("/Export.blastnMaps",
-               Usage:="/Export.blastnMaps /in <blastn.txt> [/out <out.csv>]")>
+               Usage:="/Export.blastnMaps /in <blastn.txt> [/best /out <out.csv>]")>
+    <Argument("/best", True,
+                   AcceptTypes:={GetType(Boolean)},
+                   Description:="Only output the first hit result for each query as best?")>
+    <Group(CLIGrouping.BlastnTools)>
     Public Function ExportBlastnMaps(args As CommandLine) As Integer
         Dim [in] As String = args - "/in"
-        Dim out As String = args.GetValue("/out", [in].TrimSuffix & ".Csv")
-        Dim blastn As v228 = BlastPlus.TryParseUltraLarge([in])
-        Dim maps As BlastnMapping() = MapsAPI.Export(blastn)
-        Return maps.SaveTo(out)
+        Dim best As Boolean = args.GetBoolean("/best")
+        Dim out As String = args _
+            .GetValue("/out", [in].TrimSuffix & $"{If(best, ".best", "")}.Csv")
+
+        If FileSystem.FileLen([in]) > 2L * 1024L * 1024L * 1024L Then
+            ' 超大
+            Using IO As New WriteStream(Of BlastnMapping)(out, metaKeys:={})
+                Dim handle As Action(Of Query) =
+                    IO.ToArray(Of Query)(AddressOf MapsAPI.CreateObject)
+                Call BlastPlus.Transform(in$, 1024 * 1024 * 256L, handle)
+            End Using
+        Else
+            Dim blastn As v228 = BlastPlus.TryParseUltraLarge([in])
+            Dim maps As BlastnMapping() = MapsAPI.Export(blastn, best)
+            Return maps.SaveTo(out)
+        End If
+
+        Return 0
     End Function
 
-    <ExportAPI("/Export.blastnMaps.Batch",
-               Usage:="/Export.blastnMaps.Batch /in <blastn_out.DIR> [/out <out.DIR> /num_threads <-1>]")>
+    <ExportAPI("/Export.blastnMaps.Batch", Info:="Multiple processor task.",
+               Usage:="/Export.blastnMaps.Batch /in <blastn_out.DIR> [/best /out <out.DIR> /num_threads <-1>]")>
+    <Group(CLIGrouping.BlastnTools)>
     Public Function ExportBlastnMapsBatch(args As CommandLine) As Integer
         Dim [in] As String = args - "/in"
         Dim out As String = args.GetValue("/out", [in].TrimDIR & "-blastnMaps/")
         Dim numThreads As Integer = args.GetValue("/num_threads", -1)
+        Dim best = If(args.GetBoolean("/best"), "/best", "")
         Dim task As Func(Of String, String) =
             Function(path) _
-                $"{GetType(CLI).API(NameOf(ExportBlastnMaps))} /in {path.CliPath} /out {(out & "/" & path.BaseName & ".Csv").CliPath}"
+                $"{GetType(CLI).API(NameOf(ExportBlastnMaps))} /in {path.CLIPath} {best} /out {(out & "/" & path.BaseName & ".Csv").CLIPath}"
         Dim CLI As String() = (ls - l - r - wildcards("*.txt") <= [in]).ToArray(task)
 
         Return App.SelfFolks(CLI, numThreads)
     End Function
 
+    <ExportAPI("/Export.blastnMaps.Write",
+               Info:="Exports large amount of blastn output files and write all data into a specific csv file.",
+               Usage:="/Export.blastnMaps.Write /in <blastn_out.DIR> [/best /out <write.csv>]")>
+    <Group(CLIGrouping.BlastnTools)>
+    <Argument("/best", True, CLITypes.Boolean,
+              AcceptTypes:={GetType(Boolean)},
+              Description:="Only export the top best blastn alignment hit?")>
+    <Argument("/out", True, CLITypes.File,
+              AcceptTypes:={GetType(BlastnMapping)},
+              Description:="Blastn alignment maps data.")>
+    <Argument("/in", False, CLITypes.File, PipelineTypes.std_in,
+              AcceptTypes:={GetType(String)},
+              Description:="The directory path that contains the blastn output data.")>
+    Public Function ExportBlastnMapsBatchWrite(args As CommandLine) As Integer
+        Dim [in] As String = args("/in")
+        Dim best As Boolean = args.GetBoolean("/best")
+        Dim out As String = args.GetValue("/out", [in].TrimDIR & $"-blastnMaps{If(best, "-top_best", "")}.csv")
+        Dim LQuery = From path As String
+                     In (ls - l - r - wildcards("*.txt") <= [in]).AsParallel
+                     Let blastn As v228 = Parser.ParsingSizeAuto(path)
+                     Let maps = MapsAPI.Export(blastn, best, path.BaseName, False)
+                     Where Not maps.IsNullOrEmpty
+                     Select maps
+
+        Using writer As New WriteStream(Of BlastnMapping)(out,,, {"track"})
+            For Each block As BlastnMapping() In LQuery
+                Call writer.Flush(block, False)
+                Call block.First.Extensions("track").__DEBUG_ECHO
+            Next
+
+            Return 0
+        End Using
+    End Function
+
     <ExportAPI("/Export.blastnMaps.littles",
                Usage:="/Export.blastnMaps.littles /in <blastn.txt.DIR> [/out <out.csv.DIR>]")>
+    <Group(CLIGrouping.BlastnTools)>
     Public Function ExportBlastnMapsSmall(args As CommandLine) As Integer
         Dim [in] As String = args - "/in"
         Dim out As String = args.GetValue("/out", [in].TrimDIR & "-BlastnMaps/")
@@ -260,6 +336,7 @@ Partial Module CLI
 
     <ExportAPI("/Chromosomes.Export",
                Usage:="/Chromosomes.Export /reads <reads.fasta/DIR> /maps <blastnMappings.Csv/DIR> [/out <outDIR>]")>
+    <Group(CLIGrouping.BlastnTools)>
     Public Function ChromosomesBlastnResult(args As CommandLine) As Integer
         Dim [in] As String = args("/reads")
         Dim maps As String = args("/maps")
@@ -318,5 +395,151 @@ Partial Module CLI
             Next
         Next
     End Function
-End Module
 
+    <ExportAPI("/Blastn.Maps.Taxid",
+               Usage:="/Blastn.Maps.Taxid /in <blastnMapping.csv> /2taxid <acc2taxid.tsv/gi2taxid.dmp> [/gi2taxid /trim /tax <NCBI_taxonomy:nodes/names> /out <out.csv>]")>
+    <Group(CLIGrouping.BlastnTools)>
+    <Argument("/gi2taxid", True, AcceptTypes:={GetType(Boolean)}, Description:="The 2taxid data source is comes from gi2taxid, by default is acc2taxid.")>
+    Public Function BlastnMapsTaxonomy(args As CommandLine) As Integer
+        Dim [in] As String = args("/in")
+        Dim x2taxid As String = args("/2taxid")
+        Dim out As String = args.GetValue("/out", [in].TrimSuffix & ".taxid.csv")
+        Dim is_gi2taxid As Boolean = args.GetBoolean("/gi2taxid")
+        Dim maps As BlastnMapping() = [in].LoadCsv(Of BlastnMapping)
+        Dim notFound As New List(Of String)
+        Dim taxDIR$ = args("/tax")
+        Dim tax As NcbiTaxonomyTree = Nothing
+        Dim trimLong As Boolean = args.GetBoolean("/trim")
+        Dim taxid As New Value(Of Integer)
+        Dim mapping As TaxidMaps.Mapping = If(
+            is_gi2taxid,
+            TaxidMaps.MapByGI(x2taxid),
+            TaxidMaps.MapByAcc(x2taxid))
+
+        If taxDIR.DirectoryExists Then
+            tax = New NcbiTaxonomyTree(taxDIR)
+        End If
+
+        Call "All data load done!".__DEBUG_ECHO
+
+        Dim taxidFromRef As Mapping = Reference2Taxid(mapping, is_gi2taxid)
+
+        For Each x As BlastnMapping In maps
+            If trimLong Then
+                x.Reference = Mid(x.Reference, 1, 255)
+            End If
+
+            If (taxid = taxidFromRef(x.Reference)) > -1 Then
+                x.Extensions("taxid") = +taxid
+
+                If Not tax Is Nothing Then
+                    Dim nodes = tax.GetAscendantsWithRanksAndNames(+taxid, True)
+                    Dim tree = TaxonomyNode.BuildBIOM(nodes)
+                    Dim name = tax(taxid)?.name
+
+                    x.Extensions("Taxonomy.Name") = name
+                    x.Extensions("Taxonomy") = tree
+                End If
+            Else
+                notFound += CStr(x.Reference)
+                Call x.Reference.Warning
+            End If
+        Next
+
+        Call notFound.FlushAllLines(out.TrimSuffix & ".not-found.txt")
+
+        Return maps.SaveTo(out).CLICode
+    End Function
+
+    <ExportAPI("/BlastnMaps.Select",
+               Usage:="/BlastnMaps.Select /in <reads.id.list.txt> /data <blastn.maps.csv> [/out <out.csv>]")>
+    <Group(CLIGrouping.BlastnTools)>
+    Public Function SelectMaps(args As CommandLine) As Integer
+        Dim [in] As String = args("/in")
+        Dim data As String = args("/data")
+        Dim out As String = args.GetValue("/out", [in].TrimSuffix & "-" & data.BaseName & ".csv")
+        Dim list$() = [in].ReadAllLines
+        Dim maps As BlastnMapping() = data.LoadCsv(Of BlastnMapping)
+        Dim mapsData = (From x As BlastnMapping
+                        In maps
+                        Select x
+                        Group x By x.ReadQuery Into Group) _
+                             .ToDictionary(Function(x) x.ReadQuery,
+                                           Function(x) x.Group.ToArray)
+        Dim selects As New List(Of BlastnMapping)
+
+        For Each id$ In list
+            If mapsData.ContainsKey(id) Then
+                selects += mapsData(id)
+            Else
+                Call id.Warning
+            End If
+        Next
+
+        Return selects.SaveTo(out).CLICode
+    End Function
+
+    <ExportAPI("/BlastnMaps.Select.Top", Usage:="/BlastnMaps.Select.Top /in <maps.csv> [/out <out.csv>]")>
+    <Group(CLIGrouping.BlastnTools)>
+    Public Function TopBlastnMapReads(args As CommandLine) As Integer
+        Dim [in] As String = args("/in")
+        Dim out As String = args.GetValue("/out", [in].TrimSuffix & "-TopBest.csv")
+        Dim data = [in].LoadCsv(Of BlastnMapping)
+        Dim best = (From x As BlastnMapping
+                    In data
+                    Select x
+                    Group x By x.ReadQuery Into Group) _
+                   .ToArray(Function(x) x.Group.OrderByDescending(Function(r) r.Identities).First)
+        Return best.SaveTo(out).CLICode
+    End Function
+
+    <ExportAPI("/BlastnMaps.Summery", Usage:="/BlastnMaps.Summery /in <in.DIR> [/split ""-"" /out <out.csv>]")>
+    <Group(CLIGrouping.BlastnTools)>
+    Public Function BlastnMapsSummery(args As CommandLine) As Integer
+        Dim inDIR As String = args("/in")
+        Dim out As String = args.GetValue("/out", inDIR.TrimDIR & ".BlastnMaps.Summery.csv")
+        Dim deli$ = args.GetValue("/split", "-")
+
+        Const track$ = NameOf(track)
+
+        Using write As New WriteStream(Of BlastnMapping)(out,,, {track})
+            For Each file$ In ls - l - r - "*.csv" <= inDIR
+                Dim data = file.LoadCsv(Of BlastnMapping)
+                Dim name$ = Strings.Split(file.BaseName, deli).JoinBy(", ")
+
+                For Each x In data
+                    x.Extensions(track) = name
+                Next
+
+                Call write.Flush(data)
+            Next
+
+            Return 0
+        End Using
+    End Function
+
+    <ExportAPI("/BlastnMaps.Match.Taxid",
+               Usage:="/BlastnMaps.Match.Taxid /in <maps.csv> /acc2taxid <acc2taxid.DIR> [/out <out.tsv>]")>
+    <Group(CLIGrouping.BlastnTools)>
+    Public Function MatchTaxid(args As CommandLine) As Integer
+        Dim [in] As String = args("/in")
+        Dim acc2taxid As String = args("/acc2taxid")
+        Dim out As String = args.GetValue("/out", [in].TrimSuffix & ".taxid_matched.tsv")
+
+        Using writer As StreamWriter = out.OpenWriter(Encodings.ASCII)
+            Dim data = [in].LoadCsv(Of BlastnMapping)
+            Dim acc As IEnumerable(Of String) = data _
+                .Select(Function(x) x.Reference _
+                    .Split _
+                    .First _
+                    .Split("."c) _
+                    .First)
+
+            For Each line$ In Accession2Taxid.Matchs(acc, acc2taxid)
+                Call writer.WriteLine(line$)
+            Next
+
+            Return 0
+        End Using
+    End Function
+End Module

@@ -1,27 +1,28 @@
-﻿#Region "Microsoft.VisualBasic::e2b8b08915289a79ec91709729af6663, ..\interops\localblast\Tools\CLI\VennDiagram\Merge.vb"
+﻿#Region "Microsoft.VisualBasic::c16cd6b961d5618ee53c49c8f5c28852, ..\interops\localblast\CLI_tools\CLI\VennDiagram\Merge.vb"
 
-' Author:
-' 
-'       asuka (amethyst.asuka@gcmodeller.org)
-'       xieguigang (xie.guigang@live.com)
-' 
-' Copyright (c) 2016 GPL3 Licensed
-' 
-' 
-' GNU GENERAL PUBLIC LICENSE (GPL3)
-' 
-' This program is free software: you can redistribute it and/or modify
-' it under the terms of the GNU General Public License as published by
-' the Free Software Foundation, either version 3 of the License, or
-' (at your option) any later version.
-' 
-' This program is distributed in the hope that it will be useful,
-' but WITHOUT ANY WARRANTY; without even the implied warranty of
-' MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-' GNU General Public License for more details.
-' 
-' You should have received a copy of the GNU General Public License
-' along with this program. If not, see <http://www.gnu.org/licenses/>.
+    ' Author:
+    ' 
+    '       asuka (amethyst.asuka@gcmodeller.org)
+    '       xieguigang (xie.guigang@live.com)
+    '       xie (genetics@smrucc.org)
+    ' 
+    ' Copyright (c) 2016 GPL3 Licensed
+    ' 
+    ' 
+    ' GNU GENERAL PUBLIC LICENSE (GPL3)
+    ' 
+    ' This program is free software: you can redistribute it and/or modify
+    ' it under the terms of the GNU General Public License as published by
+    ' the Free Software Foundation, either version 3 of the License, or
+    ' (at your option) any later version.
+    ' 
+    ' This program is distributed in the hope that it will be useful,
+    ' but WITHOUT ANY WARRANTY; without even the implied warranty of
+    ' MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    ' GNU General Public License for more details.
+    ' 
+    ' You should have received a copy of the GNU General Public License
+    ' along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #End Region
 
@@ -48,10 +49,10 @@ Partial Module CLI
                                   "this command merge the blast log parsing result and then using the parsing result for drawing a venn diagram.",
         Usage:="merge -d <directory> -o <output_file>",
         Example:="merge -d ~/blast_besthit/ -o ~/Desktop/compared.csv")>
-    <ParameterInfo("-d",
+    <Argument("-d",
         Description:="The directory that contains some blast log parsing csv data file.",
         Example:="~/Desktop/blast/result/")>
-    <ParameterInfo("-o",
+    <Argument("-o",
         Description:="The save file name for the output result, the program willl save the merge result in the csv format",
         Example:="~/Desktop/8004_venn.csv")>
     Public Function Merge(args As CommandLine) As Integer
@@ -60,14 +61,14 @@ Partial Module CLI
 
         Dim CsvFiles = From File As String
                        In ls - l - wildcards("*.Csv") <= Directory
-                       Let Csv As DocumentStream.File = Sort(DocumentStream.File.Load(File))
+                       Let Csv As IO.File = Sort(IO.File.Load(File))
                        Select Csv
                        Order By Csv.Width Descending   '
 
-        Dim CsvFile As DocumentStream.File =
-            __mergeFile(CsvFiles.ToList)
-        CsvFile = DocumentStream.File.Distinct(CsvFile, Scan0, True)
-        CsvFile = DocumentStream.File.RemoveSubRow(CsvFile)
+        Dim CsvFile As IO.File =
+            __mergeFile(CsvFiles.AsList)
+        CsvFile = IO.File.Distinct(CsvFile, Scan0, True)
+        CsvFile = IO.File.RemoveSubRow(CsvFile)
 
         For Each Column As String() In CsvFile.Columns
             Dim Query = From s As String In Column.AsParallel Where Len(Trim(s)) > 0 Select 1 '
@@ -83,7 +84,7 @@ Partial Module CLI
     ''' <param name="CsvList"></param>
     ''' <returns></returns>
     ''' <remarks></remarks>
-    Private Function __mergeFile(CsvList As List(Of DocumentStream.File)) As DocumentStream.File
+    Private Function __mergeFile(CsvList As List(Of IO.File)) As IO.File
         For i As Integer = 0 To CsvList.Count - 1
             For c As Integer = 0 To i - 1
                 Call CsvList(i).InsertEmptyColumnBefore(0)
@@ -93,7 +94,7 @@ Partial Module CLI
 #End If
         Next
 
-        Dim File As DocumentStream.File = CsvList.First
+        Dim File As IO.File = CsvList.First
         For i As Integer = 1 To CsvList.Count - 1
             Call File.Append(CsvList(i))
         Next
@@ -107,11 +108,11 @@ Partial Module CLI
     ''' <param name="Csv"></param>
     ''' <returns></returns>
     ''' <remarks></remarks>
-    Private Function Sort(Csv As DocumentStream.File) As DocumentStream.File
+    Private Function Sort(Csv As IO.File) As IO.File
         Call Csv.RemoveAt(index:=Scan0)
 
         Dim IdList As String() = (From Id As String In Csv.Column(Scan0) Select Id Order By Id Ascending).ToArray
-        Dim File As DocumentStream.File = New DocumentStream.File
+        Dim File As IO.File = New IO.File
         Dim n As Integer = (Csv.Width - 1) / 3
         Dim Temp() As List(Of KeyValuePair(Of String, String)) = (From i As Integer In n.Sequence Select New List(Of KeyValuePair(Of String, String))).ToArray
 
@@ -130,7 +131,7 @@ Partial Module CLI
 
         For i As Integer = 0 To IdList.Count - 1
             Dim Id As String = IdList(i)
-            Dim row As DocumentStream.RowObject = New DocumentStream.RowObject
+            Dim row As IO.RowObject = New IO.RowObject
 
             row += Id
 
@@ -150,4 +151,3 @@ Partial Module CLI
         Return File
     End Function
 End Module
-

@@ -1,38 +1,36 @@
-﻿#Region "Microsoft.VisualBasic::a8d5ddff9d484be1ff486b5b0d803443, ..\interops\localblast\LocalBLAST\LocalBLAST\BlastOutput\Reader\Blast+\2.2.28\v228.vb"
+﻿#Region "Microsoft.VisualBasic::45a3c948bce5804e9dff9aad0524bd8c, ..\interops\localblast\LocalBLAST\LocalBLAST\BlastOutput\Reader\Blast+\2.2.28\v228.vb"
 
-    ' Author:
-    ' 
-    '       asuka (amethyst.asuka@gcmodeller.org)
-    '       xieguigang (xie.guigang@live.com)
-    ' 
-    ' Copyright (c) 2016 GPL3 Licensed
-    ' 
-    ' 
-    ' GNU GENERAL PUBLIC LICENSE (GPL3)
-    ' 
-    ' This program is free software: you can redistribute it and/or modify
-    ' it under the terms of the GNU General Public License as published by
-    ' the Free Software Foundation, either version 3 of the License, or
-    ' (at your option) any later version.
-    ' 
-    ' This program is distributed in the hope that it will be useful,
-    ' but WITHOUT ANY WARRANTY; without even the implied warranty of
-    ' MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    ' GNU General Public License for more details.
-    ' 
-    ' You should have received a copy of the GNU General Public License
-    ' along with this program. If not, see <http://www.gnu.org/licenses/>.
+' Author:
+' 
+'       asuka (amethyst.asuka@gcmodeller.org)
+'       xieguigang (xie.guigang@live.com)
+'       xie (genetics@smrucc.org)
+' 
+' Copyright (c) 2016 GPL3 Licensed
+' 
+' 
+' GNU GENERAL PUBLIC LICENSE (GPL3)
+' 
+' This program is free software: you can redistribute it and/or modify
+' it under the terms of the GNU General Public License as published by
+' the Free Software Foundation, either version 3 of the License, or
+' (at your option) any later version.
+' 
+' This program is distributed in the hope that it will be useful,
+' but WITHOUT ANY WARRANTY; without even the implied warranty of
+' MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+' GNU General Public License for more details.
+' 
+' You should have received a copy of the GNU General Public License
+' along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #End Region
 
 Imports System.Text
-Imports System.Text.RegularExpressions
 Imports System.Xml.Serialization
 Imports Microsoft.VisualBasic.Extensions
 Imports Microsoft.VisualBasic.Language
-Imports Microsoft.VisualBasic.Terminal.Utility
 Imports Microsoft.VisualBasic.Text
-Imports Microsoft.VisualBasic.Text.Similarity
 Imports SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.Application.BBH
 Imports SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.BLASTOutput.ComponentModel
 Imports SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.BLASTOutput.Views
@@ -88,7 +86,7 @@ Namespace LocalBLAST.BLASTOutput.BlastPlus
         ''' <returns></returns>
         ''' <remarks></remarks>
         Public Overrides Function ExportBestHit(Optional coverage As Double = 0.5, Optional identities As Double = 0.15) As LocalBLAST.Application.BBH.BestHit()
-            Return (From Query As Query In Queries Select __generateLine(Query, coverage, identities)).ToArray
+            Return (From query As Query In Queries Select __generateLine(query, coverage, identities)).ToArray
         End Function
 
         ''' <summary>
@@ -99,28 +97,35 @@ Namespace LocalBLAST.BLASTOutput.BlastPlus
         ''' <param name="identities"></param>
         ''' <returns></returns>
         Private Shared Function __generateLine(query As Query, coverage As Double, identities As Double) As BestHit
-            Dim BestHit As SubjectHit = query.GetBestHit(coverage, identities)
-            Dim Row As BestHit = New BestHit With {
-                    .QueryName = query.QueryName
+            Dim topHit As SubjectHit = query.GetBestHit(coverage, identities)
+            Dim locusId As String = query.QueryName.Split.First
+            Dim def As String = Mid(query.QueryName, Len(locusId) + 1).Trim
+            Dim besthit As New BestHit With {
+                .QueryName = locusId,
+                .description = def
             }
 
-            If BestHit Is Nothing Then
-                Row.HitName = HITS_NOT_FOUND
+            If topHit Is Nothing Then
+                besthit.HitName = HITS_NOT_FOUND
             Else
-                Dim Score As Score = BestHit.Score
-                Row.HitName = BestHit.Name.Trim
-                Row.query_length = query.QueryLength
-                Row.hit_length = BestHit.Length
-                Row.Score = Score.RawScore
-                Row.evalue = Score.Expect
-                Row.identities = Score.Identities.Value
-                Row.Positive = Score.Positives.Value
-                Row.length_hit = BestHit.LengthHit
-                Row.length_query = BestHit.LengthQuery
-                Row.length_hsp = BestHit.Score.Gaps.Denominator
+                Dim Score As Score = topHit.Score
+                
+                With besthit
+                    .QueryName = locusId
+                    .HitName = topHit.Name.Trim
+                    .query_length = query.QueryLength
+                    .hit_length = topHit.Length
+                    .Score = Score.RawScore
+                    .evalue = Score.Expect
+                    .identities = Score.Identities.Value
+                    .Positive = Score.Positives.Value
+                    .length_hit = topHit.LengthHit
+                    .length_query = topHit.LengthQuery
+                    .length_hsp = topHit.Score.Gaps.Denominator
+                End With
             End If
 
-            Return Row
+            Return besthit
         End Function
 
         ''' <summary>
@@ -243,26 +248,27 @@ Namespace LocalBLAST.BLASTOutput.BlastPlus
         ''' <summary>
         ''' 根据Query检查完整性
         ''' </summary>
-        ''' <param name="QuerySource">主要是使用到Query序列之中的Title属性</param>
+        ''' <param name="source">主要是使用到Query序列之中的Title属性</param>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        Public Overrides Function CheckIntegrity(QuerySource As FASTA.FastaFile) As Boolean
-            Dim LQuery = From Fasta As FASTA.FastaToken
-                         In QuerySource.AsParallel
-                         Let GetQuery = __checkIntegrity(Fasta, Me.Queries)
-                         Where GetQuery.IsNullOrEmpty
-                         Select GetQuery
-            Dim test As Boolean = Not LQuery.Count > 0 ' 大于零，说明有空的记录，即匹配不上的记录，则说明blast操作是被中断的，需要重新做
+        Public Overrides Function CheckIntegrity(source As FASTA.FastaFile) As Boolean
+            Dim LQuery =
+                LinqAPI.DefaultFirst(Of Query()) <= From Fasta As FASTA.FastaToken
+                                                    In source.AsParallel
+                                                    Let GetQuery = __checkIntegrity(Fasta, Me.Queries)
+                                                    Where GetQuery.IsNullOrEmpty  ' 空集合表示没有匹配的项目，则可能是不完整的结果
+                                                    Select GetQuery
+            Dim test As Boolean = LQuery Is Nothing  ' 不为空值，说明有空的记录，即匹配不上的记录，则说明blast操作是被中断的，需要重新做
             Return test
         End Function
 
-        Private Shared Function __checkIntegrity(Fasta As FASTA.FastaToken, Queries As Query())
+        Private Shared Function __checkIntegrity(Fasta As FASTA.FastaToken, Queries As Query()) As Query()
             Dim Title As String = Fasta.Title
             Dim GetLQuery = LinqAPI.Exec(Of Query) <=
  _
                 From query As Query
                 In Queries
-                Where FuzzyMatchString.Equals(query.QueryName, Title)
+                Where FuzzyMatching(query.QueryName, Title)
                 Select query
 
             Return GetLQuery

@@ -1,32 +1,33 @@
-﻿#Region "Microsoft.VisualBasic::cd7daacc50cfa537439faef18ec9a943, ..\interops\localblast\LocalBLAST\LocalBLAST\LocalBLAST\Application\BlastnMapping.vb"
+﻿#Region "Microsoft.VisualBasic::d29f38e092fdcb1f5d273b22f35a7183, ..\interops\localblast\LocalBLAST\LocalBLAST\LocalBLAST\Application\BlastnMapping.vb"
 
-' Author:
-' 
-'       asuka (amethyst.asuka@gcmodeller.org)
-'       xieguigang (xie.guigang@live.com)
-' 
-' Copyright (c) 2016 GPL3 Licensed
-' 
-' 
-' GNU GENERAL PUBLIC LICENSE (GPL3)
-' 
-' This program is free software: you can redistribute it and/or modify
-' it under the terms of the GNU General Public License as published by
-' the Free Software Foundation, either version 3 of the License, or
-' (at your option) any later version.
-' 
-' This program is distributed in the hope that it will be useful,
-' but WITHOUT ANY WARRANTY; without even the implied warranty of
-' MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-' GNU General Public License for more details.
-' 
-' You should have received a copy of the GNU General Public License
-' along with this program. If not, see <http://www.gnu.org/licenses/>.
+    ' Author:
+    ' 
+    '       asuka (amethyst.asuka@gcmodeller.org)
+    '       xieguigang (xie.guigang@live.com)
+    '       xie (genetics@smrucc.org)
+    ' 
+    ' Copyright (c) 2016 GPL3 Licensed
+    ' 
+    ' 
+    ' GNU GENERAL PUBLIC LICENSE (GPL3)
+    ' 
+    ' This program is free software: you can redistribute it and/or modify
+    ' it under the terms of the GNU General Public License as published by
+    ' the Free Software Foundation, either version 3 of the License, or
+    ' (at your option) any later version.
+    ' 
+    ' This program is distributed in the hope that it will be useful,
+    ' but WITHOUT ANY WARRANTY; without even the implied warranty of
+    ' MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    ' GNU General Public License for more details.
+    ' 
+    ' You should have received a copy of the GNU General Public License
+    ' along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #End Region
 
 Imports Microsoft.VisualBasic.Data.csv.StorageProvider.Reflection
-Imports Microsoft.VisualBasic.Scripting
+Imports Microsoft.VisualBasic.ComponentModel.Map(Of String, String)
 Imports SMRUCC.genomics.ComponentModel.Loci
 Imports SMRUCC.genomics.SequenceModel.NucleotideModels
 
@@ -36,17 +37,18 @@ Namespace LocalBLAST.Application
     ''' Blastn Mapping for fastaq
     ''' </summary>
     Public Class BlastnMapping : Inherits Contig
+        Implements IMap
 
         ''' <summary>
         ''' The name of the reads query
         ''' </summary>
         ''' <returns></returns>
-        <Column("Reads.Query")> Public Property ReadQuery As String
+        <Column("Reads.Query")> Public Property ReadQuery As String Implements IMap.Key
         ''' <summary>
         ''' The name of the reference genome sequence.
         ''' </summary>
         ''' <returns></returns>
-        Public Property Reference As String
+        Public Property Reference As String Implements IMap.Maps
         ''' <summary>
         ''' Length of <see cref="ReadQuery"/>
         ''' </summary>
@@ -154,6 +156,24 @@ Namespace LocalBLAST.Application
             Get
                 ' Explicit conditions
                 Return (Identities = 100.0R AndAlso __identitiesFraction <= 3) AndAlso Val(Gaps) = 0R
+            End Get
+        End Property
+
+        <Meta(GetType(String))>
+        Public Property Extensions As Dictionary(Of String, String)
+
+        ''' <summary>
+        ''' 不存在的键名会返回空值
+        ''' </summary>
+        ''' <param name="key$"></param>
+        ''' <returns></returns>
+        Default Public ReadOnly Property Data(key$) As String
+            Get
+                If Extensions.ContainsKey(key) Then
+                    Return Extensions(key)
+                Else
+                    Return Nothing
+                End If
             End Get
         End Property
 

@@ -1,9 +1,10 @@
-﻿#Region "Microsoft.VisualBasic::18446498102aa1cd94010a21720230a0, ..\interops\localblast\LocalBLAST\NCBILocalBlast.vb"
+﻿#Region "Microsoft.VisualBasic::b40f079d8ab90a254ecddab99c520b6f, ..\interops\localblast\LocalBLAST\NCBILocalBlast.vb"
 
     ' Author:
     ' 
     '       asuka (amethyst.asuka@gcmodeller.org)
     '       xieguigang (xie.guigang@live.com)
+    '       xie (genetics@smrucc.org)
     ' 
     ' Copyright (c) 2016 GPL3 Licensed
     ' 
@@ -64,7 +65,7 @@ Public Module NCBILocalBlast
 
         Dim Queries As String() =
             LinqAPI.Exec(Of String) <= From strLine As String
-                                       In IO.File.ReadAllLines(BlastOUTPUT)
+                                       In BlastOUTPUT.ReadAllLines()
                                        Let Entry As String =
                                            Regex.Match(strLine, "Query\s*=\s*.+").Value
                                        Where Not String.IsNullOrEmpty(Entry)
@@ -86,7 +87,7 @@ Public Module NCBILocalBlast
         Dim Title As String = Fasta.Title
         Dim GetLQuery = (From Query As String
                          In Queries
-                         Where FuzzyMatchString.Equals(Title, Query)
+                         Where FuzzyMatching(Title, Query)
                          Select Query).FirstOrDefault
         Return Not String.IsNullOrEmpty(GetLQuery)
     End Function
@@ -149,11 +150,11 @@ Public Module NCBILocalBlast
 
         If genomeRes.FileExists Then
             If reversed Then
-                Call Handle.FormatDb(NT, Handle.MolTypeNucleotide).Start(WaitForExit:=True)
-                Call Handle.Blastn(genomeRes, NT, Output, EValue).Start(WaitForExit:=True)
+                Call Handle.FormatDb(NT, Handle.MolTypeNucleotide).Start(waitForExit:=True)
+                Call Handle.Blastn(genomeRes, NT, Output, EValue).Start(waitForExit:=True)
             Else
-                Call Handle.FormatDb(genomeRes, Handle.MolTypeNucleotide).Start(WaitForExit:=True)
-                Call Handle.Blastn(NT, genomeRes, Output, EValue).Start(WaitForExit:=True)
+                Call Handle.FormatDb(genomeRes, Handle.MolTypeNucleotide).Start(waitForExit:=True)
+                Call Handle.Blastn(NT, genomeRes, Output, EValue).Start(waitForExit:=True)
             End If
             Return True
         ElseIf FileIO.FileSystem.DirectoryExists(genomeRes) Then
@@ -193,7 +194,7 @@ Public Module NCBILocalBlast
                            Optional reversed As Boolean = False,
                            Optional numThreads As Integer = -1, Optional TimeInterval As Integer = 1000) As Boolean
         If reversed Then
-            Call Handle.FormatDb(nt, Handle.MolTypeNucleotide).Start(WaitForExit:=True)
+            Call Handle.FormatDb(nt, Handle.MolTypeNucleotide).Start(waitForExit:=True)
         End If
 
         Call $"{NameOf(GenomeSource)}:={GenomeSource.Count}".__DEBUG_ECHO
@@ -208,13 +209,13 @@ Public Module NCBILocalBlast
     End Function
 
     Private Function __blastn(outputDIR As String, nt As String, subject As String, evalue As String, reversed As Boolean, handle As LocalBLAST.InteropService.InteropService) As Boolean
-        Dim OutLog As String = outputDIR & "/" & IO.Path.GetFileNameWithoutExtension(subject) & ".txt"
+        Dim OutLog As String = outputDIR & "/" & subject.BaseName & ".txt"
 
         If reversed Then
-            Call handle.Blastn(subject, nt, OutLog, evalue).Start(WaitForExit:=True)
+            Call handle.Blastn(subject, nt, OutLog, evalue).Start(waitForExit:=True)
         Else
-            Call handle.FormatDb(subject, handle.MolTypeNucleotide).Start(WaitForExit:=True)
-            Call handle.Blastn(nt, subject, OutLog, evalue).Start(WaitForExit:=True)
+            Call handle.FormatDb(subject, handle.MolTypeNucleotide).Start(waitForExit:=True)
+            Call handle.Blastn(nt, subject, OutLog, evalue).Start(waitForExit:=True)
         End If
 
         Return True
@@ -240,8 +241,8 @@ Public Module NCBILocalBlast
                            output As String,
                            Optional evalue As String = "1e-5") As Boolean
         If proteins.FileExists Then
-            Call handle.FormatDb(proteins, handle.MolTypeProtein).Start(WaitForExit:=True)
-            Call handle.TryInvoke("blastx", nt, proteins, evalue, output).Start(WaitForExit:=True)
+            Call handle.FormatDb(proteins, handle.MolTypeProtein).Start(waitForExit:=True)
+            Call handle.TryInvoke("blastx", nt, proteins, evalue, output).Start(waitForExit:=True)
             Return True
         ElseIf FileIO.FileSystem.DirectoryExists(proteins) Then
             Dim FastaSource As String() = FileIO.FileSystem.GetFiles(proteins, FileIO.SearchOption.SearchAllSubDirectories, "*.fa", "*.fsa", "*.fasta").ToArray
@@ -259,10 +260,10 @@ Public Module NCBILocalBlast
     End Function
 
     Private Function __blastX(output As String, subject As String, handle As LocalBLAST.InteropService.InteropService, nt As String, evalue As String) As Boolean
-        Dim OutLog As String = output & "/" & IO.Path.GetFileNameWithoutExtension(subject) & ".txt"
+        Dim OutLog As String = output & "/" & subject.BaseName & ".txt"
 
-        Call handle.FormatDb(subject, handle.MolTypeProtein).Start(WaitForExit:=True)
-        Call handle.TryInvoke("blastx", nt, subject, evalue, OutLog).Start(WaitForExit:=True)
+        Call handle.FormatDb(subject, handle.MolTypeProtein).Start(waitForExit:=True)
+        Call handle.TryInvoke("blastx", nt, subject, evalue, OutLog).Start(waitForExit:=True)
         Return True
     End Function
 
@@ -313,8 +314,8 @@ Public Module NCBILocalBlast
             Call FileIO.FileSystem.CreateDirectory(FileIO.FileSystem.GetParentPath(BlastOutput))
         End If
 
-        Call session.FormatDb(Db, session.MolTypeProtein).Start(WaitForExit:=True)
-        Call session.Blastp(Query, Db, BlastOutput, Evalue).Start(WaitForExit:=True)
+        Call session.FormatDb(Db, session.MolTypeProtein).Start(waitForExit:=True)
+        Call session.Blastp(Query, Db, BlastOutput, Evalue).Start(waitForExit:=True)
         Return BlastOutput
     End Function
 
@@ -360,8 +361,8 @@ Public Module NCBILocalBlast
     End Function
 
     <ExportAPI("Export.Besthit", Info:="Exports all of the besthit from the blastp output")>
-    Public Function ExportBesthit(blast_output As BlastPlus.v228, Optional saveto As String = "", Optional identities As Double = 0.15) As DocumentStream.File
-        Dim bh As DocumentStream.File = blast_output.ExportAllBestHist(identities).ToCsvDoc
+    Public Function ExportBesthit(blast_output As BlastPlus.v228, Optional saveto As String = "", Optional identities As Double = 0.15) As IO.File
+        Dim bh As IO.File = blast_output.ExportAllBestHist(identities).ToCsvDoc
         If Not String.IsNullOrEmpty(saveto) Then Call bh.Save(saveto, False)
         Return bh
     End Function
@@ -383,14 +384,14 @@ Public Module NCBILocalBlast
     End Function
 
     <ExportAPI("Export.bbh")>
-    Public Function Export_BidirBesthit(Qvs As IEnumerable(Of BestHit), Svq As IEnumerable(Of BestHit), Optional saveCsv As String = "") As DocumentStream.File
+    Public Function Export_BidirBesthit(Qvs As IEnumerable(Of BestHit), Svq As IEnumerable(Of BestHit), Optional saveCsv As String = "") As IO.File
         Dim bibh = BBHParser.GetDirreBhAll2(Svq.ToArray, Qvs.ToArray)
         If Not String.IsNullOrEmpty(saveCsv) Then Call bibh.SaveTo(saveCsv, False)
         Return bibh.ToCsvDoc(False)
     End Function
 
     <ExportAPI("Export.bbh.Csv")>
-    Public Function Export_BidirBesthit(qvs As DocumentStream.File, svq As DocumentStream.File, <Parameter("Save.Csv")> Optional saveCsv As String = "") As DocumentStream.File
+    Public Function Export_BidirBesthit(qvs As IO.File, svq As IO.File, <Parameter("Save.Csv")> Optional saveCsv As String = "") As IO.File
         Dim bibh = BBHParser.GetDirreBhAll(svq, qvs)
         If Not String.IsNullOrEmpty(saveCsv) Then Call bibh.Save(saveCsv, False)
         Return bibh
@@ -429,7 +430,6 @@ Public Module NCBILocalBlast
     <ExportAPI("Create.Myva_COG", Info:="blast_output parameter is the original blast output file path.")>
     Public Function MyvaCogClassify(blast_output As String, query_grep As String, Whog_Xml As String) As MyvaCOG()
         Dim textEngine = TextGrepScriptEngine.Compile(query_grep).Method
-        Return ClassifyCOGs.Get_MyvaCOG_Classify(blast_output, textEngine, Whog_Xml)
+        Return COGsUtils.MyvaCOGCatalog(blast_output, Whog_Xml,,, textEngine)
     End Function
 End Module
-

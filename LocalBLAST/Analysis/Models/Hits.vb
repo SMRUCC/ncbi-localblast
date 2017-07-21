@@ -1,9 +1,10 @@
-﻿#Region "Microsoft.VisualBasic::868a8edf9d014543d4be6700cba8670d, ..\interops\localblast\LocalBLAST\Analysis\Models\Hits.vb"
+﻿#Region "Microsoft.VisualBasic::7f987c09a2e2400bf6e31382d6de9dc1, ..\interops\localblast\LocalBLAST\Analysis\Models\Hits.vb"
 
     ' Author:
     ' 
     '       asuka (amethyst.asuka@gcmodeller.org)
     '       xieguigang (xie.guigang@live.com)
+    '       xie (genetics@smrucc.org)
     ' 
     ' Copyright (c) 2016 GPL3 Licensed
     ' 
@@ -37,7 +38,7 @@ Namespace Analysis
     ''' <remarks>
     ''' 其实这个就是相当于一个KEGG里面的SSDB BBH结果文件
     ''' </remarks>
-    Public Class HitCollection : Implements sIdEnumerable
+    Public Class HitCollection : Implements INamedValue
 
         ''' <summary>
         ''' 按照物种编号取出数据构建一个新的bbh集合
@@ -64,7 +65,7 @@ Namespace Analysis
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <XmlAttribute> Public Property QueryName As String Implements sIdEnumerable.Identifier
+        <XmlAttribute> Public Property QueryName As String Implements INamedValue.Key
 
         ''' <summary>
         ''' Query protein functional annotation.
@@ -145,7 +146,7 @@ Namespace Analysis
     ''' <summary>
     ''' 和Query的一个比对结果
     ''' </summary>
-    Public Class Hit : Implements sIdEnumerable
+    Public Class Hit : Implements INamedValue
 
         ''' <summary>
         ''' <see cref="HitName"></see>所在的物种
@@ -160,7 +161,7 @@ Namespace Analysis
         ''' <value></value>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        <XmlAttribute> Public Property HitName As String Implements sIdEnumerable.Identifier
+        <XmlAttribute> Public Property HitName As String Implements INamedValue.Key
         <XmlAttribute> Public Property Identities As Double
         <XmlAttribute> Public Property Positive As Double
 

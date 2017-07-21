@@ -1,36 +1,38 @@
-﻿#Region "Microsoft.VisualBasic::af230cae2a8a8741513faf3406c3ccec, ..\interops\localblast\LocalBLAST\LocalBLAST\BlastOutput\Common\Segment.vb"
+﻿#Region "Microsoft.VisualBasic::e1d27e8722311b056263f3369232751c, ..\interops\localblast\LocalBLAST\LocalBLAST\BlastOutput\Common\Segment.vb"
 
-    ' Author:
-    ' 
-    '       asuka (amethyst.asuka@gcmodeller.org)
-    '       xieguigang (xie.guigang@live.com)
-    ' 
-    ' Copyright (c) 2016 GPL3 Licensed
-    ' 
-    ' 
-    ' GNU GENERAL PUBLIC LICENSE (GPL3)
-    ' 
-    ' This program is free software: you can redistribute it and/or modify
-    ' it under the terms of the GNU General Public License as published by
-    ' the Free Software Foundation, either version 3 of the License, or
-    ' (at your option) any later version.
-    ' 
-    ' This program is distributed in the hope that it will be useful,
-    ' but WITHOUT ANY WARRANTY; without even the implied warranty of
-    ' MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    ' GNU General Public License for more details.
-    ' 
-    ' You should have received a copy of the GNU General Public License
-    ' along with this program. If not, see <http://www.gnu.org/licenses/>.
+' Author:
+' 
+'       asuka (amethyst.asuka@gcmodeller.org)
+'       xieguigang (xie.guigang@live.com)
+'       xie (genetics@smrucc.org)
+' 
+' Copyright (c) 2016 GPL3 Licensed
+' 
+' 
+' GNU GENERAL PUBLIC LICENSE (GPL3)
+' 
+' This program is free software: you can redistribute it and/or modify
+' it under the terms of the GNU General Public License as published by
+' the Free Software Foundation, either version 3 of the License, or
+' (at your option) any later version.
+' 
+' This program is distributed in the hope that it will be useful,
+' but WITHOUT ANY WARRANTY; without even the implied warranty of
+' MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+' GNU General Public License for more details.
+' 
+' You should have received a copy of the GNU General Public License
+' along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #End Region
 
-Imports System.Text.RegularExpressions
 Imports System.Text
+Imports System.Text.RegularExpressions
 Imports System.Xml.Serialization
-Imports SMRUCC.genomics.SequenceModel
+Imports Microsoft.VisualBasic.Scripting.Runtime
 Imports SMRUCC.genomics.ComponentModel.Loci
 Imports SMRUCC.genomics.ComponentModel.Loci.Abstract
+Imports SMRUCC.genomics.SequenceModel
 
 Namespace LocalBLAST.BLASTOutput.ComponentModel
 
@@ -80,11 +82,11 @@ Namespace LocalBLAST.BLASTOutput.ComponentModel
     ''' 匹配上的序列片段
     ''' </summary>
     ''' <remarks></remarks>
-    Public Class Segment : Implements I_PolymerSequenceModel, ILocationSegment
+    Public Class Segment : Implements IPolymerSequenceModel, ILocationSegment
 
         <XmlAttribute> Public Property Left As Long
         <XmlAttribute> Public Property Right As Long
-        <XmlAttribute> Public Property SequenceData As String Implements I_PolymerSequenceModel.SequenceData
+        <XmlAttribute> Public Property SequenceData As String Implements IPolymerSequenceModel.SequenceData
 
         Public ReadOnly Property UniqueId As String Implements ILocationSegment.UniqueId
             Get

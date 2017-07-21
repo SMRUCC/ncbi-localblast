@@ -1,9 +1,10 @@
-﻿#Region "Microsoft.VisualBasic::2d84cdc25e1537ce131e1da13bc68e0f, ..\interops\localblast\LocalBLAST\Analysis\BBHLogs.vb"
+﻿#Region "Microsoft.VisualBasic::6a9805c98e413d029fcde6ebc14ef19f, ..\interops\localblast\LocalBLAST\Analysis\BBHLogs.vb"
 
     ' Author:
     ' 
     '       asuka (amethyst.asuka@gcmodeller.org)
     '       xieguigang (xie.guigang@live.com)
+    '       xie (genetics@smrucc.org)
     ' 
     ' Copyright (c) 2016 GPL3 Licensed
     ' 
@@ -101,7 +102,7 @@ Namespace Analysis
         <ExportAPI("BBH_Entry.Build")>
         <Extension>
         Public Function BuildBBHEntry(DIR As String, Optional ext As String = "*.txt") As Entry()
-            Dim Source As List(Of AlignEntry) = LoadEntries(DIR, ext).ToList
+            Dim Source As List(Of AlignEntry) = LoadEntries(DIR, ext).AsList
             Return Source.BuildBBHEntry
         End Function
 
@@ -241,7 +242,7 @@ RETURN_VALUE:
                 Dim besthitsData As BBH.BestHit() = File.logData.ExportBestHit
 
                 'If Not SMRUCC.genomics.NCBI.Extensions.LocalBLAST.Application.BBH.BestHit.IsNullOrEmpty(besthitsData, TrimSelfAligned:=True) Then
-                Dim Path As String = EXPORT & "/" & IO.Path.GetFileNameWithoutExtension(File.path.FilePath) & ".besthit.csv"
+                Dim Path As String = EXPORT & "/" & File.path.FilePath.BaseName & ".besthit.csv"
                 File.path.FilePath = Path
                 Call besthitsData.SaveTo(Path, False, System.Text.Encoding.ASCII)
                 'End If
@@ -319,7 +320,7 @@ RETURN_VALUE:
             Dim result = GetDescriptionResult.GetAnonymousTypeList
 
             For Each EntryHit In GetDescriptionResult '保存临时数据
-                Dim FileName As String = EXPORT & "/" & IO.Path.GetFileNameWithoutExtension(EntryHit.Path.FilePath) & ".bibesthit.csv"
+                Dim FileName As String = EXPORT & "/" & EntryHit.Path.FilePath.BaseName & ".bibesthit.csv"
                 EntryHit.Path.FilePath = FileName
                 Call EntryHit.descrMatches.SaveTo(FileName, False)
                 result += EntryHit

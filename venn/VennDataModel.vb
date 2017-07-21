@@ -1,27 +1,28 @@
-﻿#Region "Microsoft.VisualBasic::cc39716e16595e52d268656d33c029ad, ..\interops\localblast\Localblast.Extensions.VennDiagram\VennDataModel.vb"
+﻿#Region "Microsoft.VisualBasic::4bb4db50c6ab3f9edf3de9058196660e, ..\interops\localblast\venn\VennDataModel.vb"
 
-' Author:
-' 
-'       asuka (amethyst.asuka@gcmodeller.org)
-'       xieguigang (xie.guigang@live.com)
-' 
-' Copyright (c) 2016 GPL3 Licensed
-' 
-' 
-' GNU GENERAL PUBLIC LICENSE (GPL3)
-' 
-' This program is free software: you can redistribute it and/or modify
-' it under the terms of the GNU General Public License as published by
-' the Free Software Foundation, either version 3 of the License, or
-' (at your option) any later version.
-' 
-' This program is distributed in the hope that it will be useful,
-' but WITHOUT ANY WARRANTY; without even the implied warranty of
-' MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-' GNU General Public License for more details.
-' 
-' You should have received a copy of the GNU General Public License
-' along with this program. If not, see <http://www.gnu.org/licenses/>.
+    ' Author:
+    ' 
+    '       asuka (amethyst.asuka@gcmodeller.org)
+    '       xieguigang (xie.guigang@live.com)
+    '       xie (genetics@smrucc.org)
+    ' 
+    ' Copyright (c) 2016 GPL3 Licensed
+    ' 
+    ' 
+    ' GNU GENERAL PUBLIC LICENSE (GPL3)
+    ' 
+    ' This program is free software: you can redistribute it and/or modify
+    ' it under the terms of the GNU General Public License as published by
+    ' the Free Software Foundation, either version 3 of the License, or
+    ' (at your option) any later version.
+    ' 
+    ' This program is distributed in the hope that it will be useful,
+    ' but WITHOUT ANY WARRANTY; without even the implied warranty of
+    ' MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    ' GNU General Public License for more details.
+    ' 
+    ' You should have received a copy of the GNU General Public License
+    ' along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #End Region
 
@@ -130,7 +131,7 @@ Namespace BlastAPI
         Public Function DeltaMove(data As IEnumerable(Of BestHit),
                                   <Parameter("Index.Main",
                                              "The file name without the extension name of the target query fasta data.")> Optional mainIndex As String = "",
-                                  <Parameter("Null.Trim")> Optional TrimNull As Boolean = False) As DocumentStream.File
+                                  <Parameter("Null.Trim")> Optional TrimNull As Boolean = False) As IO.File
 
             Dim dataHash As Dictionary(Of String, BestHit) = data.ToDictionary(Function(item) item.sp)
             Dim IndexKey As String = dataHash.Keys(__parserIndex(dataHash, mainIndex))
@@ -141,10 +142,10 @@ Namespace BlastAPI
             If indexQuery.hits.IsNullOrEmpty Then
                 Call $"The profile data of your key ""{mainIndex}"" ---> ""{indexQuery.sp}"" is null!".__DEBUG_ECHO
                 Call "Thread exists...".__DEBUG_ECHO
-                Return New DocumentStream.File
+                Return New IO.File
             End If
 
-            Dim dataframe As DocumentStream.File = indexQuery.ExportCsv(TrimNull)
+            Dim dataframe As IO.File = indexQuery.ExportCsv(TrimNull)
             Dim sps As String() = indexQuery.hits.First.Hits.ToArray(Function(x) x.tag)
 
             For deltaIndex As Integer = 0 To dataHash.Count - 1
@@ -157,7 +158,7 @@ Namespace BlastAPI
 
                 Dim di As Integer = deltaIndex
                 Dim subHits As String() =
-                    LinqAPI.Exec(Of String) <= From row As DocumentStream.RowObject
+                    LinqAPI.Exec(Of String) <= From row As IO.RowObject
                                                In dataframe
                                                Let d As Integer = 2 + 4 * di + 1
                                                Let id As String = row(d)
@@ -171,8 +172,8 @@ Namespace BlastAPI
                                               hits.Description,
                                               speciesProfile = hits.Hits.ToDictionary(Function(hit) hit.tag)  '竖直方向遍历第n列的基因号
 
-                    Dim row As DocumentStream.RowObject =
-                        New DocumentStream.RowObject From {subMainNotHit.Description, subMainNotHit.QueryName} +
+                    Dim row As IO.RowObject =
+                        New IO.RowObject From {subMainNotHit.Description, subMainNotHit.QueryName} +
                             From nnn As Integer In (4 * deltaIndex).Sequence Select ""
 
                     For Each sid As String In sps.Skip(deltaIndex)

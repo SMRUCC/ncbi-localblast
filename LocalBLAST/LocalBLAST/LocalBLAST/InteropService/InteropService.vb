@@ -4,6 +4,7 @@
     ' 
     '       asuka (amethyst.asuka@gcmodeller.org)
     '       xieguigang (xie.guigang@live.com)
+    '       xie (genetics@smrucc.org)
     ' 
     ' Copyright (c) 2016 GPL3 Licensed
     ' 
@@ -27,11 +28,12 @@
 
 Imports Microsoft.VisualBasic.CommandLine
 Imports SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.BLASTOutput
+Imports CLI = Microsoft.VisualBasic.CommandLine.InteropService.InteropService
 Imports File = System.String
 
 Namespace LocalBLAST.InteropService
 
-    Public MustInherit Class LocalBlastProgramGroup : Inherits Microsoft.VisualBasic.CommandLine.InteropService
+    Public MustInherit Class LocalBlastProgramGroup : Inherits CLI
         Implements System.IDisposable
 
         ''' <summary>
@@ -195,9 +197,14 @@ Namespace LocalBLAST.InteropService
             ASNBinary
         End Enum
 
-        Sub New(BlastBin As String)
-            Me._innerBLASTBinDIR = BlastBin
-            Me.NumThreads = 2
+        Sub New(bin As String)
+            _innerBLASTBinDIR = bin
+            NumThreads = 2
+
+            If Not bin.DirectoryExists Then
+                Dim msg$ = $"localblast bin can not be found on the file system location: {bin$}!"
+                Throw New ObjectNotFoundException(msg)
+            End If
         End Sub
 
         ''' <summary>

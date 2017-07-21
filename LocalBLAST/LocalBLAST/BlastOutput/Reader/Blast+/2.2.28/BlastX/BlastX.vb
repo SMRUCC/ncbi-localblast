@@ -1,9 +1,10 @@
-﻿#Region "Microsoft.VisualBasic::2fb69fc2e80913878232268c164d8017, ..\interops\localblast\LocalBLAST\LocalBLAST\BlastOutput\Reader\Blast+\2.2.28\BlastX\BlastX.vb"
+﻿#Region "Microsoft.VisualBasic::7b5626749cfa16d75c4ce69e5678954e, ..\interops\localblast\LocalBLAST\LocalBLAST\BlastOutput\Reader\Blast+\2.2.28\BlastX\BlastX.vb"
 
     ' Author:
     ' 
     '       asuka (amethyst.asuka@gcmodeller.org)
     '       xieguigang (xie.guigang@live.com)
+    '       xie (genetics@smrucc.org)
     ' 
     ' Copyright (c) 2016 GPL3 Licensed
     ' 
@@ -33,34 +34,6 @@ Imports SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.Application
 Imports SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.BLASTOutput.Views
 
 Namespace LocalBLAST.BLASTOutput.BlastPlus.BlastX
-
-    Public Class BlastXHit : Inherits BBH.BestHit
-        Public Property Frame As String
-
-        Sub New()
-
-        End Sub
-
-        Sub New(query As Components.Query, hit As Components.HitFragment)
-            Me.evalue = hit.Score.Expect
-            Me.Frame = hit.ReadingFrameOffSet
-            Me.HitName = hit.HitName
-            Me.hit_length = hit.HitLen
-            Me.identities = hit.Score.Identities
-            Me.length_hit = hit.SubjectLength
-            Me.length_hsp = hit.SubjectLength
-            Me.length_query = hit.QueryLoci.FragmentSize
-            Me.Positive = hit.Score.Positives
-            Me.QueryName = query.QueryName
-            Me.query_length = query.QueryLength
-            Me.Score = hit.Score.Score
-        End Sub
-
-        Public Shared Function CreateObjects(query As Components.Query) As BlastXHit()
-            Dim LQuery = (From x In query.Hits Select New BlastXHit(query, x)).ToArray
-            Return LQuery
-        End Function
-    End Class
 
     Public Class v228_BlastX : Inherits IBlastOutput
 

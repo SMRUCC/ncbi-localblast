@@ -1,33 +1,36 @@
 ﻿#Region "Microsoft.VisualBasic::929ad12e597051515508d66eadc63383, ..\interops\localblast\LocalBLAST\LocalBLAST\LocalBLAST\Application\COG\Whog\Whog.vb"
 
-    ' Author:
-    ' 
-    '       asuka (amethyst.asuka@gcmodeller.org)
-    '       xieguigang (xie.guigang@live.com)
-    ' 
-    ' Copyright (c) 2016 GPL3 Licensed
-    ' 
-    ' 
-    ' GNU GENERAL PUBLIC LICENSE (GPL3)
-    ' 
-    ' This program is free software: you can redistribute it and/or modify
-    ' it under the terms of the GNU General Public License as published by
-    ' the Free Software Foundation, either version 3 of the License, or
-    ' (at your option) any later version.
-    ' 
-    ' This program is distributed in the hope that it will be useful,
-    ' but WITHOUT ANY WARRANTY; without even the implied warranty of
-    ' MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    ' GNU General Public License for more details.
-    ' 
-    ' You should have received a copy of the GNU General Public License
-    ' along with this program. If not, see <http://www.gnu.org/licenses/>.
+' Author:
+' 
+'       asuka (amethyst.asuka@gcmodeller.org)
+'       xieguigang (xie.guigang@live.com)
+'       xie (genetics@smrucc.org)
+' 
+' Copyright (c) 2016 GPL3 Licensed
+' 
+' 
+' GNU GENERAL PUBLIC LICENSE (GPL3)
+' 
+' This program is free software: you can redistribute it and/or modify
+' it under the terms of the GNU General Public License as published by
+' the Free Software Foundation, either version 3 of the License, or
+' (at your option) any later version.
+' 
+' This program is distributed in the hope that it will be useful,
+' but WITHOUT ANY WARRANTY; without even the implied warranty of
+' MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+' GNU General Public License for more details.
+' 
+' You should have received a copy of the GNU General Public License
+' along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #End Region
 
 Imports System.Text
-Imports System.Text.RegularExpressions
 Imports System.Xml.Serialization
+Imports Microsoft.VisualBasic.ComponentModel
+Imports Microsoft.VisualBasic.Language
+Imports SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.BLASTOutput
 
 Namespace LocalBLAST.Application.RpsBLAST.Whog
 
@@ -35,7 +38,9 @@ Namespace LocalBLAST.Application.RpsBLAST.Whog
     ''' Cog Category
     ''' </summary>
     ''' <remarks></remarks>
-    Public Class Whog : Inherits Microsoft.VisualBasic.ComponentModel.ITextFile
+    ''' 
+    <XmlType("NCBI.whog", [Namespace]:="ftp://ftp.ncbi.nih.gov/pub/COG/COG/whog")>
+    Public Class Whog : Inherits ITextFile
 
         <XmlElement> Public Property Categories As Category()
             Get
@@ -44,19 +49,19 @@ Namespace LocalBLAST.Application.RpsBLAST.Whog
             Set(value As Category())
                 _COGCategory = value
                 If value.IsNullOrEmpty Then
-                    _dictCategory = New Dictionary(Of String, Category)
+                    _categoryTable = New Dictionary(Of String, Category)
                 Else
-                    _dictCategory = value.ToDictionary(Function(x) x.CogId)
+                    _categoryTable = value.ToDictionary(Function(x) x.COG_id)
                 End If
             End Set
         End Property
 
         Dim _COGCategory As Category()
-        Dim _dictCategory As Dictionary(Of String, Category)
+        Dim _categoryTable As Dictionary(Of String, Category)
 
         Public Function FindByCogId(CogId As String) As Category
-            If _dictCategory.ContainsKey(CogId) Then
-                Return _dictCategory(CogId)
+            If _categoryTable.ContainsKey(CogId) Then
+                Return _categoryTable(CogId)
             Else
                 Return Nothing
             End If
@@ -66,13 +71,25 @@ Namespace LocalBLAST.Application.RpsBLAST.Whog
             Return path.LoadTextDoc(Of Whog)()
         End Operator
 
+        ''' <summary>
+        ''' 从Whog文本文件导入COG的分类数据，然后保存为XML文件
+        ''' </summary>
+        ''' <param name="path"></param>
+        ''' <returns></returns>
         Public Shared Function [Imports](path As String) As Whog
-            Dim tokens As String() = Strings.Split(FileIO.FileSystem.ReadAllText(path), vbLf & "_______" & vbLf & vbLf)
-            Dim LQuery = (From strToken As String In tokens.AsParallel
-                          Where Not String.IsNullOrEmpty(strToken)
-                          Let item As Category = Category.Parse(Trim(strToken))
-                          Select item
-                          Order By item.CogId).ToArray
+            Dim tokens As IEnumerable(Of String()) = path _
+                .ReadAllLines _
+                .Split("^[_]+$", True, RegexICMul) _
+                .ToArray
+            Dim LQuery = LinqAPI.Exec(Of Category) <=
+ _
+                From strToken As String()
+                In tokens
+                Where Not strToken.IsNullOrEmpty
+                Let cat As Category = Category.Parse(strToken)
+                Select cat
+                Order By cat.COG_id
+
             Return New Whog With {
                 .Categories = LQuery
             }
@@ -93,7 +110,7 @@ Namespace LocalBLAST.Application.RpsBLAST.Whog
 
         Private Function __assignInvoke(prot As MyvaCOG) As MyvaCOG
             If String.IsNullOrEmpty(prot.MyvaCOG) OrElse
-                String.Equals(prot.MyvaCOG, NCBI.Extensions.LocalBLAST.BLASTOutput.IBlastOutput.HITS_NOT_FOUND) Then
+                String.Equals(prot.MyvaCOG, IBlastOutput.HITS_NOT_FOUND) Then
                 Return prot '没有可以分类的数据
             End If
 
@@ -107,13 +124,19 @@ Namespace LocalBLAST.Application.RpsBLAST.Whog
                 Return prot
             End If
 
-            prot.COG = Cog.CogId
-            prot.Category = Cog.CategoryId
+            prot.COG = Cog.COG_id
+            prot.Category = Cog.Category
             prot.Description = Cog.Description
 
             Return prot
         End Function
 
+        ''' <summary>
+        ''' Save the whog data as XML
+        ''' </summary>
+        ''' <param name="FilePath"></param>
+        ''' <param name="Encoding"></param>
+        ''' <returns></returns>
         Public Overrides Function Save(Optional FilePath As String = "", Optional Encoding As Encoding = Nothing) As Boolean
             Return Me.GetXml.SaveTo(getPath(FilePath), getEncoding(Encoding))
         End Function
