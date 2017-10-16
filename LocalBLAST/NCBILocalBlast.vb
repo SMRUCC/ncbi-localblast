@@ -1,38 +1,38 @@
 ﻿#Region "Microsoft.VisualBasic::91ccd98e6376f21a9b0d5c9845c991fd, ..\localblast\LocalBLAST\NCBILocalBlast.vb"
 
-    ' Author:
-    ' 
-    '       asuka (amethyst.asuka@gcmodeller.org)
-    '       xieguigang (xie.guigang@live.com)
-    '       xie (genetics@smrucc.org)
-    ' 
-    ' Copyright (c) 2016 GPL3 Licensed
-    ' 
-    ' 
-    ' GNU GENERAL PUBLIC LICENSE (GPL3)
-    ' 
-    ' This program is free software: you can redistribute it and/or modify
-    ' it under the terms of the GNU General Public License as published by
-    ' the Free Software Foundation, either version 3 of the License, or
-    ' (at your option) any later version.
-    ' 
-    ' This program is distributed in the hope that it will be useful,
-    ' but WITHOUT ANY WARRANTY; without even the implied warranty of
-    ' MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    ' GNU General Public License for more details.
-    ' 
-    ' You should have received a copy of the GNU General Public License
-    ' along with this program. If not, see <http://www.gnu.org/licenses/>.
+' Author:
+' 
+'       asuka (amethyst.asuka@gcmodeller.org)
+'       xieguigang (xie.guigang@live.com)
+'       xie (genetics@smrucc.org)
+' 
+' Copyright (c) 2016 GPL3 Licensed
+' 
+' 
+' GNU GENERAL PUBLIC LICENSE (GPL3)
+' 
+' This program is free software: you can redistribute it and/or modify
+' it under the terms of the GNU General Public License as published by
+' the Free Software Foundation, either version 3 of the License, or
+' (at your option) any later version.
+' 
+' This program is distributed in the hope that it will be useful,
+' but WITHOUT ANY WARRANTY; without even the implied warranty of
+' MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+' GNU General Public License for more details.
+' 
+' You should have received a copy of the GNU General Public License
+' along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #End Region
 
 Imports System.Runtime.CompilerServices
-Imports System.Text.RegularExpressions
 Imports Microsoft.VisualBasic.CommandLine.Reflection
 Imports Microsoft.VisualBasic.Data.csv
 Imports Microsoft.VisualBasic.Data.csv.Extensions
 Imports Microsoft.VisualBasic.Language
 Imports Microsoft.VisualBasic.Parallel.Threads
+Imports Microsoft.VisualBasic.Scripting
 Imports Microsoft.VisualBasic.Scripting.MetaData
 Imports Microsoft.VisualBasic.Text
 Imports SMRUCC.genomics.Assembly.Expasy.AnnotationsTool
@@ -348,13 +348,13 @@ Public Module NCBILocalBlast
 
     <ExportAPI("Grep.Query")>
     Public Function GrepQuery(blast_output As BlastPlus.v228, script As TextGrepScriptEngine) As BlastPlus.v228
-        Call blast_output.Grep(script.Method, Nothing)
+        Call blast_output.Grep(script.PipelinePointer, Nothing)
         Return blast_output
     End Function
 
     <ExportAPI("Grep.Hits")>
     Public Function Grephits(blast_output As BlastPlus.v228, script As TextGrepScriptEngine) As BlastPlus.v228
-        Call blast_output.Grep(Nothing, script.Method)
+        Call blast_output.Grep(Nothing, script.PipelinePointer)
         Return blast_output
     End Function
 
@@ -427,7 +427,7 @@ Public Module NCBILocalBlast
 
     <ExportAPI("Create.Myva_COG", Info:="blast_output parameter is the original blast output file path.")>
     Public Function MyvaCogClassify(blast_output As String, query_grep As String, Whog_Xml As String) As MyvaCOG()
-        Dim textEngine = TextGrepScriptEngine.Compile(query_grep).Method
+        Dim textEngine = TextGrepScriptEngine.Compile(query_grep).PipelinePointer
         Return COGsUtils.MyvaCOGCatalog(blast_output, Whog_Xml,,, textEngine)
     End Function
 End Module
