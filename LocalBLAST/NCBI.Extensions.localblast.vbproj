@@ -289,7 +289,7 @@
     <Compile Include="LocalBLAST\BlastOutput\Common\Parameter.vb" />
     <Compile Include="LocalBLAST\BlastOutput\Common\Score.vb" />
     <Compile Include="LocalBLAST\BlastOutput\Reader\Blast+\Models\Query.vb" />
-    <Compile Include="LocalBLAST\BlastOutput\Reader\Blast+\2.6.0+\v228.vb" />
+    <Compile Include="LocalBLAST\BlastOutput\Reader\Blast+\Models\v228.vb" />
     <Compile Include="LocalBLAST\BlastOutput\Common\Segment.vb" />
     <Compile Include="LocalBLAST\BlastOutput\Xml\BlastOutput.vb" />
     <Compile Include="LocalBLAST\BlastOutput\Xml\BireHits.vb" />
