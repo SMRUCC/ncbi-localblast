@@ -85,7 +85,7 @@ Namespace LocalBLAST.BLASTOutput.BlastPlus
         ''' <returns></returns>
         ''' <remarks>请不要在这里使用.AsParallel拓展方法，以保持各个片段的顺序关系</remarks>
         Public Shared Function GetItems(text As String) As SubjectHit()
-            If InStr(text, NO_HITS_FOUND) Then
+            If InStr(text, NO_HITS_FOUND) > 0 Then
                 Return New SubjectHit() {}
             End If
 
