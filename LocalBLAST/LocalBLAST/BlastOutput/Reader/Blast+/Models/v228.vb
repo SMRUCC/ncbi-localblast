@@ -73,7 +73,7 @@ Namespace LocalBLAST.BLASTOutput.BlastPlus
         <XmlElement> Public Property Queries As Query()
         <XmlElement> Public Property ParameterSummary As ParameterSummary
 
-        Public Overrides Function Save(Optional FilePath As String = "", Optional Encoding As Encoding = Nothing) As Boolean
+        Public Function Save(FilePath As String, Optional Encoding As Encoding = Nothing) As Boolean
             Return Me.GetXml.SaveTo(FilePath, Encoding)
         End Function
 
@@ -234,7 +234,7 @@ Namespace LocalBLAST.BLASTOutput.BlastPlus
             Return LQuery
         End Function
 
-        Shared ReadOnly tokenFirst As New DefaultValue(Of TextGrepMethod)(Function(hitName) hitName.Split.First)
+        Shared ReadOnly tokenFirst As New [Default](Of  TextGrepMethod)(Function(hitName) hitName.Split.First)
 
         Public Shared Function ExportBesthits(QueryName$, QueryLength%, Besthits As SubjectHit(), Optional grepHitId As TextGrepMethod = Nothing) As BestHit()
             Dim locusID$ = QueryName.Split.First
