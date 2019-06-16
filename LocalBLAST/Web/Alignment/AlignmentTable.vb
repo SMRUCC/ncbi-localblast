@@ -56,7 +56,7 @@ Imports Microsoft.VisualBasic.Linq
 Imports Microsoft.VisualBasic.Text
 Imports SMRUCC.genomics.Assembly.NCBI.GenBank.CsvExports
 
-Namespace NCBIBlastResult
+Namespace NCBIBlastResult.WebBlast
 
     Public Class AlignmentTable : Implements Enumeration(Of HitRecord)
 

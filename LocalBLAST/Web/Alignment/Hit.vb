@@ -51,7 +51,7 @@ Imports System.Xml.Serialization
 Imports Microsoft.VisualBasic.Data.csv.StorageProvider.Reflection
 Imports Microsoft.VisualBasic.Language
 
-Namespace NCBIBlastResult
+Namespace NCBIBlastResult.WebBlast
 
     ''' <summary>
     ''' 在目标基因组之上的blast hit的结果
@@ -180,34 +180,6 @@ Namespace NCBIBlastResult
             Else
                 Return String.Format("[{0}, {1}]   ===> {2}", QueryStart, QueryEnd, SubjectIDs)
             End If
-        End Function
-
-        ''' <summary>
-        ''' Document line parser
-        ''' </summary>
-        ''' <param name="s"></param>
-        ''' <returns></returns>
-        Public Shared Function Mapper(s As String) As HitRecord
-            Dim tokens As String() = Strings.Split(s, vbTab)
-            Dim i As VBInteger = Scan0
-            Dim hit As New HitRecord With {
-                .QueryID = tokens(++i),
-                .SubjectIDs = tokens(++i),
-                .QueryAccVer = tokens(++i),
-                .SubjectAccVer = tokens(++i),
-                .Identity = Val(tokens(++i)),
-                .AlignmentLength = Val(tokens(++i)),
-                .MisMatches = Val(tokens(++i)),
-                .GapOpens = Val(tokens(++i)),
-                .QueryStart = Val(tokens(++i)),
-                .QueryEnd = Val(tokens(++i)),
-                .SubjectStart = Val(tokens(++i)),
-                .SubjectEnd = Val(tokens(++i)),
-                .EValue = Val(tokens(++i)),
-                .BitScore = Val(tokens(++i))
-            }
-
-            Return hit
         End Function
 
         Public Shared Iterator Function TopBest(raw As IEnumerable(Of HitRecord)) As IEnumerable(Of HitRecord)

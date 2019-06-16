@@ -373,6 +373,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <Compile Include="Web\Alignment\AlignmentTable.vb" />
+    <Compile Include="Web\Alignment\HitTableParser.vb" />
     <Compile Include="Web\Alignment\NamespaceDoc.vb" />
     <Compile Include="Web\MetaAPI.vb" />
     <Compile Include="Web\SBH_Tabular.vb" />
