@@ -81,7 +81,7 @@ Partial Module CLI
     ''' <param name="args"></param>
     ''' <returns></returns>
     <ExportAPI("/UniProt.KO.faa")>
-    <Usage("/UniProt.KO.faa /in <uniprot.xml> [/out <proteins.faa>]")>
+    <Usage("/UniProt.KO.faa /in <uniprot.xml> [/lineBreak <default=120> /out <proteins.faa>]")>
     <Description("Export all of the protein sequence from the Uniprot database which have KO number been assigned.")>
     <Argument("/in", False, CLITypes.File, PipelineTypes.std_in,
               Extensions:="*.Xml",
@@ -95,6 +95,7 @@ Partial Module CLI
         Dim in$ = args <= "/in"
         Dim out$ = args("/out") Or $"{[in].TrimSuffix}.KO.faa"
         Dim i As VBInteger = 0
+        Dim lineBreak As Integer = args("/lineBreak") Or 120
 
         Using writer As StreamWriter = out.OpenWriter(Encodings.ASCII)
             Dim source As IEnumerable(Of UniProtEntry) = UniProtXML.EnumerateEntries(path:=[in])
@@ -112,7 +113,7 @@ Partial Module CLI
                     .Headers = {KO.id, prot.accessions.First & " " & prot.proteinFullName, prot.organism.scientificName}
                 }
 
-                Call writer.WriteLine(fa.GenerateDocument(120))
+                Call writer.WriteLine(fa.GenerateDocument(lineBreak))
 
                 If ++i Mod 100 = 0 Then
                     Console.Write(i)
