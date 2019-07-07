@@ -43,9 +43,65 @@ Namespace Pipeline
         ''' <returns></returns>
         Public Iterator Function KOassignmentBBH(drf As BestHit(), drr As BestHit()) As IEnumerable(Of BiDirectionalBesthit)
             Dim drfBesthits = drf.pickDrfBesthit.ToDictionary(Function(q) q.Name)
+            Dim bbh As New List(Of (forward As BestHit, reverse As BestHit))
+            Dim KO1, KO2 As String
 
             For Each query In drr.populateHitGroup
+                ' [queryName => [KO => alignment]]
+                Dim forwards = drfBesthits.TryGetValue(query.Name)
+                Dim forwardTaxonomy = forwards.Value
 
+                ' current query have no bbh result
+                If forwardTaxonomy.IsNullOrEmpty Then
+                    Continue For
+                End If
+
+                bbh *= 0
+
+                ' get bbh result in each taxonomy result
+                For Each taxonomy In query.Value
+                    If forwardTaxonomy.ContainsKey(taxonomy.Key) Then
+                        KO1 = forwardTaxonomy(taxonomy.Key).HitName.Split("|"c).First
+                        KO2 = taxonomy.Value.QueryName.Split("|"c).First
+
+                        If KO1 = KO2 Then
+                            ' is a bbh result
+                            bbh += (forwardTaxonomy(taxonomy.Key), taxonomy.Value)
+                        End If
+                    End If
+                Next
+
+                If bbh = 0 Then
+                    ' current query have no bbh result
+                    Continue For
+                End If
+
+                ' get top KO supports result
+                Dim topSupportsKO = bbh _
+                    .GroupBy(Function(b)
+                                 Return b.forward.HitName.Split("|"c).First
+                             End Function) _
+                    .OrderByDescending(Function(a) a.Count) _
+                    .First
+                ' and then get the top score hits
+                Dim topScoreAlignment = topSupportsKO _
+                    .OrderByDescending(Function(b)
+                                           Return Math.Min(b.forward.Score, b.reverse.Score)
+                                       End Function) _
+                    .First
+
+                ' finally
+                ' we can returns the new bbh result of current query
+                Yield New BiDirectionalBesthit With {
+                    .QueryName = query.Name,
+                    .HitName = topScoreAlignment.forward.HitName.Split("|"c).First,
+                    .Description = topScoreAlignment.forward.HitName,
+                    .COG = .HitName,
+                    .forward = topScoreAlignment.forward.identities,
+                    .reverse = topScoreAlignment.reverse.identities,
+                    .Length = topScoreAlignment.forward.query_length,
+                    .Positive = (topScoreAlignment.forward.Positive + topScoreAlignment.reverse.Positive) / 2
+                }
             Next
         End Function
 
