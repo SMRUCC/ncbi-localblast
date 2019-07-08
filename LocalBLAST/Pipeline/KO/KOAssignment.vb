@@ -48,7 +48,8 @@ Namespace Pipeline
 
             For Each query In drr.populateHitGroup
                 ' [queryName => [taxonomy => alignment]]
-                Dim forwards = drfBesthits.TryGetValue(query.Name)
+                Dim queryName = query.Name.Split.First
+                Dim forwards = drfBesthits.TryGetValue(queryName)
                 Dim forwardTaxonomy = forwards.Value
 
                 ' current query have no bbh result
