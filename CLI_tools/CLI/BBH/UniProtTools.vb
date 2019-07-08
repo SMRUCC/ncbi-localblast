@@ -43,6 +43,7 @@ Imports System.ComponentModel
 Imports System.IO
 Imports Microsoft.VisualBasic.CommandLine
 Imports Microsoft.VisualBasic.CommandLine.Reflection
+Imports Microsoft.VisualBasic.ComponentModel.DataSourceModel
 Imports Microsoft.VisualBasic.Data.csv
 Imports Microsoft.VisualBasic.Language
 Imports Microsoft.VisualBasic.Text
@@ -248,8 +249,18 @@ Partial Module CLI
             out = args("/out") Or $"{[in].TrimSuffix}.KO.csv"
         End If
 
-        Dim queryVsUniprot As BestHit() = [in].LoadCsv(Of BestHit).ToArray
-        Dim uniprotVsquery As BestHit() = bbh.LoadCsv(Of BestHit).ToArray
+        Dim skipHitNotFound As New NamedValue(Of Func(Of String, Boolean)) With {
+            .Name = "hit_name",
+            .Value = Function(colVal)
+                         ' 将所有的HITS_NOT_FOUND的行都跳过
+                         ' 这样子可以节省比较多的内存
+                         Return colVal = "HITS_NOT_FOUND"
+                     End Function
+        }
+        Dim queryVsUniprot As BestHit() = [in].LoadCsv(Of BestHit)(skipWhile:=skipHitNotFound).ToArray
+        Dim uniprotVsquery As BestHit() = bbh _
+            .LoadCsv(Of BestHit)(skipWhile:=skipHitNotFound) _
+            .ToArray
 
         ' 在这里主要是完成对标题的解析操作
         ' 然后导出其他的命令能够识别得了的数据格式
