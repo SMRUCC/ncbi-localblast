@@ -192,7 +192,7 @@ Partial Module CLI
               AcceptTypes:={GetType(String)},
               Description:="The blastp raw result input file path.")>
     <Group(CLIGrouping.BBHTools)>
-    Public Function ExportBBHLarge(args As CommandLine) As Integer
+    Public Function ExportSBHLargeSize(args As CommandLine) As Integer
         Dim inFile As String = args("/in")
         Dim out As String
         Dim issPlit As Boolean = args("/split")
