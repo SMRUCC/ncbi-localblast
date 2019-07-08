@@ -233,7 +233,8 @@ Partial Module CLI
               AcceptTypes:={GetType(BestHit)},
               Extensions:="*.csv",
               Description:="If this argument is presents in the cli input, then it means we use the bbh method for assign the KO number to query. 
-              Both ``/in`` and ``/bbh`` is not top best selection output.")>
+              Both ``/in`` and ``/bbh`` is not top best selection output. The input file for this argument should be the result of ``/SBH.Export.Large``
+              command, and ``/keeps_raw.queryName`` option should be enabled for keeps the taxonomy information.")>
     <Argument("/out", True, CLITypes.File, PipelineTypes.std_out,
               AcceptTypes:={},
               Extensions:="*.csv",
