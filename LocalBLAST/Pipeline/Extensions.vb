@@ -1,4 +1,4 @@
-﻿#Region "Microsoft.VisualBasic::7005feb220f2d35828bdd83588b752fb, assembler\Expression.vb"
+﻿#Region "Microsoft.VisualBasic::05f27729909fedbae107245ad9b29a38, LocalBLAST\Pipeline\Extensions.vb"
 
     ' Author:
     ' 
@@ -31,25 +31,34 @@
 
     ' Summaries:
 
-    ' Module Expression
+    '     Module Extensions
     ' 
-    '     Function: Measure
+    '         Function: SkipHitNotFound
+    ' 
     ' 
     ' /********************************************************************************/
 
 #End Region
 
-Imports System.Runtime.CompilerServices
-Imports SMRUCC.genomics.Assembly.NCBI.GenBank.TabularFormat.GFF
-Imports SMRUCC.genomics.Interops.NCBI.Extensions.LocalBLAST.Application.NtMapping
+Imports Microsoft.VisualBasic.ComponentModel.DataSourceModel
 
-''' <summary>
-''' 通过blastn结果进行mRNA测序结果的表达量估算
-''' </summary>
-Public Module Expression
+Namespace Pipeline
 
-    <Extension>
-    Public Function Measure(reads As IEnumerable(Of BlastnMapping), context As GFFTable) As Dictionary(Of String, Integer)
+    <HideModuleName> Public Module Extensions
 
-    End Function
-End Module
+        ''' <summary>
+        ''' 在反序列化之前，使用这个过滤器过滤掉一些无效的hits来节省反序列的处理时间
+        ''' </summary>
+        ''' <returns></returns>
+        Public Function SkipHitNotFound() As NamedValue(Of Func(Of String, Boolean))
+            Return New NamedValue(Of Func(Of String, Boolean)) With {
+                .Name = "hit_name",
+                .Value = Function(colVal)
+                             ' 将所有的HITS_NOT_FOUND的行都跳过
+                             ' 这样子可以节省比较多的内存
+                             Return colVal = "HITS_NOT_FOUND"
+                         End Function
+            }
+        End Function
+    End Module
+End Namespace
